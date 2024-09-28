@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
+import '../style/sampleButton.css';
 
-const DraggableButton = ({ id, handleDragStart, sample }) => {
+const SampleButton = ({ id, handleDragStart, sample }) => {
   const [audioContext, setAudioContext] = useState(null);
   const [audioBuffer, setAudioBuffer] = useState(null);
 
@@ -56,17 +57,21 @@ const DraggableButton = ({ id, handleDragStart, sample }) => {
     }
   };
 
+  const handleDropped = (sample) => {
+    console.log('dropped', sample)
+  }
   return (
     <button
+      key={id}
       draggable
-      onDragStart={(e) => handleDragStart(e, id)}
-      onDragEnd={() => console.log('dropped')}
+      onDragStart={(e) => handleDragStart(e, sample)}
+      onDragEnd={() => handleDropped(sample)}
       onClick={playAudio} // Play audio when the button is clicked
-      className="draggable-btn"
+      className="sample-btn"
     >
       {sample.filename} {id}
     </button>
   );
 };
 
-export default DraggableButton;
+export default SampleButton;

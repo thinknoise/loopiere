@@ -1,0 +1,13 @@
+.button-container {
+  margin: 20px;
+}
+
+.sample-btn {
+  margin: 5px;
+  padding: 10px 20px 10px 20px;
+  border-radius: 15px;
+  background-color: rgba(28, 92, 151, 0.8);
+  border: none;
+  cursor: grab;
+}
+

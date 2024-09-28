@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import DraggableButton from './components/DraggableButton';
+import SampleButton from './components/SampleButton';
+import Track from './components/Tracks';
 import './style/App.css'; // Add your own styles or use inline styles
 
 
 async function fetchAudioData() {
-  const url = 'samples.json'; 
+  const url = 'samples.json';
 
   try {
     const response = await fetch(url, {
@@ -26,22 +27,9 @@ async function fetchAudioData() {
   }
 }
 
-
-const DropZone = ({ handleDrop, handleDragOver }) => {
-  return (
-    <div
-      className="drop-zone"
-      onDrop={(e) => handleDrop(e)}
-      onDragOver={(e) => handleDragOver(e)}
-    >
-      Drop Buttons Here
-    </div>
-  );
-};
-
 const App = () => {
   const [buttons, setButtons] = useState([]);
-  const [draggedButtonId, setDraggedButtonId] = useState(null);
+  const [sampleSellected, setSampleSellected] = useState(null);
 
   const spawnButton = () => {
     fetchAudioData().then((data) => {
@@ -54,30 +42,45 @@ const App = () => {
       console.error('Error fetching or setting buttons:', error);
     });
   };
-  
-  const handleDragStart = (e, id) => {
-    setDraggedButtonId(id);
+
+  const generateTracks = (trackNumber) => {
+    return Array.from({ length: trackNumber }, (_, index) => ({
+      id: index + 1,
+      name: `Track ${index}`,
+      event: []
+    }));
   };
 
-  const handleDrop = (e) => {
-    e.preventDefault();
-    console.log(`Dropped Button ${draggedButtonId}`);
-  };
+  // 4 tracks TODO; make dynamic
+  const trackNumber = 4;
+  const tracks = generateTracks(trackNumber);
 
-  const handleDragOver = (e) => {
-    e.preventDefault();
+  // sample that is being dragged
+  const handleDragStart = (e, sample) => {
+    console.log('start', e.target, sample)
+    setSampleSellected(sample);
   };
 
   return (
     <div className="App">
       <h1>Loopiere</h1>
+      {tracks.map((track, index) => (
+        <Track 
+          trackInfo={track} 
+          sample={sampleSellected} 
+          />
+      ))}
       <button onClick={spawnButton}>Spawn Button</button>
       <div className="button-container">
         {buttons.map((sample, index) => (
-          <DraggableButton key={index} id={index} sample={sample} handleDragStart={handleDragStart} />
+          <SampleButton 
+            key={index} 
+            id={index} 
+            sample={sample} 
+            handleDragStart={handleDragStart}
+          />
         ))}
       </div>
-      <DropZone handleDrop={handleDrop} handleDragOver={handleDragOver} />
     </div>
   );
 };
