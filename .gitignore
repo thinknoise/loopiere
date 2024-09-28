@@ -11,6 +11,9 @@
 # production
 /build
 
+# Ignore a custom folder
+/samples/
+
 # misc
 .DS_Store
 .env.local
