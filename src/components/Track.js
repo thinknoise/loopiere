@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import '../style/track.css'
+import SampleButton from './SampleButton';
+import '../style/track.css';
 
-const Track = ({ trackInfo, sample }) => {
+const Track = ({ trackInfo, sample, handleDragStart }) => {
   const [samplesOnTrack, setSamplesOnTrack] = useState([]);
 
   const handleDragOver = (e) => {
@@ -10,11 +11,11 @@ const Track = ({ trackInfo, sample }) => {
 
   const handleDrop = (e) => {
     e.preventDefault();
-    
+
     // If there is a selected sample, add it to the track
     if (sample) {
       setSamplesOnTrack((prevSamples) => [...prevSamples, sample]);
-      console.log(`Dropped Sample ${sample.filename} on Track ${trackInfo.name}`);
+      console.log(`Dropped Sample ${samplesOnTrack}`);
     }
   };
 
@@ -24,13 +25,24 @@ const Track = ({ trackInfo, sample }) => {
       onDrop={handleDrop}
       onDragOver={handleDragOver}
     >
-      <h4>{trackInfo.name}</h4>
-      {/* Display the samples that were dropped on this track */}
-      <div>
-        {samplesOnTrack.map((s, index) => (
-          <div key={index}>Sample: {s.filename}</div>
-        ))}
-      </div>
+      <span className='track-name'>{trackInfo.name}</span>
+      {samplesOnTrack.map((sampleInfo, index) => (
+        <div
+          key={index}
+          className='sample-btn track-sample-btn'
+          style={{
+            left: `${index * 160}px` // Programmatically set the left position (e.g., 60px apart)
+          }}
+        >
+          <SampleButton 
+            key={index} 
+            id={index} 
+            sample={sample}
+            btnClass='track-sample-btn'
+            handleDragStart={handleDragStart}
+          />
+        </div>
+      ))}
     </div>
   );
 };

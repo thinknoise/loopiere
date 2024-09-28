@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import '../style/sampleButton.css';
 
-const SampleButton = ({ id, handleDragStart, sample }) => {
+const SampleButton = ({ id, handleDragStart, sample, btnClass }) => {
   const [audioContext, setAudioContext] = useState(null);
   const [audioBuffer, setAudioBuffer] = useState(null);
 
@@ -13,7 +13,7 @@ const SampleButton = ({ id, handleDragStart, sample }) => {
     // Full path including the prepended URL
     const fullPath = `./samples/${sample.path}`;
 
-    console.log('Fetching audio from:', fullPath);
+    // console.log('Fetching audio from:', fullPath);
 
     // Load the audio file from the prepended path
     const loadAudio = async () => {
@@ -58,7 +58,7 @@ const SampleButton = ({ id, handleDragStart, sample }) => {
   };
 
   const handleDropped = (sample) => {
-    console.log('dropped', sample)
+    // console.log('dropped', sample)
   }
   return (
     <button
@@ -66,8 +66,8 @@ const SampleButton = ({ id, handleDragStart, sample }) => {
       draggable
       onDragStart={(e) => handleDragStart(e, sample)}
       onDragEnd={() => handleDropped(sample)}
-      onClick={playAudio} // Play audio when the button is clicked
-      className="sample-btn"
+      onMouseDown={playAudio} // Play audio when the button is clicked
+      className={`sample-btn ${btnClass}`}
     >
       {sample.filename} {id}
     </button>

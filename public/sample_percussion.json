@@ -1,0 +1,86 @@
+[
+  {
+    "filename": "bongo-hi-edge.wav",
+    "path": "./percussion/bongo-hi-edge.wav"
+  },
+  {
+    "filename": "bongo-hi-hrd.wav",
+    "path": "./percussion/bongo-hi-hrd.wav"
+  },
+  {
+    "filename": "bongo-lo-hrd.wav",
+    "path": "./percussion/bongo-lo-hrd.wav"
+  },
+  {
+    "filename": "bongo-triplet.wav",
+    "path": "./percussion/bongo-triplet.wav"
+  },
+  {
+    "filename": "caxixi-1.wav",
+    "path": "./percussion/caxixi-1.wav"
+  },
+  {
+    "filename": "caxixi-2.wav",
+    "path": "./percussion/caxixi-2.wav"
+  },
+  {
+    "filename": "caxixi-3.wav",
+    "path": "./percussion/caxixi-3.wav"
+  },
+  {
+    "filename": "cowbell.wav",
+    "path": "./percussion/cowbell.wav"
+  },
+  {
+    "filename": "doumbek-edge-hard.wav",
+    "path": "./percussion/doumbek-edge-hard.wav"
+  },
+  {
+    "filename": "doumbek-finger-edge.wav",
+    "path": "./percussion/doumbek-finger-edge.wav"
+  },
+  {
+    "filename": "doumbek-hand.wav",
+    "path": "./percussion/doumbek-hand.wav"
+  },
+  {
+    "filename": "doumbek-thumbslap.wav",
+    "path": "./percussion/doumbek-thumbslap.wav"
+  },
+  {
+    "filename": "doumbek-triplet.wav",
+    "path": "./percussion/doumbek-triplet.wav"
+  },
+  {
+    "filename": "jam-block-hi.wav",
+    "path": "./percussion/jam-block-hi.wav"
+  },
+  {
+    "filename": "jam-block-lo.wav",
+    "path": "./percussion/jam-block-lo.wav"
+  },
+  {
+    "filename": "keralan-large.wav",
+    "path": "./percussion/keralan-large.wav"
+  },
+  {
+    "filename": "keralan-small.wav",
+    "path": "./percussion/keralan-small.wav"
+  },
+  {
+    "filename": "ping.wav",
+    "path": "./percussion/ping.wav"
+  },
+  {
+    "filename": "tamb-hit.wav",
+    "path": "./percussion/tamb-hit.wav"
+  },
+  {
+    "filename": "tamb-shake.wav",
+    "path": "./percussion/tamb-shake.wav"
+  },
+  {
+    "filename": "waterchime-bowl.wav",
+    "path": "./percussion/waterchime-bowl.wav"
+  }
+]

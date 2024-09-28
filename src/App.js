@@ -3,8 +3,8 @@ import SampleButton from './components/SampleButton';
 import Track from './components/Track';
 import './style/App.css';
 
-async function fetchAudioData() {
-  const url = 'samples.json';
+async function fetchAudioData(filename) {
+  const url = filename ? filename : 'samples.json';
 
   try {
     const response = await fetch(url, {
@@ -30,8 +30,8 @@ const App = () => {
   const [buttons, setButtons] = useState([]);
   const [sampleSellected, setSampleSellected] = useState(null);
 
-  const spawnButton = () => {
-    fetchAudioData().then((data) => {
+  const spawnButton = (filename) => {
+    fetchAudioData(filename).then((data) => {
       if (data) {
         setButtons(data); // Set buttons state to the fetched data
         console.log('Audio JSON:', data, buttons);
@@ -52,34 +52,32 @@ const App = () => {
   const trackNumber = 4;
   const tracks = generateTracks(trackNumber);
 
-  // Handle when a sample is dragged
   const handleDragStart = (e, sample) => {
-    setSampleSellected(sample); // Set the selected sample
+    setSampleSellected(sample);
   };
 
   return (
     <div className="App">
       <h1>Loopiere</h1>
-      
-      {/* Render Tracks */}
+
       {tracks.map((track, index) => (
         <Track 
           key={index}
           trackInfo={track} 
-          sample={sampleSellected}  // Pass the selected sample to each track
-        />
+          sample={sampleSellected}
+          handleDragStart={handleDragStart}
+          />
       ))}
       
-      <button onClick={spawnButton}>Spawn Button</button>
-      
-      {/* Render Sample Buttons */}
+      <button onClick={() => spawnButton('samples.json')}>New Bank Button</button>
+      <button onClick={() => spawnButton('sample_percussion.json')}>sample_drums Bank Button</button>
       <div className="button-container">
         {buttons.map((sample, index) => (
           <SampleButton 
             key={index} 
             id={index} 
             sample={sample} 
-            handleDragStart={handleDragStart}  // Pass sample and drag handler
+            handleDragStart={handleDragStart}
           />
         ))}
       </div>
