@@ -1,43 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SampleButton from './SampleButton';
 import '../style/track.css';
 
 const Track = ({ trackInfo, sample, handleDragStart }) => {
-  const [samplesOnTrack, setSamplesOnTrack] = useState([]);
+  const [samplesDroppedOnTrack, setSamplesDroppedOnTrack] = useState([]);
 
   const handleDragOver = (e) => {
     e.preventDefault(); // Allows drop event to occur
   };
 
-  const handleDrop = (e) => {
+  const handleDrop = (e, droppedSample) => {
     e.preventDefault();
+  
+    // Get the drop area's bounding rectangle
+    const dropArea = e.currentTarget.getBoundingClientRect();
+    const elementRect = e.currentTarget.getBoundingClientRect();
+    console.log(elementRect)
+    // Get the mouse position relative to the viewport
+    const mouseX = e.clientX;
+    
+    // Calculate the mouse position relative to the drop area
+    const relativeX = mouseX - dropArea.left;
+      // If there is a selected sample, add it to the track
+    if (droppedSample) {
 
-    // If there is a selected sample, add it to the track
-    if (sample) {
-      setSamplesOnTrack((prevSamples) => [...prevSamples, sample]);
-      console.log(`Dropped Sample ${samplesOnTrack}`);
+      // adding to dropped sample array object (fix later
+      droppedSample['xPos'] = Math.round(relativeX);
+      setSamplesDroppedOnTrack((prevSamples) => [...prevSamples, droppedSample]);
+      // console.log(`Dropped Sample:`, droppedSample, `at position ${relativeX}`);
     }
   };
-
+  
   return (
     <div
       className="track drop-zone"
-      onDrop={handleDrop}
+      onDrop={(e) => handleDrop(e, sample)}
       onDragOver={handleDragOver}
     >
       <span className='track-name'>{trackInfo.name}</span>
-      {samplesOnTrack.map((sampleInfo, index) => (
+      {samplesDroppedOnTrack.map((sampleInfo, index) => (
         <div
           key={index}
           className='sample-btn track-sample-btn'
           style={{
-            left: `${index * 160}px` // Programmatically set the left position (e.g., 60px apart)
+            left: `${sampleInfo.xPos}px`
           }}
         >
           <SampleButton 
             key={index} 
             id={index} 
-            sample={sample}
+            sample={sampleInfo}
             btnClass='track-sample-btn'
             handleDragStart={handleDragStart}
           />

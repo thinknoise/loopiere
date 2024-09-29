@@ -66,7 +66,7 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass }) => {
       draggable
       onDragStart={(e) => handleDragStart(e, sample)}
       onDragEnd={() => handleDropped(sample)}
-      onMouseDown={playAudio} // Play audio when the button is clicked
+      onClick={playAudio} // Play audio when the button is clicked
       className={`sample-btn ${btnClass}`}
     >
       {sample.filename} {id}

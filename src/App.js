@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SampleButton from './components/SampleButton';
 import Track from './components/Track';
 import './style/App.css';
@@ -29,6 +29,27 @@ async function fetchAudioData(filename) {
 const App = () => {
   const [buttons, setButtons] = useState([]);
   const [sampleSellected, setSampleSellected] = useState(null);
+
+  useEffect(() => {
+    // This will log the updated value whenever samplesDroppedOnTrack changes
+    console.log('sample Sellected:', sampleSellected);
+  }, [sampleSellected]);
+
+  
+  const banks = [
+    {
+      name: "basic",
+      filename: "samples.json",
+    },
+    {
+      name: 'percussion',
+      filename: 'sample_percussion.json',
+    },
+    {
+      name: 'loops',
+      filename: 'sample_loops_etc.json',
+    }
+  ]
 
   const spawnButton = (filename) => {
     fetchAudioData(filename).then((data) => {
@@ -61,22 +82,29 @@ const App = () => {
       <h1>Loopiere</h1>
 
       {tracks.map((track, index) => (
-        <Track 
+        <Track
           key={index}
-          trackInfo={track} 
+          trackInfo={track}
           sample={sampleSellected}
           handleDragStart={handleDragStart}
-          />
+        />
       ))}
-      
-      <button onClick={() => spawnButton('samples.json')}>New Bank Button</button>
-      <button onClick={() => spawnButton('sample_percussion.json')}>sample_drums Bank Button</button>
+
+      {banks.map((bank, index) => (
+        <button 
+          key={'bank' + index}
+          onClick={() => spawnButton(bank.filename)}
+        >
+          {bank.name}
+        </button>
+      ))}
+
       <div className="button-container">
         {buttons.map((sample, index) => (
-          <SampleButton 
-            key={index} 
-            id={index} 
-            sample={sample} 
+          <SampleButton
+            key={index}
+            id={index}
+            sample={sample}
             handleDragStart={handleDragStart}
           />
         ))}
