@@ -22,6 +22,11 @@
   color: #fff;
 }
 
+.on-track {
+  position: absolute;
+  top: -1px;
+}
+
 .track-sample-btn {
   padding: 8px;
   text-wrap: nowrap;

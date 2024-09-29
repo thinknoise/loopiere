@@ -39,7 +39,7 @@ const Track = ({ trackInfo, sample, handleDragStart }) => {
       {samplesDroppedOnTrack.map((sampleInfo, index) => (
         <div
           key={index}
-          className='sample-btn track-sample-btn'
+          className='on-track'
           style={{
             left: `${sampleInfo.xPos}px`
           }}
