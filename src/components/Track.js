@@ -7,10 +7,6 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => 
 
   const handleDragOver = (e) => {
     e.preventDefault(); // Allows drop event to occur
-    const targetRect = e.currentTarget.getBoundingClientRect();
-
-    // need to set the x of the dragging item
-    console.log(targetRect.top, e.clientY)
   };
 
   const handleDrop = (e, droppedSample) => {
@@ -22,8 +18,15 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => 
 
     // If there is a selected sample, add it to the track
     if (droppedSample) {
-      droppedSample.xPos = Math.round(relativeX - droppedSample.xDragOffset); 
-      setSamplesDroppedOnTrack((prevSamples) => [...prevSamples, droppedSample]);
+      const newSample = {
+        ...droppedSample,
+        id: samplesDroppedOnTrack.length + 1,
+        trackId: trackInfo.id,
+        xPos: Math.round(relativeX - droppedSample.xDragOffset),
+      };
+
+      // Update the state with the new sample
+      setSamplesDroppedOnTrack((prevSamples) => [...prevSamples, newSample]); // This line adds the new sample without overwriting the old ones
     }
   };
 
@@ -35,23 +38,15 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => 
       onDragOver={handleDragOver}
     >
       <div className="middle-line" />
-      <span className='track-name'>{trackInfo.name}</span>
+      <span className="track-name">{trackInfo.name}</span>
       {samplesDroppedOnTrack.map((sampleInfo, index) => (
-        <div
-          key={index}
-          className='on-track'
-          style={{
-            left: `${sampleInfo.xPos}px`
-          }}
-        >
-          <SampleButton 
-            key={index} 
-            id={index} 
-            sample={sampleInfo}
-            btnClass='track-sample-btn'
-            handleDragStart={handleDragStart}
-          />
-        </div>
+        <SampleButton 
+          key={sampleInfo.id} 
+          sample={sampleInfo}
+          btnClass="track-sample-btn"
+          handleDragStart={handleDragStart}
+          offset={sampleInfo.xPos}
+        />
       ))}
     </div>
   );

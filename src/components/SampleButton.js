@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
 import '../style/sampleButton.css';
 
-const SampleButton = ({ id, handleDragStart, sample, btnClass }) => {
+const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
   const [audioBuffer, setAudioBuffer] = useState(null);
 
   // Load the audio file when the component mounts
@@ -31,18 +31,16 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass }) => {
     }
   };
 
-  const handleDropped = (sample) => {
-    console.log('Dropped:', sample);
-  };
-
   return (
     <button
       key={id}
       draggable
       onDragStart={(e) => handleDragStart(e, sample)}
-      onDragEnd={() => handleDropped(sample)}
       onClick={playAudio} // Play audio when the button is clicked
       className={btnClass ? btnClass : 'sample-btn'}
+      style={{
+        left: offset ? `${offset}px` : ''
+      }}
     >
       {sample.filename} {id}
     </button>
