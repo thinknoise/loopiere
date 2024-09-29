@@ -1,65 +1,40 @@
 import { useEffect, useState } from 'react';
+import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
 import '../style/sampleButton.css';
 
 const SampleButton = ({ id, handleDragStart, sample, btnClass }) => {
-  const [audioContext, setAudioContext] = useState(null);
   const [audioBuffer, setAudioBuffer] = useState(null);
 
-  // Initialize the AudioContext only once
+  // Load the audio file when the component mounts
   useEffect(() => {
-    const context = new (window.AudioContext || window.webkitAudioContext)();
-    setAudioContext(context);
-    
-    // Full path including the prepended URL
-    const fullPath = `./samples/${sample.path}`;
-
-    // console.log('Fetching audio from:', fullPath);
-
-    // Load the audio file from the prepended path
-    const loadAudio = async () => {
+    const loadSampleAudio = async () => {
+      const fullPath = `./samples/${sample.path}`;
       try {
-        const response = await fetch(fullPath);
-        
-        // Check if the response is okay and is an audio file
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
-        // Check if content-type is audio
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.startsWith("audio/")) {
-          throw new Error(`Invalid content-type: ${contentType}`);
-        }
-
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = await context.decodeAudioData(arrayBuffer);
+        const buffer = await loadAudio(fullPath);
         setAudioBuffer(buffer);
       } catch (error) {
-        console.error('Error loading audio:', error);
+        console.error('Failed to load audio:', error);
       }
     };
 
-    loadAudio();
-
-    // Clean up AudioContext when the component is unmounted
-    return () => {
-      context.close();
-    };
+    loadSampleAudio();
   }, [sample.path]);
 
   // Function to play the audio
   const playAudio = () => {
-    if (audioBuffer && audioContext) {
-      const source = audioContext.createBufferSource();
+    if (audioBuffer) {
+      const context = getAudioContext(); // Use the shared AudioContext
+      const source = context.createBufferSource();
       source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
+      source.connect(context.destination);
       source.start();
     }
   };
 
   const handleDropped = (sample) => {
-    // console.log('dropped', sample)
-  }
+    console.log('Dropped:', sample);
+  };
+
   return (
     <button
       key={id}

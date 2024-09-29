@@ -14,18 +14,16 @@ const Track = ({ trackInfo, sample, handleDragStart }) => {
   
     // Get the drop area's bounding rectangle
     const dropArea = e.currentTarget.getBoundingClientRect();
-    const elementRect = e.currentTarget.getBoundingClientRect();
-    console.log(elementRect)
+
     // Get the mouse position relative to the viewport
     const mouseX = e.clientX;
     
     // Calculate the mouse position relative to the drop area
     const relativeX = mouseX - dropArea.left;
-      // If there is a selected sample, add it to the track
-    if (droppedSample) {
 
-      // adding to dropped sample array object (fix later
-      droppedSample['xPos'] = Math.round(relativeX);
+    // If there is a selected sample, add it to the track
+    if (droppedSample) {
+      droppedSample.xPos = Math.round(relativeX);
       setSamplesDroppedOnTrack((prevSamples) => [...prevSamples, droppedSample]);
       // console.log(`Dropped Sample:`, droppedSample, `at position ${relativeX}`);
     }

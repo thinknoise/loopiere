@@ -3,39 +3,13 @@ import SampleButton from './components/SampleButton';
 import Track from './components/Track';
 import './style/App.css';
 
-async function fetchAudioData(filename) {
-  const url = filename ? filename : 'samples.json';
-
-  try {
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error fetching data: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error('Failed to fetch audio data:', error);
-    return null;
-  }
-}
+// Import fetchAudioData from the new file
+import { fetchAudioData } from './utils/fetchAudioData'; // Adjust the path if necessary
 
 const App = () => {
   const [buttons, setButtons] = useState([]);
   const [sampleSellected, setSampleSellected] = useState(null);
 
-  useEffect(() => {
-    // This will log the updated value whenever samplesDroppedOnTrack changes
-    console.log('sample Sellected:', sampleSellected);
-  }, [sampleSellected]);
-
-  
   const banks = [
     {
       name: "basic",
@@ -66,7 +40,7 @@ const App = () => {
     return Array.from({ length: trackNumber }, (_, index) => ({
       id: index + 1,
       name: `Track ${index + 1}`,
-      event: []
+      xPos: 0
     }));
   };
 
