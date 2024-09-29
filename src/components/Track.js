@@ -1,40 +1,40 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import SampleButton from './SampleButton';
 import '../style/track.css';
 
-const Track = ({ trackInfo, sample, handleDragStart }) => {
+const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => {
   const [samplesDroppedOnTrack, setSamplesDroppedOnTrack] = useState([]);
 
   const handleDragOver = (e) => {
     e.preventDefault(); // Allows drop event to occur
+    const targetRect = e.currentTarget.getBoundingClientRect();
+
+    // need to set the x of the dragging item
+    console.log(targetRect.top, e.clientY)
   };
 
   const handleDrop = (e, droppedSample) => {
     e.preventDefault();
-  
-    // Get the drop area's bounding rectangle
-    const dropArea = e.currentTarget.getBoundingClientRect();
 
-    // Get the mouse position relative to the viewport
+    const dropArea = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX;
-    
-    // Calculate the mouse position relative to the drop area
     const relativeX = mouseX - dropArea.left;
 
     // If there is a selected sample, add it to the track
     if (droppedSample) {
-      droppedSample.xPos = Math.round(relativeX);
+      droppedSample.xPos = Math.round(relativeX - droppedSample.xDragOffset); 
       setSamplesDroppedOnTrack((prevSamples) => [...prevSamples, droppedSample]);
-      // console.log(`Dropped Sample:`, droppedSample, `at position ${relativeX}`);
     }
   };
-  
+
   return (
     <div
+      ref={ref} 
       className="track drop-zone"
       onDrop={(e) => handleDrop(e, sample)}
       onDragOver={handleDragOver}
     >
+      <div className="middle-line" />
       <span className='track-name'>{trackInfo.name}</span>
       {samplesDroppedOnTrack.map((sampleInfo, index) => (
         <div
@@ -55,6 +55,6 @@ const Track = ({ trackInfo, sample, handleDragStart }) => {
       ))}
     </div>
   );
-};
+});
 
 export default Track;

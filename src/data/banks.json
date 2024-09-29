@@ -1,0 +1,14 @@
+[
+  {
+    "name": "basic",
+    "filename": "samples.json"
+  },
+  {
+    "name": "percussion",
+    "filename": "sample_percussion.json"
+  },
+  {
+    "name": "loops",
+    "filename": "sample_loops_etc.json"
+  }
+]

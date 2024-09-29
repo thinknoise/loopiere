@@ -8,6 +8,35 @@
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  position: relative;
+}
+
+/* Vertical lines within the drop-zone */
+.drop-zone::before,
+.drop-zone::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px; /* Line width */
+  background-color: black;
+}
+
+.drop-zone::before {
+  left: 25%; /* First line */
+}
+
+.drop-zone::after {
+  left: 75%; /* Second line */
+}
+
+.drop-zone .middle-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background-color: black;
 }
 
 .track {
@@ -29,7 +58,7 @@
 
 .track-sample-btn {
   padding: 8px;
-  text-wrap: nowrap;
+  white-space: nowrap; /* Ensure text doesn't wrap */
   border-radius: 0;
   margin: 0px;
   background-color: rgba(83, 180, 253, 0.83);

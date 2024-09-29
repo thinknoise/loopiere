@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import SampleButton from './components/SampleButton';
 import Track from './components/Track';
 import './style/App.css';
+// Import the banks data from the JSON file
+import banks from './data/banks.json'; // Adjust path according to your directory structure
 
 // Import fetchAudioData from the new file
 import { fetchAudioData } from './utils/fetchAudioData'; // Adjust the path if necessary
@@ -10,20 +12,17 @@ const App = () => {
   const [buttons, setButtons] = useState([]);
   const [sampleSellected, setSampleSellected] = useState(null);
 
-  const banks = [
-    {
-      name: "basic",
-      filename: "samples.json",
-    },
-    {
-      name: 'percussion',
-      filename: 'sample_percussion.json',
-    },
-    {
-      name: 'loops',
-      filename: 'sample_loops_etc.json',
+  // Track stats
+  const trackRef = useRef(null);
+  const [trackWidth, setTrackWidth] = useState(0);
+
+  useEffect(() => {
+    // When the component mounts, get the width of the track
+    if (trackRef.current) {
+      const width = trackRef.current.getBoundingClientRect().width;
+      setTrackWidth(Math.round(width));
     }
-  ]
+  }, []);
 
   const spawnButton = (filename) => {
     fetchAudioData(filename).then((data) => {
@@ -40,7 +39,8 @@ const App = () => {
     return Array.from({ length: trackNumber }, (_, index) => ({
       id: index + 1,
       name: `Track ${index + 1}`,
-      xPos: 0
+      xPos: 0,
+      xDragOffset: 0,
     }));
   };
 
@@ -48,16 +48,26 @@ const App = () => {
   const tracks = generateTracks(trackNumber);
 
   const handleDragStart = (e, sample) => {
+    // get offset for placement
+    const targetRect = e.target.getBoundingClientRect();
+    const mouseX = e.clientX;
+    const xDivMouse = mouseX - targetRect.left;
+    console.log('Mouse X relative to div:', xDivMouse);
+
+    // set offset for placement
+    sample.xDragOffset = xDivMouse;
+
     setSampleSellected(sample);
   };
 
   return (
     <div className="App">
       <h1>Loopiere</h1>
-
+      <div className='track-status'>width: {trackWidth}</div>
       {tracks.map((track, index) => (
         <Track
           key={index}
+          ref={trackRef}
           trackInfo={track}
           sample={sampleSellected}
           handleDragStart={handleDragStart}
@@ -65,7 +75,7 @@ const App = () => {
       ))}
 
       {banks.map((bank, index) => (
-        <button 
+        <button
           key={'bank' + index}
           onClick={() => spawnButton(bank.filename)}
         >
