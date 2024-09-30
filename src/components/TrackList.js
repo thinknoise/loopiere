@@ -14,8 +14,6 @@ const generateTracks = (trackNumber) => {
 const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const [trackWidth, trackRef] = useTrackWidth();
 
-  const bpm = 80;
-
   const tracks = generateTracks(trackNumber);
 
   return (
