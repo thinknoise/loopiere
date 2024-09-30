@@ -1,0 +1,11 @@
+.track-sample-listing {
+  position: absolute;
+  bottom: 0px;
+  color: white;
+  width: 300px;
+  font-size: x-small;
+  text-align: left;
+  max-height: 300px;
+  overflow-y: scroll;
+  border: 1px solid darkgray;
+}
