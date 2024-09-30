@@ -51,15 +51,11 @@
   color: #fff;
 }
 
-.on-track {
-  position: absolute;
-  top: -1px;
-}
-
 .track-sample-btn {
   padding: 8px;
   white-space: nowrap; /* Ensure text doesn't wrap */
   border-radius: 0;
+  border: 0px;
   margin: 0px;
   background-color: rgba(83, 180, 253, 0.83);
   color: #000;

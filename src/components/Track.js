@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import SampleButton from './SampleButton';
 import '../style/track.css';
 
-const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => {
+const Track = React.forwardRef(({ trackInfo, sample, handleDragStart, trackWidth }, ref) => {
   const [samplesDroppedOnTrack, setSamplesDroppedOnTrack] = useState([]);
 
   const handleDragOver = (e) => {
@@ -22,7 +22,7 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => 
         ...droppedSample,
         id: samplesDroppedOnTrack.length + 1,
         trackId: trackInfo.id,
-        xPos: Math.round(relativeX - droppedSample.xDragOffset),
+        xPos: Math.round(relativeX - droppedSample.xDragOffset)/trackWidth, // xPos is a percent of track (it IS updating)
       };
 
       // Update the state with the new sample
@@ -45,7 +45,7 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart }, ref) => 
           sample={sampleInfo}
           btnClass="track-sample-btn"
           handleDragStart={handleDragStart}
-          offset={sampleInfo.xPos}
+          offset={sampleInfo.xPos * trackWidth}
         />
       ))}
     </div>

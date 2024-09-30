@@ -4,20 +4,30 @@ import '../style/sampleButton.css';
 
 const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
   const [audioBuffer, setAudioBuffer] = useState(null);
+  const [audioDuration, setAudioDuration] = useState(null);
 
-  // Load the audio file when the component mounts
   useEffect(() => {
-    const loadSampleAudio = async () => {
+    const loadAudioFile = async () => {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)(); // Create AudioContext
       const fullPath = `./samples/${sample.path}`;
+
       try {
+        // Fetch and decode audio for duration calculation
+        const response = await fetch(fullPath);
+        const arrayBuffer = await response.arrayBuffer();
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+        setAudioDuration(Math.round(audioBuffer.duration * 10) / 10); // Set duration in seconds
+
+        // Load audio using the utility (if needed for playback)
         const buffer = await loadAudio(fullPath);
         setAudioBuffer(buffer);
       } catch (error) {
-        console.error('Failed to load audio:', error);
+        console.error('Error loading audio file:', error);
       }
     };
 
-    loadSampleAudio();
+    loadAudioFile();
   }, [sample.path]);
 
   // Function to play the audio
@@ -39,10 +49,11 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
       onClick={playAudio} // Play audio when the button is clicked
       className={btnClass ? btnClass : 'sample-btn'}
       style={{
-        left: offset ? `${offset}px` : ''
+        left: offset ? `${offset}px` : '',
+        width:  offset ? `${audioDuration}px` : 'auto',
       }}
     >
-      {sample.filename} {id}
+      {sample.filename} - {offset} {id}
     </button>
   );
 };
