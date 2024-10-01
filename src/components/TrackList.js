@@ -1,7 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Track from './Track';
 import useTrackWidth from '../hooks/useTrackWidth';
-import '../style/tracklist.css';
+import '../style/tracklist.css'
+
+// Assuming getAudioContext is defined elsewhere or imported
+const getAudioContext = () => {
+  return new (window.AudioContext || window.webkitAudioContext)();
+};
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -12,21 +17,41 @@ const generateTracks = (trackNumber) => {
   }));
 };
 
-
-
 const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
-
   const tracks = generateTracks(trackNumber);
 
-  // Function to update allSamples when samplesDroppedOnTrack changes for a track
-  const updateAllSamples = (trackId, samplesDroppedOnTrack) => {
+  // Memoize the update function to prevent unnecessary re-renders
+  const updateAllSamples = useCallback((trackId, samplesDroppedOnTrack) => {
     setAllSamples((prevAllSamples) => {
       // Remove samples from the same track before adding the new ones
       const filteredSamples = prevAllSamples.filter(sample => sample.trackId !== trackId);
       return [...filteredSamples, ...samplesDroppedOnTrack];
     });
+  }, []);
+
+  // Function to play the audio
+  const playAudioSet = (audioBuffers, offsets) => {
+    if (!audioBuffers || audioBuffers.length === 0) return;
+
+    const context = getAudioContext(); // Shared AudioContext
+
+    audioBuffers.forEach((buffer, index) => {
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(context.destination);
+      source.loop = true; // Enable looping
+      const offsetTime = offsets[index] || 0; // Offset for each sample
+      source.start(context.currentTime + offsetTime); // Start with time offset
+    });
+  };
+
+  // Trigger audio playback based on consolidated samples
+  const handlePlayAllSamples = () => {
+    const audioBuffers = allSamples.map(sample => sample.audioBuffer); // Assuming each sample has an audioBuffer property
+    const offsets = allSamples.map(sample => sample.xPos); // Use xPos as offset time
+    playAudioSet(audioBuffers, offsets);
   };
 
   return (
@@ -40,7 +65,7 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
           sample={sampleSelected}
           handleDragStart={handleDragStart}
           trackWidth={trackWidth}
-          handleUpdateSamples={updateAllSamples} // Pass the update function to each track
+          handleUpdateSamples={updateAllSamples} // Pass the memoized function
         />
       ))}
 
@@ -49,6 +74,9 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
         <h3>All Consolidated Samples:</h3>
         <pre>{JSON.stringify(allSamples, null, 2)}</pre>
       </div>
+
+      {/* Button to play all samples */}
+      <button onClick={handlePlayAllSamples}>Play All Samples</button>
     </div>
   );
 };

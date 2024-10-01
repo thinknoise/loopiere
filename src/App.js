@@ -23,13 +23,18 @@ const App = () => {
       });
   };
 
-  const handleDragStart = (e, sample) => {
+  const handleDragStart = (e, sample, audioBuffer) => {
     const targetRect = e.target.getBoundingClientRect();
     const mouseX = e.clientX;
     const xDivMouse = mouseX - targetRect.left;
     sample.xDragOffset = xDivMouse;
+    sample.audioBuffer = audioBuffer;
+    console.log('---',sample)
     setSampleSellected(sample);
   };
+  if(!buttons.length) {
+    spawnButton(banks[0].filename)
+  }
 
   return (
     <div className="App">
