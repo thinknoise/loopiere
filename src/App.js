@@ -15,7 +15,7 @@ const App = () => {
       .then((data) => {
         if (data) {
           setButtons(data);
-          console.log('Audio JSON:', data, buttons);
+          // console.log('Audio JSON:', data, buttons);
         }
       })
       .catch((error) => {
@@ -32,6 +32,8 @@ const App = () => {
     console.log('---',sample)
     setSampleSellected(sample);
   };
+
+  // initial bank on load
   if(!buttons.length) {
     spawnButton(banks[0].filename)
   }
@@ -42,7 +44,7 @@ const App = () => {
       <TrackList 
         trackNumber={4} 
         sampleSelected={sampleSellected} 
-        handleDragStart={handleDragStart} 
+        handleDragStart={handleDragStart}
       />
       <BankButtonList banks={banks} spawnButton={spawnButton} />
       <div className="button-container">

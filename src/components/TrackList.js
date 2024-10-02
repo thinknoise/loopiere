@@ -20,6 +20,10 @@ const generateTracks = (trackNumber) => {
 const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
+  const [playingSources, setPlayingSources] = useState([]); // To store active audio sources
+
+
+
   const tracks = generateTracks(trackNumber);
 
   // Memoize the update function to prevent unnecessary re-renders
@@ -31,32 +35,57 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
     });
   }, []);
 
+  // In your component
+  const bpm = 60;
+  const measurePerSecond = (bpm * 4)/ 60;
+  const PixelsPerSecond = trackWidth/measurePerSecond;
+
+
+
   // Function to play the audio
   const playAudioSet = (audioBuffers, offsets) => {
     if (!audioBuffers || audioBuffers.length === 0) return;
 
     const context = getAudioContext(); // Shared AudioContext
+    const sources = []; // Temporary array to store the sources
 
     audioBuffers.forEach((buffer, index) => {
       const source = context.createBufferSource();
-      source.buffer = buffer;
       source.connect(context.destination);
-      source.loop = true; // Enable looping
+      source.buffer = buffer;
       const offsetTime = offsets[index] || 0; // Offset for each sample
-      source.start(context.currentTime + offsetTime); // Start with time offset
+      console.log(source, offsetTime)
+      source.start((context.currentTime + offsetTime)*measurePerSecond); // Start with time offset
+
+      // Store the source for later use (e.g., stopping)
+      sources.push(source);
     });
+
+    // Set the sources in the state
+    setPlayingSources(sources);
   };
 
   // Trigger audio playback based on consolidated samples
   const handlePlayAllSamples = () => {
     const audioBuffers = allSamples.map(sample => sample.audioBuffer); // Assuming each sample has an audioBuffer property
     const offsets = allSamples.map(sample => sample.xPos); // Use xPos as offset time
+    console.log( 'playAudioSet', audioBuffers, offsets);
     playAudioSet(audioBuffers, offsets);
   };
 
+  // Function to stop all currently playing samples
+  const handleStopAllSamples = () => {
+    playingSources.forEach((source) => {
+      source.stop(); // Stop each source
+    });
+
+    // Clear the stored sources after stopping them
+    setPlayingSources([]);
+  };
+  
   return (
     <div>
-      <div className='track-status'>width: {trackWidth}px</div>
+      <div className='track-status'>width: {trackWidth}px bpm: {bpm} measurePerSecond: {measurePerSecond} pps = {PixelsPerSecond}</div>
       {tracks.map((track) => (
         <Track
           key={track.id}
@@ -76,7 +105,8 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
       </div>
 
       {/* Button to play all samples */}
-      <button onClick={handlePlayAllSamples}>Play All Samples</button>
+      <button onClick={handlePlayAllSamples}>Play Tracks</button>
+      <button onClick={handleStopAllSamples}>stop</button>
     </div>
   );
 };
