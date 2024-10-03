@@ -60,7 +60,7 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
       className={btnClass ? btnClass : 'sample-btn'}
       style={{
         left: offset ? `${offset}px` : '',
-        width: offset ? `${audioDuration * (916/20)}px` : 'auto',
+        width: offset ? `${audioDuration * (916/4)}px` : 'auto',
       }}
     >
       {sample.filename} - {offset} {id}

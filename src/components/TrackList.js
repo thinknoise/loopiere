@@ -1,12 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import Track from './Track';
+import { getAudioContext } from '../utils/audioManager';
 import useTrackWidth from '../hooks/useTrackWidth';
 import '../style/tracklist.css'
-
-// Assuming getAudioContext is defined elsewhere or imported
-const getAudioContext = () => {
-  return new (window.AudioContext || window.webkitAudioContext)();
-};
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -36,8 +32,8 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   }, []);
 
   // In your component
-  const bpm = 60;
-  const measurePerSecond = (bpm * 4)/ 60;
+  const bpm = 120;
+  const measurePerSecond = (60/bpm) * 4;
   const PixelsPerSecond = trackWidth/measurePerSecond;
 
 
@@ -53,9 +49,9 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
       const source = context.createBufferSource();
       source.connect(context.destination);
       source.buffer = buffer;
-      const offsetTime = offsets[index] || 0; // Offset for each sample
-      console.log(source, offsetTime)
-      source.start((context.currentTime + offsetTime)*measurePerSecond); // Start with time offset
+      const offsetTime = offsets[index] * measurePerSecond || 0; // Offset for each sample
+      console.log(offsetTime, measurePerSecond)
+      source.start(context.currentTime + offsetTime, 0); // Start with time offset
 
       // Store the source for later use (e.g., stopping)
       sources.push(source);
