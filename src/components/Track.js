@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SampleButton from './SampleButton';
 import '../style/track.css';
 
-const Track = React.forwardRef(({ trackInfo, sample, handleDragStart, trackWidth, handleUpdateSamples }, ref) => {
+const Track = React.forwardRef(({ trackInfo, sample, handleDragStart, trackWidth, updateAllSamples }, ref) => {
   const [samplesDroppedOnTrack, setSamplesDroppedOnTrack] = useState([]);
 
   const handleDragOver = (e) => {
@@ -25,14 +25,16 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart, trackWidth
       };
 
       // Update the state with the new sample
-      setSamplesDroppedOnTrack((prevSamples) => [...prevSamples, newSample]);
+      setSamplesDroppedOnTrack((prevSamples) => {
+        console.log('newSample', prevSamples,newSample)
+        return[...prevSamples, newSample]});
     }
   };
 
   // When the samplesDroppedOnTrack array updates, update the parent component
   useEffect(() => {
-    handleUpdateSamples(trackInfo.id, samplesDroppedOnTrack);
-  }, [samplesDroppedOnTrack, handleUpdateSamples, trackInfo.id]);
+    updateAllSamples(trackInfo.id, samplesDroppedOnTrack);
+  }, [samplesDroppedOnTrack, updateAllSamples, trackInfo.id]);
 
   return (
     <div

@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import Track from './Track';
-import { getAudioContext } from '../utils/audioManager';
 import useTrackWidth from '../hooks/useTrackWidth';
-import '../style/tracklist.css'
+import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
+import '../style/tracklist.css';
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -16,9 +16,8 @@ const generateTracks = (trackNumber) => {
 const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
-  const [playingSources, setPlayingSources] = useState([]); // To store active audio sources
 
-
+  const { handlePlayAllSamples, handleStopAllSamples } = useAudioPlayback(); // Use the audio playback hook
 
   const tracks = generateTracks(trackNumber);
 
@@ -26,59 +25,17 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const updateAllSamples = useCallback((trackId, samplesDroppedOnTrack) => {
     setAllSamples((prevAllSamples) => {
       // Remove samples from the same track before adding the new ones
-      const filteredSamples = prevAllSamples.filter(sample => sample.trackId !== trackId);
-      return [...filteredSamples, ...samplesDroppedOnTrack];
+      // const filteredSamples = prevAllSamples.filter(sample => sample.trackId !== trackId);
+      console.log(prevAllSamples)
+
+      return [...prevAllSamples, ...samplesDroppedOnTrack];
     });
   }, []);
 
-  // In your component
   const bpm = 120;
-  const measurePerSecond = (60/bpm) * 4;
-  const PixelsPerSecond = trackWidth/measurePerSecond;
+  const measurePerSecond = (60 / bpm) * 4;
+  const PixelsPerSecond = trackWidth / measurePerSecond;
 
-
-
-  // Function to play the audio
-  const playAudioSet = (audioBuffers, offsets) => {
-    if (!audioBuffers || audioBuffers.length === 0) return;
-
-    const context = getAudioContext(); // Shared AudioContext
-    const sources = []; // Temporary array to store the sources
-
-    audioBuffers.forEach((buffer, index) => {
-      const source = context.createBufferSource();
-      source.connect(context.destination);
-      source.buffer = buffer;
-      const offsetTime = offsets[index] * measurePerSecond || 0; // Offset for each sample
-      console.log(offsetTime, measurePerSecond)
-      source.start(context.currentTime + offsetTime, 0); // Start with time offset
-
-      // Store the source for later use (e.g., stopping)
-      sources.push(source);
-    });
-
-    // Set the sources in the state
-    setPlayingSources(sources);
-  };
-
-  // Trigger audio playback based on consolidated samples
-  const handlePlayAllSamples = () => {
-    const audioBuffers = allSamples.map(sample => sample.audioBuffer); // Assuming each sample has an audioBuffer property
-    const offsets = allSamples.map(sample => sample.xPos); // Use xPos as offset time
-    console.log( 'playAudioSet', audioBuffers, offsets);
-    playAudioSet(audioBuffers, offsets);
-  };
-
-  // Function to stop all currently playing samples
-  const handleStopAllSamples = () => {
-    playingSources.forEach((source) => {
-      source.stop(); // Stop each source
-    });
-
-    // Clear the stored sources after stopping them
-    setPlayingSources([]);
-  };
-  
   return (
     <div>
       <div className='track-status'>width: {trackWidth}px bpm: {bpm} measurePerSecond: {measurePerSecond} pps = {PixelsPerSecond}</div>
@@ -90,7 +47,7 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
           sample={sampleSelected}
           handleDragStart={handleDragStart}
           trackWidth={trackWidth}
-          handleUpdateSamples={updateAllSamples} // Pass the memoized function
+          updateAllSamples={updateAllSamples} // Pass the memoized function
         />
       ))}
 
@@ -101,8 +58,8 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
       </div>
 
       {/* Button to play all samples */}
-      <button onClick={handlePlayAllSamples}>Play Tracks</button>
-      <button onClick={handleStopAllSamples}>stop</button>
+      <button onClick={() => handlePlayAllSamples(allSamples, measurePerSecond)}>Play Tracks</button>
+      <button onClick={handleStopAllSamples}>Stop</button>
     </div>
   );
 };

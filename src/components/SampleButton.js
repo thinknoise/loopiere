@@ -21,7 +21,6 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
 
         // Load audio using the utility (if needed for playback)
         const buffer = await loadAudio(fullPath);
-        console.log(fullPath, buffer)
         setAudioBuffer(buffer); // Set audioBuffer state
       } catch (error) {
         console.error('Error loading audio file:', error);
@@ -49,7 +48,7 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
       onDragStart={(e) => {
         if (audioBuffer) {
           // Pass audioBuffer if it's available
-          console.log(audioBuffer)
+          // console.log(audioBuffer)
           handleDragStart(e, sample, audioBuffer);
         } else {
           // Handle the case where audioBuffer isn't ready
