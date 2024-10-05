@@ -27,7 +27,7 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
     setAllSamples((prevAllSamples) => {
       const updatedSamples = prevAllSamples.filter(sample => {
         console.log(sample.identifier, newSample)
-        return sample.identifier !== newSample.identifier && sample.trackId !== newSample.trackId
+        return sample.identifier !== newSample.identifier // need check 
       });
       return[...updatedSamples, newSample]});
   }, []);
