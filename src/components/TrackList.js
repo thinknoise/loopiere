@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Track from './Track';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
@@ -10,6 +10,7 @@ const generateTracks = (trackNumber) => {
     name: `Track ${index + 1}`,
     xPos: 0,
     xDragOffset: 0,
+    samples: []
   }));
 };
 
@@ -22,15 +23,19 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const tracks = generateTracks(trackNumber);
 
   // Memoize the update function to prevent unnecessary re-renders
-  const updateAllSamples = useCallback((trackId, samplesDroppedOnTrack) => {
+  const updateAllSamples = useCallback((trackId, newSample) => {
     setAllSamples((prevAllSamples) => {
-      // Remove samples from the same track before adding the new ones
-      // const filteredSamples = prevAllSamples.filter(sample => sample.trackId !== trackId);
-      console.log(prevAllSamples)
-
-      return [...prevAllSamples, ...samplesDroppedOnTrack];
-    });
+      const updatedSamples = prevAllSamples.filter(sample => {
+        console.log(sample.identifier, newSample)
+        return sample.identifier !== newSample.identifier && sample.trackId !== newSample.trackId
+      });
+      return[...updatedSamples, newSample]});
   }, []);
+
+  useEffect(() => {
+    // console.log(allSamples);
+  }, [allSamples]);
+
 
   const bpm = 120;
   const measurePerSecond = (60 / bpm) * 4;
@@ -44,10 +49,12 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
           key={track.id}
           ref={trackRef}
           trackInfo={track}
-          sample={sampleSelected}
+          sampleSelected={sampleSelected}
           handleDragStart={handleDragStart}
           trackWidth={trackWidth}
+          // samplesOnThisTrack={track.samples}
           updateAllSamples={updateAllSamples} // Pass the memoized function
+          allSamples={allSamples.filter((s) => s.trackId === track.id)}
         />
       ))}
 

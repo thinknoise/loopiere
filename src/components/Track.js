@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import SampleButton from './SampleButton';
 import '../style/track.css';
 
-const Track = React.forwardRef(({ trackInfo, sample, handleDragStart, trackWidth, updateAllSamples }, ref) => {
+const Track = React.forwardRef(({ trackInfo, sampleSelected, handleDragStart, trackWidth, updateAllSamples, allSamples }, ref) => {
   const [samplesDroppedOnTrack, setSamplesDroppedOnTrack] = useState([]);
 
   const handleDragOver = (e) => {
@@ -17,37 +17,31 @@ const Track = React.forwardRef(({ trackInfo, sample, handleDragStart, trackWidth
     const relativeX = mouseX - dropArea.left;
 
     if (droppedSample) {
+      console.log(droppedSample)
       const newSample = {
         ...droppedSample,
-        id: samplesDroppedOnTrack.length + 1,
+        id: droppedSample.indentifier,
         trackId: trackInfo.id,
         xPos: Math.round(relativeX - droppedSample.xDragOffset)/trackWidth,
       };
 
-      // Update the state with the new sample
-      setSamplesDroppedOnTrack((prevSamples) => {
-        console.log('newSample', prevSamples,newSample)
-        return[...prevSamples, newSample]});
+      // ONLY send the newsample 
+      updateAllSamples(trackInfo.id, newSample)
     }
   };
-
-  // When the samplesDroppedOnTrack array updates, update the parent component
-  useEffect(() => {
-    updateAllSamples(trackInfo.id, samplesDroppedOnTrack);
-  }, [samplesDroppedOnTrack, updateAllSamples, trackInfo.id]);
 
   return (
     <div
       ref={ref}
       className="track drop-zone"
-      onDrop={(e) => handleDrop(e, sample)}
+      onDrop={(e) => handleDrop(e, sampleSelected)}
       onDragOver={handleDragOver}
     >
       <div className="middle-line" />
       <span className="track-name">{trackInfo.name}</span>
-      {samplesDroppedOnTrack.map((sampleInfo) => (
+      {allSamples.map((sampleInfo, index) => (
         <SampleButton 
-          key={sampleInfo.id} 
+          key={`${index}_${sampleInfo.id}`} 
           sample={sampleInfo}
           btnClass="track-sample-btn"
           handleDragStart={handleDragStart}
