@@ -22,7 +22,7 @@ export async function fetchAudioData(bank) {
     }
 
     const data = await response.json();
-    console.log('data: ', data); 
+    // console.log('data: ', data); 
     addToData(bank, data)
     return data;
   } catch (error) {

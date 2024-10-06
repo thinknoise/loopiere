@@ -29,7 +29,7 @@ const App = () => {
     const xDivMouse = mouseX - targetRect.left;
     sample.xDragOffset = xDivMouse;
     sample.audioBuffer = audioBuffer;
-    // console.log('handleDragStart',sample)
+    console.log('handleDragStart',sample.onTrack)
     setSampleSellected(sample);
   };
 

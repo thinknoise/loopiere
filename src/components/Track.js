@@ -1,5 +1,5 @@
 import React from 'react';
-import SampleButton from './SampleButton';
+import TrackButton from './TrackButton';
 import '../style/track.css';
 
 const Track = React.forwardRef(({ trackInfo, sampleSelected, handleDragStart, trackWidth, updateAllSamples, allSamples }, ref) => {
@@ -14,18 +14,19 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, handleDragStart, tr
     const dropArea = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX;
     const relativeX = mouseX - dropArea.left;
+    console.log(droppedSample)
 
     if (droppedSample) {
-      console.log(droppedSample)
       const newSample = {
         ...droppedSample,
         id: droppedSample.indentifier,
         trackId: trackInfo.id,
+        onTrack: true,
         xPos: Math.round(relativeX - droppedSample.xDragOffset)/trackWidth,
       };
 
       // ONLY send the newsample 
-      updateAllSamples(trackInfo.id, newSample)
+      updateAllSamples(newSample)
     }
   };
 
@@ -39,11 +40,9 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, handleDragStart, tr
       <div className="middle-line" />
       <span className="track-name">{trackInfo.name}</span>
       {allSamples.map((sampleInfo, index) => (
-        <SampleButton 
+        <TrackButton 
           key={`${index}_${sampleInfo.id}`} 
           sample={sampleInfo}
-          btnClass="track-sample-btn"
-          handleDragStart={handleDragStart}
           offset={sampleInfo.xPos * trackWidth}
         />
       ))}

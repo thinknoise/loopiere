@@ -23,13 +23,9 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   const tracks = generateTracks(trackNumber);
 
   // Memoize the update function to prevent unnecessary re-renders
-  const updateAllSamples = useCallback((trackId, newSample) => {
+  const updateAllSamples = useCallback((newSample) => {
     setAllSamples((prevAllSamples) => {
-      const updatedSamples = prevAllSamples.filter(sample => {
-        console.log(sample.identifier, newSample)
-        return sample.identifier !== newSample.identifier // need check 
-      });
-      return[...updatedSamples, newSample]});
+      return[...prevAllSamples, newSample]});
   }, []);
 
   useEffect(() => {
