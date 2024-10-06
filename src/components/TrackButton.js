@@ -6,7 +6,7 @@ const TrackButton = ({ id, sample, offset }) => {
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
   const [isDragging, setIsDragging] = useState(false); // State to check if it's dragging
-  const [position, setPosition] = useState(false); // new position
+  const [position, setPosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const loadAudioFile = async () => {
@@ -30,7 +30,10 @@ const TrackButton = ({ id, sample, offset }) => {
     };
 
     loadAudioFile();
-    setPosition(offset)
+    
+    setPosition({
+      x: offset,
+    })
   }, [sample.path, offset]);
 
   // Function to play the audio
@@ -54,7 +57,11 @@ const TrackButton = ({ id, sample, offset }) => {
   };
 
   const handleMouseMove = (e) => {
-    setPosition(e.clientX - 100)
+    const parentTop = e.target.parentElement.offsetTop;
+    console.log('Parent offsetTop:', parentTop);
+        setPosition({
+      x: e.clientX - 100,
+    })
   };
 
 
@@ -72,7 +79,7 @@ const TrackButton = ({ id, sample, offset }) => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
       };
-    }, [isDragging, offset]);
+    }, [isDragging, position]);
   
   return (
     <button
@@ -82,7 +89,8 @@ const TrackButton = ({ id, sample, offset }) => {
       onMouseDown={handleMouseDown}
 
       style={{
-        left: position ? `${position}px` : `${offset}px`,
+        left: position.x ? `${position.x}px` : `${offset}px`,
+        top: position.y ? `${position.y}px` : `0spx`,
         width: offset ? `${audioDuration * (916/4)}px` : 'auto',
       }}
     >

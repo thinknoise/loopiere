@@ -29,7 +29,6 @@ const App = () => {
     const xDivMouse = mouseX - targetRect.left;
     sample.xDragOffset = xDivMouse;
     sample.audioBuffer = audioBuffer;
-    console.log('handleDragStart',sample.onTrack)
     setSampleSellected(sample);
   };
 
@@ -44,7 +43,6 @@ const App = () => {
       <TrackList 
         trackNumber={4} 
         sampleSelected={sampleSellected} 
-        handleDragStart={handleDragStart}
       />
       <BankButtonList banks={banks} spawnButton={spawnButton} />
       <div className="button-container">

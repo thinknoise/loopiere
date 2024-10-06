@@ -43,6 +43,7 @@
   position: relative;
   display: flex;
   flex-direction: row;
+  z-index: 0;
 }
 
 .track-name {
@@ -53,6 +54,7 @@
 
 .track-sample-btn {
   padding: 8px;
+  position: absolute;
   white-space: nowrap; /* Ensure text doesn't wrap */
   border-radius: 0;
   border: 0px;
@@ -61,4 +63,5 @@
   color: #000;
   position: absolute;
   top: 0px;
+  z-index: 11;
 }

@@ -14,11 +14,11 @@ const generateTracks = (trackNumber) => {
   }));
 };
 
-const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
+const TrackList = ({ trackNumber, sampleSelected }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
 
-  const { handlePlayAllSamples, handleStopAllSamples } = useAudioPlayback(); // Use the audio playback hook
+  const { playAudioSet, handleStopAllSamples } = useAudioPlayback(); // Use the audio playback hook
 
   const tracks = generateTracks(trackNumber);
 
@@ -29,7 +29,8 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
   }, []);
 
   useEffect(() => {
-    // console.log(allSamples);
+    console.log('update', allSamples);
+    playAudioSet(allSamples, measurePerSecond, true)
   }, [allSamples]);
 
 
@@ -46,7 +47,6 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
           ref={trackRef}
           trackInfo={track}
           sampleSelected={sampleSelected}
-          handleDragStart={handleDragStart}
           trackWidth={trackWidth}
           // samplesOnThisTrack={track.samples}
           updateAllSamples={updateAllSamples} // Pass the memoized function
@@ -61,7 +61,7 @@ const TrackList = ({ trackNumber, sampleSelected, handleDragStart }) => {
       </div>
 
       {/* Button to play all samples */}
-      <button onClick={() => handlePlayAllSamples(allSamples, measurePerSecond)}>Play Tracks</button>
+      <button onClick={() => playAudioSet(allSamples, measurePerSecond, true)}>Play Tracks</button>
       <button onClick={handleStopAllSamples}>Stop</button>
     </div>
   );

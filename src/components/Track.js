@@ -2,7 +2,7 @@ import React from 'react';
 import TrackButton from './TrackButton';
 import '../style/track.css';
 
-const Track = React.forwardRef(({ trackInfo, sampleSelected, handleDragStart, trackWidth, updateAllSamples, allSamples }, ref) => {
+const Track = React.forwardRef(({ trackInfo, sampleSelected, trackWidth, updateAllSamples, allSamples }, ref) => {
 
   const handleDragOver = (e) => {
     e.preventDefault(); // Allows drop event to occur
@@ -14,8 +14,10 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, handleDragStart, tr
     const dropArea = e.currentTarget.getBoundingClientRect();
     const mouseX = e.clientX;
     const relativeX = mouseX - dropArea.left;
-    console.log(droppedSample)
 
+    // type this: TrackType
+    // id - string, identifier - string, trackId - number, onTrack - boolean 
+    // extension of sample
     if (droppedSample) {
       const newSample = {
         ...droppedSample,
