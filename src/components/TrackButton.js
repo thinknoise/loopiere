@@ -53,6 +53,7 @@ const TrackButton = ({ id, sample, offset }) => {
   };
   const handleMouseUp = (e) => {
     setIsDragging(false); // Start dragging
+    // update xPos of that sample
     console.log(e.clientX)
   };
 

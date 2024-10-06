@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import Track from './Track';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
@@ -17,25 +17,33 @@ const generateTracks = (trackNumber) => {
 const TrackList = ({ trackNumber, sampleSelected }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
+  const allSamplesRef = useRef([]); // Ref to keep track of latest allSamples
 
-  const { playAudioSet, handleStopAllSamples } = useAudioPlayback(); // Use the audio playback hook
+  const { playAudioSet, handleStopAllSamples, updateSequnce } = useAudioPlayback(); // Use the audio playback hook
 
   const tracks = generateTracks(trackNumber);
 
   // Memoize the update function to prevent unnecessary re-renders
   const updateAllSamples = useCallback((newSample) => {
+    // Immediately update the ref along with state update
     setAllSamples((prevAllSamples) => {
-      return[...prevAllSamples, newSample]});
+      const updatedSamples = [...prevAllSamples, newSample];
+      allSamplesRef.current = updatedSamples; // Update the ref immediately
+      console.log('Updated allSamplesRef:', allSamplesRef.current);
+      return updatedSamples; // Return the updated state
+    });
   }, []);
 
   useEffect(() => {
-    console.log('update', allSamples);
-    playAudioSet(allSamples, measurePerSecond, true)
-  }, [allSamples]);
+    console.log("Latest allSamples:", allSamplesRef.current);
+    // Trigger the playback when allSamples are updated
+    updateSequnce(allSamplesRef.current, (60 / 120) * 4); // Pass the latest tempo value (bpm)
+  }, [allSamples]); // Add a dependency on allSamples to ensure playback uses the latest samples
 
   const handleClearLoop = () => {
-    setAllSamples([])
-  }
+    setAllSamples([]);
+    allSamplesRef.current = []; // Also clear the ref
+  };
 
   const bpm = 120;
   const measurePerSecond = (60 / bpm) * 4;
@@ -43,7 +51,9 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   return (
     <div>
-      <div className='track-status'>width: {trackWidth}px bpm: {bpm} measurePerSecond: {measurePerSecond} pps = {PixelsPerSecond}</div>
+      <div className='track-status'>
+        width: {trackWidth}px bpm: {bpm} measurePerSecond: {measurePerSecond} pps = {PixelsPerSecond}
+      </div>
       {tracks.map((track) => (
         <Track
           key={track.id}
@@ -51,20 +61,19 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           trackInfo={track}
           sampleSelected={sampleSelected}
           trackWidth={trackWidth}
-          // samplesOnThisTrack={track.samples}
           updateAllSamples={updateAllSamples} // Pass the memoized function
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
         />
       ))}
 
-      {/* Display consolidated samples */}
+      {/* Display samples in loop in lower left */}
       <div className='track-sample-listing'>
         <h3>All Consolidated Samples:</h3>
         <pre>{JSON.stringify(allSamples, null, 2)}</pre>
       </div>
 
       {/* Button to play all samples */}
-      <button onClick={() => playAudioSet(allSamples, measurePerSecond, true)}>Play Tracks</button>
+      <button onClick={() => playAudioSet(allSamplesRef.current, measurePerSecond)}>Play Tracks</button>
       <button onClick={handleStopAllSamples}>Stop</button>
       <button onClick={handleClearLoop}>Clear Loop</button>
     </div>
