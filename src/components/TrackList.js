@@ -33,6 +33,9 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     playAudioSet(allSamples, measurePerSecond, true)
   }, [allSamples]);
 
+  const handleClearLoop = () => {
+    setAllSamples([])
+  }
 
   const bpm = 120;
   const measurePerSecond = (60 / bpm) * 4;
@@ -63,6 +66,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       {/* Button to play all samples */}
       <button onClick={() => playAudioSet(allSamples, measurePerSecond, true)}>Play Tracks</button>
       <button onClick={handleStopAllSamples}>Stop</button>
+      <button onClick={handleClearLoop}>Clear Loop</button>
     </div>
   );
 };
