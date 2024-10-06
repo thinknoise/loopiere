@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Track from './Track';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
@@ -17,7 +17,6 @@ const generateTracks = (trackNumber) => {
 const TrackList = ({ trackNumber, sampleSelected }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
-  const allSamplesRef = useRef([]); // Ref to keep track of latest allSamples
 
   const { playAudioSet, handleStopAllSamples, updateSequnce } = useAudioPlayback(); // Use the audio playback hook
 
@@ -28,21 +27,18 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     // Immediately update the ref along with state update
     setAllSamples((prevAllSamples) => {
       const updatedSamples = [...prevAllSamples, newSample];
-      allSamplesRef.current = updatedSamples; // Update the ref immediately
-      console.log('Updated allSamplesRef:', allSamplesRef.current);
       return updatedSamples; // Return the updated state
     });
   }, []);
 
   useEffect(() => {
-    console.log("Latest allSamples:", allSamplesRef.current);
+    console.log("Latest allSamples:", allSamples);
     // Trigger the playback when allSamples are updated
-    updateSequnce(allSamplesRef.current, (60 / 120) * 4); // Pass the latest tempo value (bpm)
+    updateSequnce(allSamples, (60 / 120) * 4); // Pass the latest tempo value (bpm)
   }, [allSamples]); // Add a dependency on allSamples to ensure playback uses the latest samples
 
   const handleClearLoop = () => {
     setAllSamples([]);
-    allSamplesRef.current = []; // Also clear the ref
   };
 
   const bpm = 120;
@@ -73,7 +69,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       </div>
 
       {/* Button to play all samples */}
-      <button onClick={() => playAudioSet(allSamplesRef.current, measurePerSecond)}>Play Tracks</button>
+      <button onClick={() => playAudioSet(allSamples, measurePerSecond)}>Play Tracks</button>
       <button onClick={handleStopAllSamples}>Stop</button>
       <button onClick={handleClearLoop}>Clear Loop</button>
     </div>
