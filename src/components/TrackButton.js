@@ -82,7 +82,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
     const startRelativeLeft = startPos.x - trackLeft;
     const deltaX = e.clientX - startPos.x;
     const newXPos = (startRelativeLeft + deltaX) / trackWidth
-    console.log(trackLeft, '--sampleRef', sampleRef.current, '--new--', newXPos, '-delta', deltaX)
+    console.log('--sample', sampleRef.current, '--new--', newXPos, '-delta', deltaX)
 
     // Update sample's xPos globally
     const updatedSample = { ...sample, xPos: newXPos };

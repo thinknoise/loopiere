@@ -19,10 +19,11 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAll
     // type this: TrackType
     // id - string, identifier - string, trackId - number, onTrack - boolean 
     // extension of sample
+    console.log(trackInfo)
     if (droppedSample) {
       const newSample = {
         ...droppedSample,
-        id: droppedSample.indentifier,
+        trackSampleId: `${droppedSample.identifier}-${trackInfo.id}`, //y for now is the only identifier i can get
         trackId: trackInfo.id,
         onTrack: true,
         xPos: Math.round(relativeX - droppedSample.xDragOffset)/trackWidth,

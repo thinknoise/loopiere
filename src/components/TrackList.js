@@ -28,7 +28,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     setAllSamples((prevAllSamples) => {
       if (removeSample) {
         // filter out the "newsample" 
-        const filteredSamples = prevAllSamples.filter((sample => sample.identifier !== newSample.identifier)) 
+        const filteredSamples = prevAllSamples.filter((sample => sample.trackSampleId !== newSample.trackSampleId)) 
         return [...filteredSamples];
       } else {
         return [...prevAllSamples, newSample];
@@ -71,7 +71,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           pixels ps = {PixelsPerSecond} 
         </span>
       </div>
-      {tracks.map((track) => (
+      {tracks.map((track, index) => (
         <Track
           key={track.id}
           ref={trackRef}

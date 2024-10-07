@@ -15,7 +15,7 @@ const useAudioPlaybackWithTimer = () => {
     // Update the refs to keep the latest allSamples and tempo
     allSamplesRef.current = allSamples;
     loopTempoRef.current = measurePerSecond;
-    
+
   };
 
   // Function to play the audio set
@@ -27,7 +27,7 @@ const useAudioPlaybackWithTimer = () => {
     const audioBuffers = allSamples.map(sample => sample.audioBuffer); // Assuming each sample has an audioBuffer property
     const offsets = allSamples.map(sample => sample.xPos); // Use xPos as offset time
 
-    console.log('Playing Samples:', allSamplesRef.current, 'Tempo:', loopTempoRef.current);
+    // console.log('Playing Samples:', allSamplesRef.current, 'Tempo:', loopTempoRef.current);
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
@@ -81,7 +81,6 @@ const useAudioPlaybackWithTimer = () => {
   const handleStopAllSamples = () => {
     // Stop all currently playing sources
 
-    console.log("Loop Stopped!")
     playingSources.forEach((source) => {
       source.stop();
     });
