@@ -23,19 +23,25 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   const tracks = generateTracks(trackNumber);
 
   // Memoize the update function to prevent unnecessary re-renders
-  const updateAllSamples = useCallback((newSample) => {
+  const updateAllSamples = useCallback((newSample, removeSample = false) => {
     // Immediately update the ref along with state update
     setAllSamples((prevAllSamples) => {
-      const updatedSamples = [...prevAllSamples, newSample];
-      return updatedSamples; // Return the updated state
+      if (removeSample) {
+        // filter out the "newsample" 
+        const filteredSamples = prevAllSamples.filter((sample => sample.identifier !== newSample.identifier)) 
+        return [...filteredSamples];
+      } else {
+        return [...prevAllSamples, newSample];
+      }
     });
   }, []);
 
   useEffect(() => {
     console.log("Latest allSamples:", allSamples);
-    // Trigger the playback when allSamples are updated
-    updateSequnce(allSamples, (60 / 120) * 4); // Pass the latest tempo value (bpm)
-  }, [allSamples]); // Add a dependency on allSamples to ensure playback uses the latest samples
+    // Trigger the updated playback sequence
+    //  in useAudioPlayback when allSamples are updated
+    updateSequnce(allSamples, (60 / bpm) * 4); 
+  }, [allSamples]); 
 
   const handleClearLoop = () => {
     setAllSamples([]);
@@ -44,11 +50,26 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   const bpm = 120;
   const measurePerSecond = (60 / bpm) * 4;
   const PixelsPerSecond = trackWidth / measurePerSecond;
+  const trackLeft = Math.floor(trackRef?.current?.getBoundingClientRect().left);
 
   return (
     <div>
       <div className='track-status'>
-        width: {trackWidth}px bpm: {bpm} measurePerSecond: {measurePerSecond} pps = {PixelsPerSecond}
+        <span>
+          width: {trackWidth}px 
+        </span>
+        <span>
+          bpm: {bpm} 
+        </span>
+        <span>
+          loop seconds: {measurePerSecond} secs
+        </span>
+        <span>
+          left = {trackLeft}
+        </span>
+        <span>
+          pixels ps = {PixelsPerSecond} 
+        </span>
       </div>
       {tracks.map((track) => (
         <Track
@@ -56,7 +77,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           ref={trackRef}
           trackInfo={track}
           sampleSelected={sampleSelected}
-          trackWidth={trackWidth}
+          trackRef={trackRef}
           updateAllSamples={updateAllSamples} // Pass the memoized function
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
         />

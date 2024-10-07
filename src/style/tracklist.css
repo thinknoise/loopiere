@@ -9,3 +9,7 @@
   overflow-y: scroll;
   border: 1px solid darkgray;
 }
+
+.track-status span {
+  margin: 0 20px;
+}

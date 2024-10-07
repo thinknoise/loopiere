@@ -9,13 +9,16 @@ const useAudioPlaybackWithTimer = () => {
   const allSamplesRef = useRef([]); // Ref to keep the latest version of allSamples
   const loopTempoRef = useRef(0); // Ref to keep track of the tempo
 
-  // Function to play the audio set
+
+  // Function to update allSamples so that it plays any modification
   const updateSequnce = (allSamples, measurePerSecond) => {
     // Update the refs to keep the latest allSamples and tempo
     allSamplesRef.current = allSamples;
     loopTempoRef.current = measurePerSecond;
+    
   };
 
+  // Function to play the audio set
   const playAudioSet = (allSamples, measurePerSecond) => {
     // Update the refs to keep the latest allSamples and tempo
     allSamplesRef.current = allSamples;
@@ -77,6 +80,8 @@ const useAudioPlaybackWithTimer = () => {
 
   const handleStopAllSamples = () => {
     // Stop all currently playing sources
+
+    console.log("Loop Stopped!")
     playingSources.forEach((source) => {
       source.stop();
     });

@@ -2,8 +2,9 @@ import React from 'react';
 import TrackButton from './TrackButton';
 import '../style/track.css';
 
-const Track = React.forwardRef(({ trackInfo, sampleSelected, trackWidth, updateAllSamples, allSamples }, ref) => {
+const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAllSamples, allSamples }, ref) => {
 
+  const trackWidth = trackRef?.current?.getBoundingClientRect().width
   const handleDragOver = (e) => {
     e.preventDefault(); // Allows drop event to occur
   };
@@ -45,7 +46,8 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, trackWidth, updateA
         <TrackButton 
           key={`${index}_${sampleInfo.id}`} 
           sample={sampleInfo}
-          offset={sampleInfo.xPos * trackWidth}
+          trackRef={trackRef}
+          updateAllSamples={updateAllSamples}
         />
       ))}
     </div>
