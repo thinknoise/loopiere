@@ -82,10 +82,10 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
     const startRelativeLeft = startPos.x - trackLeft;
     const deltaX = e.clientX - startPos.x;
     const newXPos = (startRelativeLeft + deltaX) / trackWidth
-    console.log('--sample', sampleRef.current, '--new--', newXPos, '-delta', deltaX)
 
     // Update sample's xPos globally
     const updatedSample = { ...sample, xPos: newXPos };
+    console.log(sampleRef.current.trackSampleId, updatedSample.trackSampleId)
     updateAllSamples(sampleRef.current, true);
     updateAllSamples(updatedSample);
 
@@ -128,7 +128,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
         width: sample.xPos ? `${audioDuration * (916 / 4)}px` : 'auto',
       }}
     >
-      {sample.filename} - {Math.round(sample.xPos * trackWidth)}
+      {sample.filename}
     </button>
   );
 };
