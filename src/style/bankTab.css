@@ -1,4 +1,4 @@
-.bank-tabs button {
+.bank-tabs .tab {
   color: #fff;
   background-color: #333;
   margin: 20px 10px 0px 10px;
@@ -9,6 +9,6 @@
   vertical-align: bottom;
 }
 
-.bank-tabs button.selected {
+.bank-tabs .tab.selected {
   padding: 10px;
 }

@@ -56,7 +56,7 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
         }
       }}
       onClick={playAudio} // Play audio when the button is clicked
-      className={btnClass ? btnClass : 'sample-btn'}
+      className="sample-btn"
       style={{
         left: offset ? `${offset}px` : '',
         width: offset ? `${audioDuration * (916/4)}px` : 'auto',
