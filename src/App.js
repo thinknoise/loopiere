@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './style/App.css';
 import BankButtonList from './components/BankButtonList';
 import TrackList from './components/TrackList';
@@ -8,20 +8,20 @@ import banks from './data/banks.json';
 
 const App = () => {
   const [buttons, setButtons] = useState([]);
+  const [bankFilename, setBankFilename] = useState(banks[0].filename); // Initialize state with the first bank filename
   const [sampleSellected, setSampleSellected] = useState(null);
 
-  let defaultBank = banks[0].filename
+  // Load the initial button data when the component mounts or when bankFilename changes
+  useEffect(() => {
+    spawnButton(bankFilename);
+  }, [bankFilename]); 
 
   const spawnButton = (filename) => {
-    if (!filename) {
-      filename = defaultBank
-    }
-    defaultBank = filename
     fetchAudioData(filename)
       .then((data) => {
         if (data) {
           setButtons(data);
-          // console.log('Audio JSON:', data, buttons);
+          console.log('Audio JSON:', data, buttons);
         }
       })
       .catch((error) => {
@@ -38,12 +38,6 @@ const App = () => {
     setSampleSellected(sample);
   };
 
-  // initial bank on load
-  if(!buttons.length) {
-
-    spawnButton()
-  }
-
   return (
     <div className="App">
       <h1>Loopiere</h1>
@@ -51,7 +45,7 @@ const App = () => {
         trackNumber={4} 
         sampleSelected={sampleSellected} 
       />
-      <BankButtonList banks={banks} spawnButton={spawnButton} selected={defaultBank}/>
+      <BankButtonList banks={banks} setBankFilename={setBankFilename} selected={bankFilename} />
       <div className="button-container">
         {buttons.map((sample, index) => (
           <SampleButton
