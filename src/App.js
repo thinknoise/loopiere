@@ -10,7 +10,13 @@ const App = () => {
   const [buttons, setButtons] = useState([]);
   const [sampleSellected, setSampleSellected] = useState(null);
 
+  let defaultBank = banks[0].filename
+
   const spawnButton = (filename) => {
+    if (!filename) {
+      filename = defaultBank
+    }
+    defaultBank = filename
     fetchAudioData(filename)
       .then((data) => {
         if (data) {
@@ -34,7 +40,8 @@ const App = () => {
 
   // initial bank on load
   if(!buttons.length) {
-    spawnButton(banks[0].filename)
+
+    spawnButton()
   }
 
   return (
@@ -44,7 +51,7 @@ const App = () => {
         trackNumber={4} 
         sampleSelected={sampleSellected} 
       />
-      <BankButtonList banks={banks} spawnButton={spawnButton} />
+      <BankButtonList banks={banks} spawnButton={spawnButton} selected={defaultBank}/>
       <div className="button-container">
         {buttons.map((sample, index) => (
           <SampleButton

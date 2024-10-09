@@ -1,8 +1,14 @@
 .bank-tabs button {
   color: #fff;
   background-color: #333;
-  margin: 10px;
-  padding: 10px;
+  margin: 20px 10px 0px 10px;
+  padding: 0px 10px;
   border-radius: 10px 10px 0px 0px;
+  border: 4pxpx;
+  border-bottom: 0px;
+  vertical-align: bottom;
 }
 
+.bank-tabs button.selected {
+  padding: 10px;
+}

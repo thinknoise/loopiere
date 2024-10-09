@@ -1,10 +1,12 @@
 .button-container {
-  margin: 20px;
+  margin: 0px;
+  background-color: #333;
+  padding: 40px;
 }
 
 .sample-btn {
-  margin: 5px;
-  padding: 10px 20px 10px 20px;
+  margin: 15px 10px;
+  padding: 10px 20px;
   border-radius: 15px;
   background-color: rgba(83, 180, 253, 0.83);
   color: lightgray;
