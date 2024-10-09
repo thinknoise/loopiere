@@ -65,3 +65,12 @@
   top: 0px;
   z-index: 11;
 }
+
+.remove-track-btn {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  width: 15px;
+  height: 15px;
+  background-color: #fff;
+}

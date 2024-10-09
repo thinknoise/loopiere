@@ -89,16 +89,11 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
     updateAllSamples(sampleRef.current, true);
     updateAllSamples(updatedSample);
 
-    // now that the xPos percentage has been set in allSamples
-    // set the pixel Position
-    // const pixelPostion = newXPos * trackWidth
-    // Set the new position after drop
-    // setPosition({
-    //   x: pixelPostion,
-    //   y: 0, // cuz its always on the top of the track its in
-    // });
   };
 
+  const handleRemoveSample = () => {
+    updateAllSamples(sampleRef.current, true);
+  }
   // Attach and clean up event listeners for mousemove and mouseup
   useEffect(() => {
     if (isDragging) {
@@ -119,7 +114,6 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
     <button
       key={sample.identifier}
       ref={buttonRef}
-      onClick={playAudio} // Play audio when the button is clicked
       className="track-sample-btn"
       onMouseDown={handleMouseDown}
       style={{
@@ -128,6 +122,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
         width: sample.xPos ? `${audioDuration * (916 / 4)}px` : 'auto',
       }}
     >
+      <span className='remove-track-btn' onClick={handleRemoveSample}>x</span>
       {sample.filename}
     </button>
   );
