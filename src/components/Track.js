@@ -13,8 +13,9 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAll
     e.preventDefault();
 
     const dropArea = e.currentTarget.getBoundingClientRect();
-    const mouseX = e.clientX;
-    const relativeX = mouseX - dropArea.left;
+    console.log(e.clientX, dropArea.left)
+
+    const relativeX = e.clientX - dropArea.left;
 
     // type this: TrackType
     // id - string, identifier - string, trackId - number, onTrack - boolean 

@@ -47,7 +47,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
       source.connect(context.destination);
       source.start();
     }
-  },[audioBuffer]);
+  }, [audioBuffer]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true); // Start dragging
@@ -92,7 +92,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
   }, [startPos.x, trackLeft, trackWidth, sample, updateAllSamples, playAudio]);
 
   const handleRemoveSample = (e) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
     e.preventDefault();
     updateAllSamples(sampleRef.current, true);
   };
@@ -114,20 +114,25 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
   }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
-    <button
-      key={sample.identifier}
-      ref={buttonRef}
-      className="track-sample-btn"
-      onMouseDown={handleMouseDown}
+    <div className='track-btn-wrapper'
       style={{
         left: `${position.x}px`,
         top: `0px`,
-        width: sample.xPos ? `${audioDuration * (916 / 4)}px` : 'auto',
       }}
     >
-      <span className='remove-track-btn' onClick={handleRemoveSample}>x</span>
-      {sample.filename}
-    </button>
+      <button
+        key={sample.identifier}
+        ref={buttonRef}
+        className="track-sample-btn"
+        onMouseDown={handleMouseDown}
+        style={{
+          width: sample.xPos ? `${audioDuration * (916 / 4)}px` : 'auto',
+        }}
+        >
+        {sample.filename}
+      </button>
+      <button className='remove-track-btn' onClick={handleRemoveSample}>x</button>
+    </div>
   );
 };
 

@@ -38,7 +38,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   useEffect(() => {
     // Trigger the updated playback sequence in useAudioPlayback when allSamples are updated
     updateSequnce(allSamples, (60 / bpm) * 4); 
-    console.log("Latest allSamples:", allSamples);
+    // console.log("Latest allSamples:", allSamples);
   }, [allSamples, updateSequnce]); // Add updateSequnce as a dependency to useEffect
 
   const handleClearLoop = () => {

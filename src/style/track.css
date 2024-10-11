@@ -52,6 +52,10 @@
   color: #fff;
 }
 
+.track-btn-wrapper {
+  position: absolute;
+}
+
 .track-sample-btn {
   padding: 8px;
   position: absolute;
@@ -61,8 +65,8 @@
   margin: 0px;
   background-color: rgba(83, 180, 253, 0.83);
   color: #000;
-  position: absolute;
   top: 0px;
+  left: 0;
   z-index: 11;
 }
 

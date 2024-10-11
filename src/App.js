@@ -8,8 +8,8 @@ const App = () => {
 
   const handleDragStart = (e, sample, audioBuffer) => {
     const targetRect = e.target.getBoundingClientRect();
-    const mouseX = e.clientX;
-    const xDivMouse = mouseX - targetRect.left;
+    console.log(e.clientX, targetRect.left)
+    const xDivMouse = e.clientX - targetRect.left;
     sample.xDragOffset = xDivMouse;
     sample.audioBuffer = audioBuffer;
     setSampleSellected(sample);
