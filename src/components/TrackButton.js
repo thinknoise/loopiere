@@ -1,6 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
-
 import '../style/sampleButton.css';
 
 const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
@@ -12,8 +11,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
   const [isDragging, setIsDragging] = useState(false); // State to check if it's dragging
   const [position, setPosition] = useState({ x: sample.xPos * trackWidth, y: 0 }); // Initial position based on xPos
 
-  const sampleRef = useRef(sample)
-
+  const sampleRef = useRef(sample);
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
   const buttonRef = useRef(null);
 
@@ -23,7 +21,6 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
       const fullPath = `./samples/${sample.path}`;
 
       try {
-        // Fetch and decode audio for duration calculation
         const response = await fetch(fullPath);
         const arrayBuffer = await response.arrayBuffer();
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -41,8 +38,8 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
     loadAudioFile();
   }, [sample.path]);
 
-  // Function to play the audio
-  const playAudio = () => {
+  // Function to play the audio 
+  const playAudio = useCallback(() => {
     if (audioBuffer) {
       const context = getAudioContext(); // Use the shared AudioContext
       const source = context.createBufferSource();
@@ -50,50 +47,56 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
       source.connect(context.destination);
       source.start();
     }
-  };
+  },[audioBuffer]);
 
   const handleMouseDown = (e) => {
     setIsDragging(true); // Start dragging
     setStartPos({
       x: startPos.x,
-      y: 0, // cuz its always on the top of the track its in
+      y: 0, // Always on the top of the track it's in
     });
   };
 
-  // while dragging on the x-axis
-  const handleMouseMove = (e) => {
+  // Memoize handleMouseMove with useCallback
+  const handleMouseMove = useCallback((e) => {
     if (!isDragging) return;
 
     const startRelativeLeft = startPos.x - trackLeft;
     const deltaX = e.clientX - startPos.x;
-    const newXPos = startRelativeLeft + deltaX
+    const newXPos = startRelativeLeft + deltaX;
 
     // Update position during drag
     setPosition({
       x: newXPos,
-      y: 0, // cuz its always on the top of the track its in
+      y: 0, // Always on the top of the track it's in
     });
-  };
+  }, [isDragging, startPos.x, trackLeft]);
 
-
-  const handleMouseUp = (e) => {
+  // Memoize handleMouseUp with useCallback
+  const handleMouseUp = useCallback((e) => {
     setIsDragging(false); // Stop dragging
 
     const startRelativeLeft = startPos.x - trackLeft;
     const deltaX = e.clientX - startPos.x;
-    const newXPos = (startRelativeLeft + deltaX) / trackWidth
+    const newXPos = (startRelativeLeft + deltaX) / trackWidth;
 
     // Update sample's xPos globally
     const updatedSample = { ...sample, xPos: newXPos };
-    console.log(sampleRef.current.trackSampleId, updatedSample.trackSampleId)
-    updateAllSamples(sampleRef.current, true);
-    updateAllSamples(updatedSample);
+    updateAllSamples(sampleRef.current, true); // Remove the old position
+    updateAllSamples(updatedSample); // Add the new position
+    // is sequence is playing
+    // don't play this
+    if (false) {
+      playAudio()
+    }
+  }, [startPos.x, trackLeft, trackWidth, sample, updateAllSamples, playAudio]);
 
+  const handleRemoveSample = (e) => {
+    e.stopPropagation(); 
+    e.preventDefault();
+    updateAllSamples(sampleRef.current, true);
   };
 
-  const handleRemoveSample = () => {
-    updateAllSamples(sampleRef.current, true);
-  }
   // Attach and clean up event listeners for mousemove and mouseup
   useEffect(() => {
     if (isDragging) {
@@ -108,7 +111,7 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isDragging, position.x]);
+  }, [isDragging, handleMouseMove, handleMouseUp]);
 
   return (
     <button

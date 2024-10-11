@@ -16,19 +16,18 @@ const generateTracks = (trackNumber) => {
 
 const TrackList = ({ trackNumber, sampleSelected }) => {
   const [trackWidth, trackRef] = useTrackWidth();
-  const [allSamples, setAllSamples] = useState([]); // State to store consolidated samples
+  const [allSamples, setAllSamples] = useState([]);
 
   const { playAudioSet, handleStopAllSamples, updateSequnce } = useAudioPlayback(); // Use the audio playback hook
 
   const tracks = generateTracks(trackNumber);
 
-  // Memoize the update function to prevent unnecessary re-renders
+  // Memoize the updateAllSamples function to prevent unnecessary re-renders
   const updateAllSamples = useCallback((newSample, removeSample = false) => {
-    // Immediately update the ref along with state update
     setAllSamples((prevAllSamples) => {
       if (removeSample) {
-        // filter out the "newsample" 
-        const filteredSamples = prevAllSamples.filter((sample => sample.trackSampleId !== newSample.trackSampleId)) 
+        // filter out the "newSample" 
+        const filteredSamples = prevAllSamples.filter((sample => sample.trackSampleId !== newSample.trackSampleId)); 
         return [...filteredSamples];
       } else {
         return [...prevAllSamples, newSample];
@@ -37,11 +36,10 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   }, []);
 
   useEffect(() => {
-    console.log("Latest allSamples:", allSamples);
-    // Trigger the updated playback sequence
-    //  in useAudioPlayback when allSamples are updated
+    // Trigger the updated playback sequence in useAudioPlayback when allSamples are updated
     updateSequnce(allSamples, (60 / bpm) * 4); 
-  }, [allSamples]); 
+    console.log("Latest allSamples:", allSamples);
+  }, [allSamples, updateSequnce]); // Add updateSequnce as a dependency to useEffect
 
   const handleClearLoop = () => {
     setAllSamples([]);
@@ -71,7 +69,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           pixels ps = {PixelsPerSecond} 
         </span>
       </div>
-      {tracks.map((track, index) => (
+      {tracks.map((track) => (
         <Track
           key={track.id}
           ref={trackRef}

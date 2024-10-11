@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { getAudioContext } from '../utils/audioManager';
 
 // Custom hook for handling audio playback with recursive timer
@@ -9,14 +9,12 @@ const useAudioPlaybackWithTimer = () => {
   const allSamplesRef = useRef([]); // Ref to keep the latest version of allSamples
   const loopTempoRef = useRef(0); // Ref to keep track of the tempo
 
-
-  // Function to update allSamples so that it plays any modification
-  const updateSequnce = (allSamples, measurePerSecond) => {
+  // Memoize the updateSequnce function using useCallback
+  const updateSequnce = useCallback((allSamples, measurePerSecond) => {
     // Update the refs to keep the latest allSamples and tempo
     allSamplesRef.current = allSamples;
     loopTempoRef.current = measurePerSecond;
-
-  };
+  }, []); // Empty dependency array ensures this function doesn't change between renders
 
   // Function to play the audio set
   const playAudioSet = (allSamples, measurePerSecond) => {
@@ -26,8 +24,6 @@ const useAudioPlaybackWithTimer = () => {
 
     const audioBuffers = allSamples.map(sample => sample.audioBuffer); // Assuming each sample has an audioBuffer property
     const offsets = allSamples.map(sample => sample.xPos); // Use xPos as offset time
-
-    // console.log('Playing Samples:', allSamplesRef.current, 'Tempo:', loopTempoRef.current);
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
@@ -80,7 +76,6 @@ const useAudioPlaybackWithTimer = () => {
 
   const handleStopAllSamples = () => {
     // Stop all currently playing sources
-
     playingSources.forEach((source) => {
       source.stop();
     });

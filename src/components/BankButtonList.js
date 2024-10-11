@@ -14,7 +14,7 @@ const BankButtonList = ({ handleDragStart }) => {
       .then((data) => {
         if (data) {
           setButtons(data);
-          console.log('Audio JSON:', data, buttons);
+          // console.log('Audio JSON:', data, buttons);
         }
       })
       .catch((error) => {
