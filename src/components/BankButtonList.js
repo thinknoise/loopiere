@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import SampleButton from './SampleButton';
 import { fetchAudioData } from '../utils/fetchAudioData';
 import banks from '../data/banks.json';
@@ -8,12 +8,8 @@ const BankButtonList = ({ handleDragStart }) => {
   const [buttons, setButtons] = useState([]);
   const [bankFilename, setBankFilename] = useState(banks[0].filename); // Initialize state with the first bank filename
 
-  // Load the initial button data when the component mounts or when bankFilename changes
-  useEffect(() => {
-    spawnButton(bankFilename);
-  }, [bankFilename]); 
-
-  const spawnButton = (filename) => {
+  // Memoize the spawnButton function
+  const spawnButton = useCallback((filename) => {
     fetchAudioData(filename)
       .then((data) => {
         if (data) {
@@ -24,10 +20,12 @@ const BankButtonList = ({ handleDragStart }) => {
       .catch((error) => {
         console.error('Error fetching or setting buttons:', error);
       });
-  };
+  }, []); // Dependency array is empty, so spawnButton won't be recreated unless its logic changes.
 
-
-
+  // Load the initial button data when the component mounts or when bankFilename changes
+  useEffect(() => {
+    spawnButton(bankFilename);
+  }, [bankFilename, spawnButton]); // Add spawnButton to the dependency array
 
   return (
     <div className='bank-tabs'>
@@ -39,7 +37,6 @@ const BankButtonList = ({ handleDragStart }) => {
         >
           {bank.name}
         </button>
-        // add bank buttons here
       ))}
       <div className="button-container">
         {buttons.map((sample, index) => (
@@ -51,7 +48,6 @@ const BankButtonList = ({ handleDragStart }) => {
           />
         ))}
       </div>
-
     </div>
   );
 };
