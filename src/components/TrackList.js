@@ -90,9 +90,9 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       </div>
 
       {/* Button to play all samples */}
-      <button onClick={() => playAudioSet(allSamples, measurePerSecond)}>Play Tracks</button>
-      <button onClick={handleStopAllSamples}>Stop</button>
-      <button onClick={handleClearLoop}>Clear Loop</button>
+      <button className='play' onClick={() => playAudioSet(allSamples, measurePerSecond)}>Play Tracks</button>
+      <button className='stop' onClick={handleStopAllSamples}>Stop</button>
+      <button className='clear' onClick={handleClearLoop}>Clear Loop</button>
     </div>
   );
 };

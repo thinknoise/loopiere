@@ -1,6 +1,18 @@
 [
   {
-    "name": "basic",
+    "name": "acoustic_kit",
+    "filename": "acoustic_kit.json"
+  },
+  {
+    "name": "analog_kit",
+    "filename": "analog_kit.json"
+  },
+  {
+    "name": "simplekit",
+    "filename": "simplekit.json"
+  },
+  {
+    "name": "effects",
     "filename": "samples.json"
   },
   {
