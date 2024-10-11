@@ -20,7 +20,7 @@ const BankButtonList = ({ handleDragStart }) => {
       .catch((error) => {
         console.error('Error fetching or setting buttons:', error);
       });
-  }, []); // Dependency array is empty, so spawnButton won't be recreated unless its logic changes.
+  }, []);
 
   // Load the initial button data when the component mounts or when bankFilename changes
   useEffect(() => {
