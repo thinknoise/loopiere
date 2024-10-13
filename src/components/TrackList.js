@@ -4,6 +4,9 @@ import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
 import '../style/tracklist.css';
 
+// import "./styles.css";
+import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
+
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
     id: index + 1,
@@ -13,6 +16,30 @@ const generateTracks = (trackNumber) => {
     samples: []
   }));
 };
+
+
+
+
+export const RiveDemo = () => {
+  const { RiveComponent } = useRive({
+    // Load a local riv `clean_the_car.riv` or upload your own!
+    src: "play_button.riv",
+    // Be sure to specify the correct state machine (or animation) name
+    stateMachines: "Motion",
+    // This is optional.Provides additional layout control.
+    layout: new Layout({
+      fit: Fit.Contain, // Change to: rive.Fit.Contain, or Cover
+      alignment: Alignment.Center,
+    }),
+    autoplay: true,
+  });
+
+  return <RiveComponent />;
+};
+
+
+
+
 
 const TrackList = ({ trackNumber, sampleSelected }) => {
   const [trackWidth, trackRef] = useTrackWidth();
@@ -88,7 +115,11 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       </div>
 
       {/* Button to play all samples */}
-      <button className='play' onClick={() => playAudioSet(allSamples, measurePerSecond)}>Play Tracks</button>
+      <div className="RiveContainer">
+      <RiveDemo />
+        {/* <UrlDemo /> */}
+      </div>
+      <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={handleClearLoop}>Clear Loop</button>
     </div>

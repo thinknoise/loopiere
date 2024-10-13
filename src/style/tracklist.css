@@ -13,3 +13,11 @@
 .track-status span {
   margin: 0 20px;
 }
+
+.RiveContainer {
+  height: 50px;
+  width: 50px;
+  background-color: black;
+  margin: auto;
+  padding: 0;
+}

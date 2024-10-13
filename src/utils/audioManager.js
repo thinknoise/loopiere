@@ -27,7 +27,7 @@ export const loadAudio = async (filePath) => {
     
     return audioBuffer;
   } catch (error) {
-    console.error('Error loading audio:', error);
+      console.error('Error loading audio:', error);
     throw error;
   }
 };

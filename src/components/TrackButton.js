@@ -17,22 +17,14 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
 
   useEffect(() => {
     const loadAudioFile = async () => {
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)(); // Create AudioContext
+      // do this in button also
+      // needs to getAudioContext else do this
       const fullPath = `./samples/${sample.path}`;
 
-      try {
-        const response = await fetch(fullPath);
-        const arrayBuffer = await response.arrayBuffer();
-        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-
-        setAudioDuration(Math.round(audioBuffer.duration * 10) / 10); // Set duration in seconds
-
-        // Load audio using the utility (if needed for playback)
-        const buffer = await loadAudio(fullPath);
+      const buffer = await loadAudio(fullPath);
         setAudioBuffer(buffer); // Set audioBuffer state
-      } catch (error) {
-        console.error('Error loading audio file:', error);
-      }
+        setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
+
     };
 
     loadAudioFile();
