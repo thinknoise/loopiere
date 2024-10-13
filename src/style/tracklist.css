@@ -10,6 +10,15 @@
   border: 1px solid darkgray;
 }
 
+
+.track-status {
+  color: #fff;
+  display: block;
+  text-align: left;
+  width: 80%;
+  margin: 10px auto 0px auto;
+}
+
 .track-status span {
   margin: 0 20px;
 }

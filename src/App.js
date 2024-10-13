@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './style/App.css';
-import BankButtonList from './components/BankButtonList';
+import BankSampleList from './components/BankSamplelist';
 import TrackList from './components/TrackList';
 
 const App = () => {
@@ -22,7 +22,7 @@ const App = () => {
         trackNumber={4} 
         sampleSelected={sampleSellected} 
       />
-      <BankButtonList handleDragStart={handleDragStart} />
+      <BankSampleList handleDragStart={handleDragStart} />
     </div>
   );
 };

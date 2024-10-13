@@ -79,6 +79,15 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   return (
     <div>
+            {/* Button to play all samples */}
+      <div className="RiveContainer">
+      <RiveDemo />
+        {/* <UrlDemo /> */}
+      </div>
+      <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
+      <button className='stop' onClick={handleStopAllSamples}>Stop</button>
+      <button className='clear' onClick={handleClearLoop}>Clear Loop</button>
+
       <div className='track-status'>
         <span>
           width: {trackWidth}px 
@@ -114,14 +123,6 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
         <pre>{JSON.stringify(allSamples, null, 2)}</pre>
       </div>
 
-      {/* Button to play all samples */}
-      <div className="RiveContainer">
-      <RiveDemo />
-        {/* <UrlDemo /> */}
-      </div>
-      <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
-      <button className='stop' onClick={handleStopAllSamples}>Stop</button>
-      <button className='clear' onClick={handleClearLoop}>Clear Loop</button>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { fetchAudioData } from '../utils/fetchAudioData';
 import banks from '../data/banks.json';
 import '../style/bankTab.css';
 
-const BankButtonList = ({ handleDragStart }) => {
+const BankSampleList = ({ handleDragStart }) => {
   const [buttons, setButtons] = useState([]);
   const [bankFilename, setBankFilename] = useState(banks[0].filename); // Initialize state with the first bank filename
 
@@ -52,4 +52,4 @@ const BankButtonList = ({ handleDragStart }) => {
   );
 };
 
-export default BankButtonList;
+export default BankSampleList;
