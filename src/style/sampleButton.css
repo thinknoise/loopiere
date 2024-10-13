@@ -7,12 +7,21 @@
 }
 
 .sample-btn {
+  position: relative;
   margin: 15px 10px;
-  padding: 10px 20px;
-  border-radius: 15px;
+  padding: 0px 20px;
+  border-radius: 3px;
   background-color: rgba(83, 180, 253, 0.83);
   color: lightgray;
   border: none;
   cursor: grab;
 }
 
+.sample-btn span {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 5px;
+  font-size: x-small;
+  background-color: rgba(1, 88, 118, 0.5);
+}
