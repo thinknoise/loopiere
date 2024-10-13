@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import SampleButton from './SampleButton';
+import BankSample from './BankSample';
 import { fetchAudioData } from '../utils/fetchAudioData';
 import banks from '../data/banks.json';
 import '../style/bankTab.css';
@@ -40,7 +40,7 @@ const BankButtonList = ({ handleDragStart }) => {
       ))}
       <div className="button-container">
         {buttons.map((sample, index) => (
-          <SampleButton
+          <BankSample
             key={index}
             id={index}
             sample={sample}

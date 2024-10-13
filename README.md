@@ -254,13 +254,13 @@ export default AudioVisualizer;
 
    You can use this component to display the waveform for an `audioBuffer` loaded using your `loadAudio` function from the previous example.
 
-#### Example in `SampleButton.js`:
+#### Example in `BankSample.js`:
 ```javascript
 import React, { useState, useEffect } from 'react';
 import { loadAudio } from './audioManager';
 import AudioVisualizer from './AudioVisualizer';
 
-const SampleButton = ({ sample }) => {
+const BankSample = ({ sample }) => {
   const [audioBuffer, setAudioBuffer] = useState(null);
 
   useEffect(() => {
@@ -279,7 +279,7 @@ const SampleButton = ({ sample }) => {
   );
 };
 
-export default SampleButton;
+export default BankSample;
 ```
 
 ### Key Points:

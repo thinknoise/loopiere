@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef } from 'react';
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
-import '../style/sampleButton.css';
+import '../style/bankSample.css';
 
-const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
+const BankSample = ({ id, handleDragStart, sample, btnClass, offset }) => {
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
   const canvasRef = useRef(null);  // To reference the canvas element
@@ -99,4 +99,4 @@ const SampleButton = ({ id, handleDragStart, sample, btnClass, offset }) => {
   );
 };
 
-export default SampleButton;
+export default BankSample;

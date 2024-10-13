@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
-import '../style/sampleButton.css';
+import '../style/bankSample.css';
 
-const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
+const TrackSample = ({ sample, trackRef, updateAllSamples }) => {
   const trackWidth = Math.floor(trackRef.current.getBoundingClientRect().width);
   const trackLeft = Math.floor(trackRef.current.getBoundingClientRect().left);
 
@@ -128,4 +128,4 @@ const TrackButton = ({ sample, trackRef, updateAllSamples }) => {
   );
 };
 
-export default TrackButton;
+export default TrackSample;

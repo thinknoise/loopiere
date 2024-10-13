@@ -1,5 +1,5 @@
 import React from 'react';
-import TrackButton from './TrackButton';
+import TrackSample from './TrackSample';
 import '../style/track.css';
 
 const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAllSamples, allSamples }, ref) => {
@@ -44,7 +44,7 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAll
       <div className="middle-line" />
       <span className="track-name">{trackInfo.name}</span>
       {allSamples.map((sampleInfo, index) => (
-        <TrackButton 
+        <TrackSample 
           key={`${index}_${sampleInfo.id}`} 
           sample={sampleInfo}
           trackRef={trackRef}
