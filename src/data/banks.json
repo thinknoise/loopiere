@@ -1,14 +1,18 @@
 [
   {
-    "name": "acoustic_kit",
+    "name": "acoustic kit",
     "filename": "acoustic_kit.json"
   },
   {
-    "name": "analog_kit",
+    "name": "one hits",
+    "filename": "onehits.json"
+  },
+  {
+    "name": "analog kit",
     "filename": "analog_kit.json"
   },
   {
-    "name": "simplekit",
+    "name": "simple kit",
     "filename": "simplekit.json"
   },
   {
