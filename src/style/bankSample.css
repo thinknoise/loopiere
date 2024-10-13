@@ -6,7 +6,7 @@
   margin: auto;
 }
 
-.sample-btn {
+.bank-sample-btn {
   position: relative;
   margin: 15px 10px;
   padding: 0px 20px;
@@ -17,7 +17,7 @@
   cursor: grab;
 }
 
-.sample-btn span {
+.bank-sample-btn span {
   position: absolute;
   top: 0;
   right: 0;
