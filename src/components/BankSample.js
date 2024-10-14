@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
 import '../style/bankSample.css';
 
@@ -9,7 +9,7 @@ const BankSample = ({ id, handleDragStart, sample, btnClass, offset }) => {
 
   useEffect(() => {
     const loadAudioFile = async () => {
-      const fullPath = `./samples/${sample.path}`;
+      const fullPath = `/samples/${sample.path}`;
       const buffer = await loadAudio(fullPath);
       setAudioBuffer(buffer); // Set audioBuffer state
       setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds

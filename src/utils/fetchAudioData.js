@@ -7,7 +7,7 @@ function addToData(bank, data) {
 }
 
 export async function fetchAudioData(bank) {
-  const url = bank ? bank : '/samples.json'; // Adjusted path
+  const url = bank ? `/${bank}` : '/samples.json'; // Adjusted path
 
   try {
     const response = await fetch(url, {

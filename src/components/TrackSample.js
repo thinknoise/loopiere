@@ -19,7 +19,7 @@ const TrackSample = ({ sample, trackRef, updateAllSamples }) => {
     const loadAudioFile = async () => {
       // do this in button also
       // needs to getAudioContext else do this
-      const fullPath = `./samples/${sample.path}`;
+      const fullPath = `/samples/${sample.path}`;
 
       const buffer = await loadAudio(fullPath);
         setAudioBuffer(buffer); // Set audioBuffer state
