@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Track from './Track';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
@@ -43,6 +43,8 @@ export const RiveDemo = () => {
 const TrackList = ({ trackNumber, sampleSelected }) => {
   const [trackWidth, trackRef] = useTrackWidth();
   const [allSamples, setAllSamples] = useState([]);
+  const [bpm, setBPM] = useState(90);
+  const bpmSlisderRef = useRef(bpm)
 
   const { playAudioSet, handleStopAllSamples, updateSequnce } = useAudioPlayback(); // Use the audio playback hook
 
@@ -65,13 +67,16 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     // Trigger the updated playback sequence in useAudioPlayback when allSamples are updated
     updateSequnce(allSamples, (60 / bpm) * 4); 
     // console.log("Latest allSamples:", allSamples);
-  }, [allSamples, updateSequnce]); // Add updateSequnce as a dependency to useEffect
+  }, [allSamples, bpm, updateSequnce]); // Add updateSequnce as a dependency to useEffect
 
   const handleClearLoop = () => {
     setAllSamples([]);
   };
 
-  const bpm = 120;
+  const updateSliderValue = (e) => {
+    setBPM(e.target.value);
+  }
+
   const measurePerSecond = (60 / bpm) * 4;
   const PixelsPerSecond = trackWidth / measurePerSecond;
   const trackLeft = Math.floor(trackRef?.current?.getBoundingClientRect().left);
@@ -86,6 +91,17 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={handleClearLoop}>Clear Loop</button>
+      <br/>
+      <input 
+        ref={bpmSlisderRef} 
+        type="range" 
+        id="slider" 
+        name="slider" 
+        min="40" 
+        max="200" 
+        value={bpm}
+        onInput={(e) => updateSliderValue(e)}
+      />
 
       <div className='track-status'>
         <span>
