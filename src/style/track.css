@@ -74,8 +74,20 @@
   position: absolute;
   left: 0px;
   top: 0px;
-  width: 15px;
+  width: 15px; /* Make it a square */
   height: 15px;
-  background-color: #fff;
+  background-color: #333; /* Dark background for contrast */
   z-index: 13;
+}
+
+.remove-track-btn:after {
+  position: absolute;
+  top: 7px;
+  left: 7%;
+  transform: translate(-2px, -10px); /* Center the X */
+  content: "\2716"; /* Unicode for the "X" symbol */
+  font-size: 18px;
+  color: #fff;
+  line-height: 1; /* Ensures the X is perfectly centered */
+  text-align: center;
 }

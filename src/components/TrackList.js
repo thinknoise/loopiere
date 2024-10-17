@@ -46,7 +46,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   const [bpm, setBPM] = useState(90);
   const bpmSlisderRef = useRef(bpm)
 
-  const { playAudioSet, handleStopAllSamples, updateSequnce } = useAudioPlayback(); // Use the audio playback hook
+  const { playAudioSet, handleStopAllSamples, updateSequence } = useAudioPlayback(); // Use the audio playback hook
 
   const tracks = generateTracks(trackNumber);
 
@@ -55,7 +55,12 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     setAllSamples((prevAllSamples) => {
       if (removeSample) {
         // filter out the "newSample" 
-        const filteredSamples = prevAllSamples.filter((sample => sample.trackSampleId !== newSample.trackSampleId)); 
+        const filteredSamples = prevAllSamples.filter((sample => {
+          // console.log(sample.trackSampleId, newSample.trackSampleId)
+          return sample.trackSampleId !== newSample.trackSampleId
+        })); 
+        console.log(filteredSamples)
+
         return [...filteredSamples];
       } else {
         return [...prevAllSamples, newSample];
@@ -65,9 +70,9 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   useEffect(() => {
     // Trigger the updated playback sequence in useAudioPlayback when allSamples are updated
-    updateSequnce(allSamples, (60 / bpm) * 4); 
+    updateSequence(allSamples, (60 / bpm) * 4); 
     // console.log("Latest allSamples:", allSamples);
-  }, [allSamples, bpm, updateSequnce]); // Add updateSequnce as a dependency to useEffect
+  }, [allSamples, bpm, updateSequence]); // Add updateSequence as a dependency to useEffect
 
   const handleClearLoop = () => {
     setAllSamples([]);
@@ -111,13 +116,13 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           bpm: {bpm} 
         </span>
         <span>
-          loop seconds: {measurePerSecond} secs
+          loop seconds: {Math.round(measurePerSecond * 100)/100} secs
         </span>
         <span>
           left = {trackLeft}
         </span>
         <span>
-          pixels ps = {PixelsPerSecond} 
+          pixels ps = {Math.round(PixelsPerSecond)} 
         </span>
       </div>
       {tracks.map((track) => (
@@ -127,6 +132,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           trackInfo={track}
           sampleSelected={sampleSelected}
           trackRef={trackRef}
+          bpm={bpm}
           updateAllSamples={updateAllSamples} // Pass the memoized function
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
         />

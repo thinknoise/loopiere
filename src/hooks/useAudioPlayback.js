@@ -9,8 +9,8 @@ const useAudioPlaybackWithTimer = () => {
   const allSamplesRef = useRef([]); // Ref to keep the latest version of allSamples
   const loopTempoRef = useRef(0); // Ref to keep track of the tempo
 
-  // Memoize the updateSequnce function using useCallback
-  const updateSequnce = useCallback((allSamples, measurePerSecond) => {
+  // Memoize the updateSequence function using useCallback
+  const updateSequence = useCallback((allSamples, measurePerSecond) => {
     // Update the refs to keep the latest allSamples and tempo
     allSamplesRef.current = allSamples;
     loopTempoRef.current = measurePerSecond;
@@ -85,7 +85,7 @@ const useAudioPlaybackWithTimer = () => {
     isPlayingRef.current = false;
   };
 
-  return { playAudioSet, handleStopAllSamples, updateSequnce };
+  return { playAudioSet, handleStopAllSamples, updateSequence };
 };
 
 export default useAudioPlaybackWithTimer;
