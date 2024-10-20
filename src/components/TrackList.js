@@ -54,7 +54,6 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       if (removeSample) {
         // filter out the "newSample" 
         const filteredSamples = prevAllSamples.filter((sample => {
-          // console.log(sample.trackSampleId, newSample.trackSampleId)
           return sample.trackSampleId !== newSample.trackSampleId
         })); 
         // console.log('filtered', filteredSamples, typeof filteredSamples)
