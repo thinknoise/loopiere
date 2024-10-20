@@ -2,7 +2,14 @@ import React from 'react';
 import TrackSample from './TrackSample';
 import '../style/track.css';
 
-const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAllSamples, allSamples, bpm }, ref) => {
+const Track = React.forwardRef(({ 
+    trackInfo, 
+    sampleSelected, 
+    trackRef, 
+    updateAllSamples, 
+    allSamples, 
+    bpm, updateSamplesWithNewPosition 
+  }, ref) => {
 
   const trackWidth = trackRef?.current?.getBoundingClientRect().width
   const handleDragOver = (e) => {
@@ -35,6 +42,7 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAll
   return (
     <div
       ref={ref}
+      key={`track-${trackInfo.id}`} 
       className="track drop-zone"
       onDrop={(e) => handleDrop(e, sampleSelected)}
       onDragOver={handleDragOver}
@@ -48,6 +56,7 @@ const Track = React.forwardRef(({ trackInfo, sampleSelected, trackRef, updateAll
           trackRef={trackRef}
           bpm={bpm}
           updateAllSamples={updateAllSamples}
+          updateSamplesWithNewPosition={updateSamplesWithNewPosition}
         />
       ))}
     </div>

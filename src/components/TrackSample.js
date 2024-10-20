@@ -3,21 +3,29 @@ import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import th
 
 import '../style/bankSample.css';
 
-const TrackSample = ({ sample, trackRef, updateAllSamples, bpm }) => {
+const TrackSample = ({ sample, trackRef, updateAllSamples, bpm, updateSamplesWithNewPosition }) => {
   const trackWidth = Math.floor(trackRef.current.getBoundingClientRect().width);
   const trackLeft = Math.floor(trackRef.current.getBoundingClientRect().left);
 
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
 
-  
-  const [isDragging, setIsDragging] = useState(false); // State to check if it's dragging
-  const [position, setPosition] = useState({ x: sample.xPos * trackWidth, y: 0 }); // Initial position based on xPos
+  const [draggingPosition, setDraggingPosition] = useState({ x: 0, y: 0 }); // Initial dummy values
+
+  // useEffect(() => {
+  //   // This effect will only run once, on the first render
+  //   if (!isDraggingRef.current) {
+  //     console.log(sample.filename, sample.xPos * trackWidth)
+
+  //     setPosition({ x: sample.xPos * trackWidth, y: 0 });
+  //   }
+  // }, []); // Empty dependency array ensures this runs only once
+
 
   const sampleRef = useRef(sample);
   const isDraggingRef = useRef(false);
+
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
-  const buttonRef = useRef(null);
 
   const measurePerSecond = (60 / bpm) * 4;
 
@@ -31,8 +39,7 @@ const TrackSample = ({ sample, trackRef, updateAllSamples, bpm }) => {
       const buffer = await loadAudio(fullPath);
         setAudioBuffer(buffer); // Set audioBuffer state
         setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
-
-    };
+      };
 
     loadAudioFile();
   }, [sample.path]);
@@ -50,15 +57,15 @@ const TrackSample = ({ sample, trackRef, updateAllSamples, bpm }) => {
     if (!isDraggingRef.current) return;
 
     const startRelativeLeft = startPos.x - trackLeft;
-    const deltaX = e.clientX - startPos.x;
+    const deltaX = e.clientX - startPos.x; // reads the mouse position
     const newXPos = startRelativeLeft + deltaX;
 
     // Update position during drag
-    setPosition({
+    setDraggingPosition({
       x: newXPos,
       y: 0, // Always on the top of the track it's in
     });
-  }, [isDragging, startPos.x, trackLeft]);
+  }, [isDraggingRef.current, startPos.x, trackLeft]);
 
   // Memoize handleMouseUp with useCallback
   const handleMouseUp = useCallback((e) => {
@@ -68,17 +75,11 @@ const TrackSample = ({ sample, trackRef, updateAllSamples, bpm }) => {
 
     const startRelativeLeft = startPos.x - trackLeft;
     const deltaX = e.clientX - startPos.x;
-    const newXPos = (startRelativeLeft + deltaX) / trackWidth;
+    const newXPositionPercentage = (startRelativeLeft + deltaX) / trackWidth;
 
-    // Update sample's xPos globally
-    const updatedSample = { ...sampleRef.current, xPos: newXPos };
+    updateSamplesWithNewPosition(sampleRef.current.trackSampleId, newXPositionPercentage)
 
-    /// maybe make a function that does what I want to have happen
-    /// set the xpos of the sampleRef.current in the allSamples array
-
-    updateAllSamples(sampleRef.current, true); // Remove the old position
-    updateAllSamples(updatedSample); // Add the new position
-  }, [startPos.x, trackLeft, trackWidth, sample, updateAllSamples]);
+  }, [startPos.x, trackLeft, trackWidth, sample]);
 
   const handleRemoveSample = (e) => {
     e.stopPropagation();
@@ -104,19 +105,16 @@ const TrackSample = ({ sample, trackRef, updateAllSamples, bpm }) => {
   return (
     <div className='track-btn-wrapper'
       style={{
-        left: `${position.x}px`,
+        left: `${isDraggingRef.current ? draggingPosition.x : sample.xPos * trackWidth}px`,
         top: `0px`,
+        width: sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}px` : 'auto',
       }}
     >
       <button
         key={sample.trackSampleId}
-        ref={buttonRef}
         className="track-sample-btn"
         onMouseDown={handleMouseDown}
-        style={{
-          width: sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}px` : 'auto',
-        }}
-        >
+      >
         {sample.filename}
       </button>
       <button className='remove-track-btn' onClick={handleRemoveSample}></button>

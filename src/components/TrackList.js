@@ -4,7 +4,7 @@ import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
 import '../style/tracklist.css';
 
-import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
+// import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -19,20 +19,20 @@ const generateTracks = (trackNumber) => {
 
 
 
-export const RiveDemo = () => {
-  const { RiveComponent } = useRive({
-    // Load a local riv `clean_the_car.riv` or upload your own!
-    src: "/play_button.riv",
-    layout: new Layout({
-      fit: Fit.Contain, // Change to: rive.Fit.Contain, or Cover
-      alignment: Alignment.Center,
-    }),
-    autoplay: true,
-    onLoop: 'stop',
-  });
+// export const RiveDemo = () => {
+//   const { RiveComponent } = useRive({
+//     // Load a local riv `clean_the_car.riv` or upload your own!
+//     src: "/play_button.riv",
+//     layout: new Layout({
+//       fit: Fit.Contain, // Change to: rive.Fit.Contain, or Cover
+//       alignment: Alignment.Center,
+//     }),
+//     autoplay: true,
+//     onLoop: 'stop',
+//   });
 
-  return <RiveComponent />;
-};
+//   return <RiveComponent />;
+// };
 
 
 
@@ -57,14 +57,29 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           // console.log(sample.trackSampleId, newSample.trackSampleId)
           return sample.trackSampleId !== newSample.trackSampleId
         })); 
-        console.log(filteredSamples)
+        // console.log('filtered', filteredSamples, typeof filteredSamples)
 
-        return [...filteredSamples];
+        return filteredSamples;
       } else {
+        // console.log( typeof prevAllSamples, [...prevAllSamples, newSample] )
+
         return [...prevAllSamples, newSample];
       }
     });
   }, []);
+
+  const updateSamplesWithNewPosition = useCallback((trackSampleId, newPosition) => {
+    setAllSamples((prevAllSamples) => {
+      return prevAllSamples.map(sample => 
+        sample.trackSampleId === trackSampleId 
+          ? { ...sample, xPos: newPosition }  // Update the xPos of the matched sample
+          : sample  // Keep other samples unchanged
+      );
+    });
+  })
+
+
+  // SEQUENCE
 
   useEffect(() => {
     // Trigger the updated playback sequence in useAudioPlayback when allSamples are updated
@@ -88,7 +103,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     <div>
             {/* Button to play all samples */}
       <div className="RiveContainer">
-      <RiveDemo />
+        {/* <RiveDemo /> */}
         {/* <UrlDemo /> */}
       </div>
       <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
@@ -131,7 +146,8 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           sampleSelected={sampleSelected}
           trackRef={trackRef}
           bpm={bpm}
-          updateAllSamples={updateAllSamples} // Pass the memoized function
+          updateAllSamples={updateAllSamples} // Pass the memoized add to allSamples function
+          updateSamplesWithNewPosition={updateSamplesWithNewPosition} 
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
         />
       ))}
@@ -139,7 +155,11 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       {/* Display samples in loop in lower left */}
       <div className='track-sample-listing'>
         <h3>All Consolidated Samples:</h3>
-        <pre>{JSON.stringify(allSamples, null, 2)}</pre>
+        {allSamples.map((sample) => {
+          return (
+            <pre key={sample.trackSampleId}>{sample.trackSampleId} - {sample.filename}</pre>
+          )
+        })}
       </div>
 
     </div>
