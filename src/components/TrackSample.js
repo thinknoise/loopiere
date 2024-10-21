@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import WaveFormDrawing from './WaveFormDrawing'; // Import the WaveFormDrawing component
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
 
 import '../style/bankSample.css';
@@ -6,6 +7,7 @@ import '../style/bankSample.css';
 const TrackSample = ({ sample, trackRef, updateAllSamples, bpm, updateSamplesWithNewPosition }) => {
   const trackWidth = Math.floor(trackRef.current.getBoundingClientRect().width);
   const trackLeft = Math.floor(trackRef.current.getBoundingClientRect().left);
+  const canvasRef = useRef(null);  // To reference the canvas element
 
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
@@ -110,14 +112,24 @@ const TrackSample = ({ sample, trackRef, updateAllSamples, bpm, updateSamplesWit
         width: sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}px` : 'auto',
       }}
     >
+      <button className='remove-track-btn' onClick={handleRemoveSample}></button>
       <button
         key={sample.trackSampleId}
         className="track-sample-btn"
         onMouseDown={handleMouseDown}
+        style={{
+          width: sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}px` : 'auto',
+        }}
       >
-        {sample.filename}
+      <span>{sample.filename.slice(0, -4)}</span>
+      {/* Call the WaveFormDrawing component here */}
+      <WaveFormDrawing 
+        ref={canvasRef} 
+        buffer={audioBuffer} 
+        width={sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}` : '120'}
+        height="53" 
+      />
       </button>
-      <button className='remove-track-btn' onClick={handleRemoveSample}></button>
     </div>
   );
 };
