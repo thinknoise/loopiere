@@ -4,9 +4,8 @@ import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import th
 
 import '../style/bankSample.css';
 
-const TrackSample = ({ sample, trackRef, updateAllSamples, bpm, updateSamplesWithNewPosition }) => {
-  const trackWidth = Math.floor(trackRef.current.getBoundingClientRect().width);
-  const trackLeft = Math.floor(trackRef.current.getBoundingClientRect().left);
+const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, updateSamplesWithNewPosition }) => {
+
   const canvasRef = useRef(null);  // To reference the canvas element
 
   const [audioBuffer, setAudioBuffer] = useState(null);

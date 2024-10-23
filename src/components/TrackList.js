@@ -1,10 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import Track from './Track';
+import { saveAllSamplesToLocalStorage, getAllSamplesFromLocalStorage } from '../utils/storageUtils';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
+import useTrackSequence from '../hooks/useTrackSequence';
 import '../style/tracklist.css';
 
-// import { useRive, Layout, Fit, Alignment } from "@rive-app/react-canvas";
+import { useRive } from "@rive-app/react-canvas";
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -18,77 +20,34 @@ const generateTracks = (trackNumber) => {
 
 
 
-
-// export const RiveDemo = () => {
-//   const { RiveComponent } = useRive({
-//     // Load a local riv `clean_the_car.riv` or upload your own!
-//     src: "/play_button.riv",
-//     layout: new Layout({
-//       fit: Fit.Contain, // Change to: rive.Fit.Contain, or Cover
-//       alignment: Alignment.Center,
-//     }),
-//     autoplay: true,
-//     onLoop: 'stop',
-//   });
-
-//   return <RiveComponent />;
-// };
-
-
-
-
-
 const TrackList = ({ trackNumber, sampleSelected }) => {
-  const [trackWidth, trackRef] = useTrackWidth();
-  const [allSamples, setAllSamples] = useState([]);
-  const [bpm, setBPM] = useState(90);
-  const bpmSlisderRef = useRef(bpm)
-
-  const { playAudioSet, handleStopAllSamples, updateSequence } = useAudioPlayback(); // Use the audio playback hook
+  const trackRef = useRef(null)
+  const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
   const tracks = generateTracks(trackNumber);
 
-  // Memoize the updateAllSamples function to prevent unnecessary re-renders
-  const updateAllSamples = useCallback((newSample, removeSample = false) => {
-    setAllSamples((prevAllSamples) => {
-      if (removeSample) {
-        // filter out the "newSample" 
-        const filteredSamples = prevAllSamples.filter((sample => {
-          return sample.trackSampleId !== newSample.trackSampleId
-        })); 
-        // console.log('filtered', filteredSamples, typeof filteredSamples)
-
-        return filteredSamples;
-      } else {
-        // console.log( typeof prevAllSamples, [...prevAllSamples, newSample] )
-
-        return [...prevAllSamples, newSample];
-      }
-    });
-  }, []);
-
-  const updateSamplesWithNewPosition = useCallback((trackSampleId, newPosition) => {
-    setAllSamples((prevAllSamples) => {
-      return prevAllSamples.map(sample => 
-        sample.trackSampleId === trackSampleId 
-          ? { ...sample, xPos: newPosition }  // Update the xPos of the matched sample
-          : sample  // Keep other samples unchanged
-      );
-    });
-  })
+  const {
+    allSamples,
+    bpm,
+    bpmSliderRef,
+    playAudioSet,
+    handleStopAllSamples,
+    setBPM,
+    saveSequence,
+    shareSequence,
+    setAllSamples,
+    clearAllSamples,
+    updateAllSamples,
+    updateSamplesWithNewPosition,
+  } = useTrackSequence(80)
 
 
-  // SEQUENCE
-
-  useEffect(() => {
-    // Trigger the updated playback sequence in useAudioPlayback when allSamples are updated
-    updateSequence(allSamples, (60 / bpm) * 4); 
-    // console.log("Latest allSamples:", allSamples);
-  }, [allSamples, bpm, updateSequence]); // Add updateSequence as a dependency to useEffect
-
-  const handleClearLoop = () => {
-    setAllSamples([]);
-  };
+  const { rive, RiveComponent } = useRive({
+    src: '/play_button.riv',
+    stateMachines: "basicWhammo",
+    autoplay: false,
+  });
+  
 
   const updateSliderValue = (e) => {
     setBPM(e.target.value);
@@ -96,21 +55,31 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   const measurePerSecond = (60 / bpm) * 4;
   const PixelsPerSecond = trackWidth / measurePerSecond;
-  const trackLeft = Math.floor(trackRef?.current?.getBoundingClientRect().left);
 
   return (
     <div>
             {/* Button to play all samples */}
       <div className="RiveContainer">
-        {/* <RiveDemo /> */}
-        {/* <UrlDemo /> */}
+        <RiveComponent
+          onMouseEnter={() => rive && rive.play()}
+          onMouseLeave={() => rive && rive.pause()}
+        />
       </div>
       <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
-      <button className='clear' onClick={handleClearLoop}>Clear Loop</button>
+      <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
+      <br/>
+      <button className='save-sequence' onClick={() => saveSequence(allSamples, bpm)}>Save Loop</button>
+      <button className='unsave-sequence' onClick={() => saveAllSamplesToLocalStorage([], 80)}>Delete Saved Loop</button>
+      <button className='load-sequence' onClick={() => {
+        const savedSamples = getAllSamplesFromLocalStorage();
+        setAllSamples(savedSamples)
+      }}>Load Saved Loop</button>
+
       <br/>
       <input 
-        ref={bpmSlisderRef} 
+        ref={bpmSliderRef} 
+        className='bpm-slider'
         type="range" 
         id="slider" 
         name="slider" 
@@ -143,7 +112,8 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           ref={trackRef}
           trackInfo={track}
           sampleSelected={sampleSelected}
-          trackRef={trackRef}
+          trackWidth={trackWidth}
+          trackLeft={trackLeft}
           bpm={bpm}
           updateAllSamples={updateAllSamples} // Pass the memoized add to allSamples function
           updateSamplesWithNewPosition={updateSamplesWithNewPosition} 

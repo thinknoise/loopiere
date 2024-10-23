@@ -5,13 +5,13 @@ import '../style/track.css';
 const Track = React.forwardRef(({ 
     trackInfo, 
     sampleSelected, 
-    trackRef, 
+    trackWidth,
+    trackLeft,
     updateAllSamples, 
     allSamples, 
     bpm, updateSamplesWithNewPosition 
   }, ref) => {
 
-  const trackWidth = trackRef?.current?.getBoundingClientRect().width
   const handleDragOver = (e) => {
     e.preventDefault(); // Allows drop event to occur
   };
@@ -53,7 +53,8 @@ const Track = React.forwardRef(({
         <TrackSample 
           key={`${index}_${sampleInfo.id}`} 
           sample={sampleInfo}
-          trackRef={trackRef}
+          trackWidth={trackWidth}
+          trackLeft={trackLeft}
           bpm={bpm}
           updateAllSamples={updateAllSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}
