@@ -65,7 +65,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           onMouseLeave={() => rive && rive.pause()}
         />
       </div>
-      <button className='play' onClick={() => playAudioSet(allSamples, 2.2)}>Play Tracks</button>
+      <button className='play' onClick={() => playAudioSet(allSamples, secsPerMeasure)}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
       <br/>
