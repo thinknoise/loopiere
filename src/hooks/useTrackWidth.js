@@ -7,7 +7,7 @@ const useTrackWidth = (trackRef) => {
 
   useEffect(() => {
     const updateTrackWidth = () => {
-      console.log('wiley', trackRef?.current)
+
       if (trackRef?.current) {
 
         const width = trackRef.current.getBoundingClientRect().width;

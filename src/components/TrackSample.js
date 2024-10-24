@@ -28,7 +28,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
 
   const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 
-  const measurePerSecond = (60 / bpm) * 4;
+  const secsPerMeasure = (60 / bpm) * 4;
 
 
   useEffect(() => {
@@ -108,7 +108,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
       style={{
         left: `${isDraggingRef.current ? draggingPosition.x : sample.xPos * trackWidth}px`,
         top: `0px`,
-        width: sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}px` : 'auto',
+        width: sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}px` : 'auto',
       }}
     >
       <button className='remove-track-btn' onClick={handleRemoveSample}></button>
@@ -117,7 +117,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
         className="track-sample-btn"
         onMouseDown={handleMouseDown}
         style={{
-          width: sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}px` : 'auto',
+          width: sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}px` : 'auto',
         }}
       >
       <span>{sample.filename.slice(0, -4)}</span>
@@ -125,7 +125,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
       <WaveFormDrawing 
         ref={canvasRef} 
         buffer={audioBuffer} 
-        width={sample.xPos ? `${(audioDuration/measurePerSecond) * trackWidth}` : '120'}
+        width={sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}` : '120'}
         height="53" 
       />
       </button>

@@ -10,31 +10,30 @@ const useAudioPlaybackWithTimer = () => {
   const loopTempoRef = useRef(0); // Ref to keep track of the tempo
 
   // Memoize the updateSequence function using useCallback
-  const updateSequence = useCallback((allSamples, measurePerSecond) => {
+  const updateSequence = useCallback((allSamples, secsPerMeasure) => {
     // Update the refs to keep the latest allSamples and tempo
     allSamplesRef.current = allSamples;
-    loopTempoRef.current = measurePerSecond;
-  }, []); // Empty dependency array ensures this function doesn't change between renders
+    loopTempoRef.current = secsPerMeasure;
+  }, []); 
 
   // Function to play the audio set
-  const playAudioSet = (allSamples, measurePerSecond) => {
-    // Update the refs to keep the latest allSamples and tempo
-    allSamplesRef.current = allSamples;
-    loopTempoRef.current = measurePerSecond;
-
-    const audioBuffers = allSamples.map(sample => sample.audioBuffer); // Assuming each sample has an audioBuffer property
-    const offsets = allSamples.map(sample => sample.xPos); // Use xPos as offset time
+  const playAudioSet = (allSamples, secsPerMeasure) => {
+    // Assuming each sample has an audioBuffer property
+    // fix this - wiley
+    const audioBuffers = allSamplesRef.current.map(sample => sample.audioBuffer); 
+    const offsets = allSamplesRef.current.map(sample => sample.xPos); // Use xPos as offset time
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
     const context = getAudioContext();
     const sources = [];
 
+    console.log(secsPerMeasure)
     audioBuffers.forEach((buffer, index) => {
       const source = context.createBufferSource();
       source.connect(context.destination);
       source.buffer = buffer;
-      const offsetTime = offsets[index] * measurePerSecond || 0;
+      const offsetTime = offsets[index] * secsPerMeasure || 0;
       source.start(context.currentTime + offsetTime, 0);
       sources.push(source);
     });
@@ -43,7 +42,7 @@ const useAudioPlaybackWithTimer = () => {
     setPlayingSources(sources);
     isPlayingRef.current = true;
 
-    // Start the recursive timer after measurePerSecond seconds
+    // Start the recursive timer after secsPerMeasure seconds
     startTimeRef.current = context.currentTime;
     scheduleNextPlayback(allSamplesRef.current); // Ensure the latest samples are used for next playback loop
   };

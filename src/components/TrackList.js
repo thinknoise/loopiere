@@ -53,8 +53,8 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     setBPM(e.target.value);
   }
 
-  const measurePerSecond = (60 / bpm) * 4;
-  const PixelsPerSecond = trackWidth / measurePerSecond;
+  const secsPerMeasure = (60 / bpm) * 4;
+  const PixelsPerSecond = trackWidth / secsPerMeasure;
 
   return (
     <div>
@@ -97,7 +97,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           bpm: {bpm} 
         </span>
         <span>
-          loop seconds: {Math.round(measurePerSecond * 100)/100} secs
+          loop seconds: {Math.round(secsPerMeasure * 100)/100} secs
         </span>
         <span>
           left = {trackLeft}
