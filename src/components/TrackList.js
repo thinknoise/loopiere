@@ -26,12 +26,12 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   const tracks = generateTracks(trackNumber);
 
+  const { playAudioSet, handleStopAllSamples } = useAudioPlayback();
+
   const {
     allSamples,
     bpm,
-    bpmSliderRef,
-    playAudioSet,
-    handleStopAllSamples,
+    latestBpm,
     setBPM,
     saveSequence,
     shareSequence,
@@ -39,6 +39,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     clearAllSamples,
     updateAllSamples,
     updateSamplesWithNewPosition,
+    latestSamplesRef
   } = useTrackSequence(80)
 
 
@@ -53,7 +54,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     setBPM(e.target.value);
   }
 
-  const secsPerMeasure = (60 / bpm) * 4;
+  const secsPerMeasure = (60 / latestBpm.current) * 4;
   const PixelsPerSecond = trackWidth / secsPerMeasure;
 
   return (
@@ -65,7 +66,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           onMouseLeave={() => rive && rive.pause()}
         />
       </div>
-      <button className='play' onClick={() => playAudioSet(allSamples, secsPerMeasure)}>Play Tracks</button>
+      <button className='play' onClick={() => playAudioSet(latestSamplesRef, latestBpm)}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
       <br/>
@@ -78,7 +79,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
       <br/>
       <input 
-        ref={bpmSliderRef} 
+        ref={latestBpm} 
         className='bpm-slider'
         type="range" 
         id="slider" 

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import { getAudioContext } from '../utils/audioManager';
 
 // Custom hook for handling audio playback with recursive timer
@@ -6,23 +6,18 @@ const useAudioPlaybackWithTimer = () => {
   const [playingSources, setPlayingSources] = useState([]); // To store active audio sources
   const isPlayingRef = useRef(false); // Ref to track if playback is active
   const startTimeRef = useRef(0); // Ref to store the start time of the loop
-  const allSamplesRef = useRef([]); // Ref to keep the latest version of allSamples
-  const secsPerMeasureRef = useRef(0); // Ref to keep track of the tempo
 
-  // Memoize the updateSequenceForPlayback function using useCallback
-  const updateSequenceForPlayback = useCallback((allSamples, secsPerMeasure) => {
-    // Update the refs to keep the latest allSamples and tempo
-    allSamplesRef.current = allSamples;
-    secsPerMeasureRef.current = secsPerMeasure;
-  }, []); 
 
   // Function to play the audio set
   // send allSamples and (60 / bpm * beats)
-  const playAudioSet = (sequence, seconds) => {
+  const playAudioSet = (latestSamplesRef, latestBpm) => {
     // Assuming each sample has an audioBuffer property
     // fix this - wiley
-    const audioBuffers = sequence.map(sample => sample.audioBuffer); 
-    const offsets = sequence.map(sample => sample.xPos); // Use xPos as offset time
+    const secsPerMeasure = (60 / latestBpm.current) * 4;
+
+    const audioBuffers = latestSamplesRef.current.map(sample => sample.audioBuffer); 
+    const offsets = latestSamplesRef.current.map(sample => sample.xPos); // Use xPos as offset time
+    console.log('playAudioSet', latestSamplesRef.current, secsPerMeasure)
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
@@ -33,7 +28,7 @@ const useAudioPlaybackWithTimer = () => {
       const source = context.createBufferSource();
       source.connect(context.destination);
       source.buffer = buffer;
-      const offsetTime = offsets[index] * seconds || 0;
+      const offsetTime = offsets[index] * secsPerMeasure || 0;
       source.start(context.currentTime + offsetTime, 0);
       sources.push(source);
     });
@@ -42,23 +37,24 @@ const useAudioPlaybackWithTimer = () => {
     setPlayingSources(sources);
     isPlayingRef.current = true;
 
-    // Start the recursive timer after secsPerMeasureRef.current seconds ??? - wiley
     startTimeRef.current = context.currentTime;
-    scheduleNextPlayback(sequence); // Ensure the latest samples are used for next playback loop
+
+    scheduleNextPlayback(latestSamplesRef, latestBpm); // Ensure the latest samples are used for next playback loop
   };
 
   // Looping function to schedule the next playback
-  const scheduleNextPlayback = (allSamples) => {
+  const scheduleNextPlayback = (latestSamplesRef, latestBpm) => {
     const context = getAudioContext();
     const loop = () => {
       const elapsed = context.currentTime - startTimeRef.current;
 
-      if (elapsed >= secsPerMeasureRef.current) {
+      const secsPerMeasure = (60 / latestBpm.current) * 4;
+
+      if (elapsed >= secsPerMeasure) {
         // Stop the current playback
         handleStopAllSamples();
         // Restart the playback loop by calling 
-        // using allSamplesRef.current and secsPerMeasureRef.current 
-        playAudioSet(allSamplesRef.current, secsPerMeasureRef.current); 
+        playAudioSet(latestSamplesRef, latestBpm); 
 
         // Reset the start time for the next loop
         startTimeRef.current = context.currentTime;
@@ -85,7 +81,7 @@ const useAudioPlaybackWithTimer = () => {
     isPlayingRef.current = false;
   };
 
-  return { playAudioSet, handleStopAllSamples, updateSequenceForPlayback };
+  return { playAudioSet, handleStopAllSamples };
 };
 
 export default useAudioPlaybackWithTimer;

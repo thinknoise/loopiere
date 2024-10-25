@@ -2,14 +2,22 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { saveAllSamplesToLocalStorage, getAllSamplesFromLocalStorage } from '../utils/storageUtils';
 import { addParamsToUrl } from '../utils/urlUtils';
-import useAudioPlayback from './useAudioPlayback'; // Your existing custom hook
 
 const useTrackSequence = (initialBpm = 90) => {
-  const [allSamples, setAllSamples] = useState(getAllSamplesFromLocalStorage());
+  // console.log(getAllSamplesFromLocalStorage())
+  const [allSamples, setAllSamples] = useState([]);
   const [bpm, setBPM] = useState(initialBpm);
-  const bpmSliderRef = useRef(bpm);
 
-  const { playAudioSet, handleStopAllSamples, updateSequenceForPlayback } = useAudioPlayback();
+  // Ref to hold the latest version of allSamples & bpm
+  const latestSamplesRef = useRef(allSamples);
+  const latestBpm = useRef(bpm);
+
+  // Sync latestSamplesRef with allSamples whenever allSamples changes
+  useEffect(() => {
+    latestSamplesRef.current = allSamples;
+    latestBpm.current = bpm
+  }, [allSamples, bpm]);
+
 
   // Add or remove samples
   const updateAllSamples = useCallback((newSample, removeSample = false) => {
@@ -44,21 +52,10 @@ const useTrackSequence = (initialBpm = 90) => {
     setAllSamples([]);
   };
 
-  // Effect to update sequence and URL params
-  useEffect(() => {
-    // this updates the playback sequence
-    // whenever there is an adition or modification
-    // all the samples in array, min into seconds times beats
-    updateSequenceForPlayback(allSamples, (60 / bpm) * 4);
-
-  }, [allSamples, bpm, updateSequenceForPlayback]);
-
   return {
     allSamples,
     bpm,
-    bpmSliderRef,
-    playAudioSet,
-    handleStopAllSamples,
+    latestBpm,
     setBPM,
     saveSequence,
     shareSequence,
@@ -66,6 +63,7 @@ const useTrackSequence = (initialBpm = 90) => {
     clearAllSamples,
     updateAllSamples,
     updateSamplesWithNewPosition,
+    latestSamplesRef
   };
 };
 
