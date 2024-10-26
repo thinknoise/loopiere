@@ -1,17 +1,22 @@
 .bank-tabs {
   padding-top: 40px;
+  height: 40px;
 }
+
 .bank-tabs .tab {
   color: #fff;
   background-color: #333;
+  top: 0;
   margin: 20px 10px 0px 10px;
   padding: 0px 10px;
-  border-radius: 10px 10px 0px 0px;
-  border: 4pxpx;
+  line-height: 30px;
+  border-radius: 8px 8px 0px 0px;
+  border: 4px;
   border-bottom: 0px;
   vertical-align: bottom;
 }
 
 .bank-tabs .tab.selected {
-  padding: 10px;
+  padding: 10px 10px;
+  margin: 10px 10px 0px 10px;
 }

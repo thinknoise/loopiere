@@ -3,6 +3,7 @@ import WaveFormDrawing from './WaveFormDrawing'; // Import the WaveFormDrawing c
 import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
 
 import '../style/bankSample.css';
+import '../style/trackSample.css';
 
 const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, updateSamplesWithNewPosition }) => {
 
@@ -112,14 +113,14 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
           width: sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}px` : 'auto',
         }}
       >
-      <span>{sample.filename.slice(0, -4)}</span>
-      {/* Call the WaveFormDrawing component here */}
-      <WaveFormDrawing 
-        ref={canvasRef} 
-        buffer={audioBuffer} 
-        width={sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}` : '120'}
-        height="53" 
-      />
+        <span>{sample.filename.slice(0, -4)}</span>
+        {/* Call the WaveFormDrawing component here */}
+        <WaveFormDrawing 
+          ref={canvasRef} 
+          buffer={audioBuffer} 
+          width={sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}` : '120'}
+          height="53" 
+        />
       </button>
     </div>
   );
