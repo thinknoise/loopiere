@@ -124,7 +124,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
       {/* Display samples in loop in lower left */}
       <div className='track-sample-listing'>
-        <h3>All Consolidated Samples:</h3>
+        <h3>Track Samples:</h3>
         {allSamples.map((sample) => {
           return (
             <pre key={sample.trackSampleId}>{sample.trackSampleId} - {sample.filename}</pre>

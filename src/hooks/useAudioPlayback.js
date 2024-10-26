@@ -12,6 +12,7 @@ const useAudioPlaybackWithTimer = () => {
   const playAudioSet = async (latestSamplesRef, latestBpm) => {
     const secsPerMeasure = (60 / latestBpm.current) * 4;
 
+    // refactor ? - wiley 
     const audioBuffers = await Promise.all (latestSamplesRef.current.map(async sample => {
       console.log('playAudioSet', !sample.audioBuffer.duration)
       if (!sample.audioBuffer.duration) {

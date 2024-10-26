@@ -4,14 +4,17 @@
 
 .track-sample-listing {
   position: absolute;
-  bottom: 0px;
-  color: white;
+  top: 0px;
+  right: 0;
+  color: #bbb;
   width: 300px;
   font-size: x-small;
+  line-height: 5px;
   text-align: left;
-  max-height: 300px;
+  max-height: 240px;
   overflow-y: scroll;
-  border: 1px solid darkgray;
+  border: 1px solid #555;
+  scrollbar-color: #333;
   z-index: 13;
 }
 
