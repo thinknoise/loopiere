@@ -1,10 +1,9 @@
 // hooks/useTrackSequence.js
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { saveAllSamplesToLocalStorage, getAllSamplesFromLocalStorage } from '../utils/storageUtils';
+import { saveAllSamplesToLocalStorage } from '../utils/storageUtils';
 import { addParamsToUrl } from '../utils/urlUtils';
 
 const useTrackSequence = (initialBpm = 90) => {
-  // console.log(getAllSamplesFromLocalStorage())
   const [allSamples, setAllSamples] = useState([]);
   const [bpm, setBPM] = useState(initialBpm);
 
