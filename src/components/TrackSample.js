@@ -13,16 +13,6 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
 
   const [draggingPosition, setDraggingPosition] = useState({ x: 0, y: 0 }); // Initial dummy values
 
-  // useEffect(() => {
-  //   // This effect will only run once, on the first render
-  //   if (!isDraggingRef.current) {
-  //     console.log(sample.filename, sample.xPos * trackWidth)
-
-  //     setPosition({ x: sample.xPos * trackWidth, y: 0 });
-  //   }
-  // }, []); // Empty dependency array ensures this runs only once
-
-
   const sampleRef = useRef(sample);
   const isDraggingRef = useRef(false);
 
@@ -38,11 +28,13 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
       const fullPath = `/samples/${sample.path}`;
 
       const buffer = await loadAudio(fullPath);
-        setAudioBuffer(buffer); // Set audioBuffer state
-        setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
-      };
+      setAudioBuffer(buffer); // Set audioBuffer state
+      setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
+      console.log('track sample', sample)
+    };
 
     loadAudioFile();
+
   }, [sample.path]);
 
   const handleMouseDown = (e) => {

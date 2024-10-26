@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { getAudioContext } from '../utils/audioManager';
+import { loadAudio } from '../utils/audioManager'; // Import the utility
 
 // Custom hook for handling audio playback with recursive timer
 const useAudioPlaybackWithTimer = () => {
@@ -8,21 +9,26 @@ const useAudioPlaybackWithTimer = () => {
   const startTimeRef = useRef(0); // Ref to store the start time of the loop
 
 
-  // Function to play the audio set
-  // send allSamples and (60 / bpm * beats)
-  const playAudioSet = (latestSamplesRef, latestBpm) => {
-    // Assuming each sample has an audioBuffer property
-    // fix this - wiley
+  const playAudioSet = async (latestSamplesRef, latestBpm) => {
     const secsPerMeasure = (60 / latestBpm.current) * 4;
 
-    const audioBuffers = latestSamplesRef.current.map(sample => sample.audioBuffer); 
+    const audioBuffers = await Promise.all (latestSamplesRef.current.map(async sample => {
+      console.log('playAudioSet', !sample.audioBuffer.duration)
+      if (!sample.audioBuffer.duration) {
+        const fullPath = `/samples/${sample.path}`;
+        return await loadAudio(fullPath);
+      }
+      return sample.audioBuffer
+    })); 
+
+    
     const offsets = latestSamplesRef.current.map(sample => sample.xPos); // Use xPos as offset time
-    console.log('playAudioSet', latestSamplesRef.current, secsPerMeasure)
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
     const context = getAudioContext();
     const sources = [];
+    console.log('audioBuffers', audioBuffers)
 
     audioBuffers.forEach((buffer, index) => {
       const source = context.createBufferSource();

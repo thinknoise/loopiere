@@ -30,6 +30,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   const {
     allSamples,
+    latestSamplesRef,
     bpm,
     latestBpm,
     setBPM,
@@ -39,7 +40,6 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     clearAllSamples,
     updateAllSamples,
     updateSamplesWithNewPosition,
-    latestSamplesRef
   } = useTrackSequence(80)
 
 
@@ -70,7 +70,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
       <br/>
-      <button className='save-sequence' onClick={() => saveSequence(allSamples, bpm)}>Save Loop</button>
+      <button className='save-sequence' onClick={() => saveSequence(latestBpm.current, bpm)}>Save Loop</button>
       <button className='unsave-sequence' onClick={() => saveAllSamplesToLocalStorage([], 80)}>Delete Saved Loop</button>
       <button className='load-sequence' onClick={() => {
         const savedSamples = getAllSamplesFromLocalStorage();
