@@ -21,6 +21,7 @@ const generateTracks = (trackNumber) => {
 
 
 const TrackList = ({ trackNumber, sampleSelected }) => {
+  const [ isListingSelected, setListingSelected ] = useState(false)
   const trackRef = useRef(null)
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
@@ -123,7 +124,10 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
       ))}
 
       {/* Display samples in loop in lower left */}
-      <div className='track-sample-listing'>
+      <div 
+        className={`track-sample-listing ${isListingSelected ? 'selected' : ''}`}
+        onClick={() => setListingSelected(!isListingSelected)}
+      >
         <h3>Track Samples:</h3>
         {allSamples.map((sample) => {
           return (
