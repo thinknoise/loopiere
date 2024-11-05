@@ -1,35 +1,37 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { getAudioContext } from '../utils/audioManager';
-import { loadAudio } from '../utils/audioManager'; // Import the utility
+import { loadAudio } from '../utils/audioManager';
+import { useSequenceContext } from '../contexts/SequenceContext';
 
-// Custom hook for handling audio playback with recursive timer
 const useAudioPlaybackWithTimer = () => {
-  const [playingSources, setPlayingSources] = useState([]); // To store active audio sources
-  const isPlayingRef = useRef(false); // Ref to track if playback is active
-  const startTimeRef = useRef(0); // Ref to store the start time of the loop
+  const { allSamples, bpm } = useSequenceContext(); // Access the latest allSamples and bpm
+  const [playingSources, setPlayingSources] = useState([]);
+  const isPlayingRef = useRef(false);
+  const startTimeRef = useRef(0);
 
+  useEffect(() => {
+    console.log("Updated allSamples:", allSamples);
+    console.log("Updated bpm:", bpm);
+  }, [allSamples, bpm]);
 
-  const playAudioSet = async (latestSamplesRef, latestBpm) => {
-    const secsPerMeasure = (60 / latestBpm.current) * 4;
+  const playAudioSet = useCallback(async () => {
+    const secsPerMeasure = (60 / bpm) * 4;
+    console.log('---', allSamples, bpm);
 
-    // refactor ? - wiley 
-    const audioBuffers = await Promise.all (latestSamplesRef.current.map(async sample => {
-      console.log('playAudioSet', !sample.audioBuffer.duration)
-      if (!sample.audioBuffer.duration) {
+    const audioBuffers = await Promise.all(allSamples.map(async sample => {
+      if (!sample.audioBuffer?.duration) {
         const fullPath = `/samples/${sample.path}`;
         return await loadAudio(fullPath);
       }
-      return sample.audioBuffer
-    })); 
+      return sample.audioBuffer;
+    }));
 
-    
-    const offsets = latestSamplesRef.current.map(sample => sample.xPos); // Use xPos as offset time
+    const offsets = allSamples.map(sample => sample.xPos);
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
     const context = getAudioContext();
     const sources = [];
-    console.log('audioBuffers', audioBuffers)
 
     audioBuffers.forEach((buffer, index) => {
       const source = context.createBufferSource();
@@ -40,50 +42,35 @@ const useAudioPlaybackWithTimer = () => {
       sources.push(source);
     });
 
-    // Store the sources and set playing state
     setPlayingSources(sources);
     isPlayingRef.current = true;
-
     startTimeRef.current = context.currentTime;
 
-    scheduleNextPlayback(latestSamplesRef, latestBpm); // Ensure the latest samples are used for next playback loop
-  };
+    scheduleNextPlayback(); // Call the updated scheduleNextPlayback
+  }, [allSamples, bpm]); // Ensure playAudioSet updates with allSamples and bpm
 
-  // Looping function to schedule the next playback
-  const scheduleNextPlayback = (latestSamplesRef, latestBpm) => {
+  const scheduleNextPlayback = useCallback(() => {
     const context = getAudioContext();
     const loop = () => {
       const elapsed = context.currentTime - startTimeRef.current;
-
-      const secsPerMeasure = (60 / latestBpm.current) * 4;
+      const secsPerMeasure = (60 / bpm) * 4;
 
       if (elapsed >= secsPerMeasure) {
-        // Stop the current playback
         handleStopAllSamples();
-        // Restart the playback loop by calling 
-        playAudioSet(latestSamplesRef, latestBpm); 
-
-        // Reset the start time for the next loop
+        playAudioSet(); // Re-run with the latest allSamples and bpm
         startTimeRef.current = context.currentTime;
       }
 
-      // Continue the loop if still playing
       if (isPlayingRef.current) {
-        requestAnimationFrame(loop); // Use requestAnimationFrame for smooth timing
+        requestAnimationFrame(loop);
       }
     };
 
-    // Start the loop
     requestAnimationFrame(loop);
-  };
+  }, [allSamples, bpm]); // Memoize with the latest bpm and playAudioSet
 
   const handleStopAllSamples = () => {
-    // Stop all currently playing sources
-    playingSources.forEach((source) => {
-      source.stop();
-    });
-
-    // Clear the stored sources after stopping them
+    playingSources.forEach(source => source.stop());
     setPlayingSources([]);
     isPlayingRef.current = false;
   };

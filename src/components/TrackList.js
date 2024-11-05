@@ -1,12 +1,12 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import Track from './Track';
 import { saveAllSamplesToLocalStorage, getAllSamplesFromLocalStorage } from '../utils/storageUtils';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
-import useTrackSequence from '../hooks/useTrackSequence';
 import '../style/tracklist.css';
 
 import { useRive } from "@rive-app/react-canvas";
+import { useSequenceContext } from '../contexts/SequenceContext';
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -25,23 +25,19 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   const trackRef = useRef(null)
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
-  const tracks = generateTracks(trackNumber);
-
   const { playAudioSet, handleStopAllSamples } = useAudioPlayback();
 
   const {
     allSamples,
-    latestSamplesRef,
     bpm,
-    latestBpm,
     setBPM,
     saveSequence,
-    shareSequence,
+    // shareSequence,
     setAllSamples,
     clearAllSamples,
     updateAllSamples,
     updateSamplesWithNewPosition,
-  } = useTrackSequence(80)
+  } = useSequenceContext()
 
 
   const { rive, RiveComponent } = useRive({
@@ -51,11 +47,14 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
   });
   
 
+  const tracks = generateTracks(trackNumber);
+
   const updateSliderValue = (e) => {
+    console.log(e.target.value);
     setBPM(e.target.value);
   }
 
-  const secsPerMeasure = (60 / latestBpm.current) * 4;
+  const secsPerMeasure = (60 / bpm) * 4;
   const PixelsPerSecond = trackWidth / secsPerMeasure;
 
   return (
@@ -67,11 +66,14 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           onMouseLeave={() => rive && rive.pause()}
         />
       </div>
-      <button className='play' onClick={() => playAudioSet(latestSamplesRef, latestBpm)}>Play Tracks</button>
+      <button className='play' onClick={() => {
+        setAllSamples(allSamples)
+        playAudioSet(allSamples, bpm)
+      }}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
       <br/>
-      <button className='save-sequence' onClick={() => saveSequence(latestBpm.current, bpm)}>Save Loop</button>
+      <button className='save-sequence' onClick={() => saveSequence()}>Save Loop</button>
       <button className='unsave-sequence' onClick={() => saveAllSamplesToLocalStorage([], 80)}>Delete Saved Loop</button>
       <button className='load-sequence' onClick={() => {
         const savedSamples = getAllSamplesFromLocalStorage();
@@ -80,7 +82,6 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
       <br/>
       <input 
-        ref={latestBpm} 
         className='bpm-slider'
         type="range" 
         id="slider" 

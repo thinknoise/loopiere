@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import './style/App.css';
 import BankSampleList from './components/BankSamplelist';
+import { SequenceProvider } from './contexts/SequenceContext';
 import TrackList from './components/TrackList';
+
 
 const App = () => {
   const [sampleSellected, setSampleSellected] = useState(null);
@@ -18,10 +20,12 @@ const App = () => {
   return (
     <div className="App">
       <h1>Loopiere</h1>
-      <TrackList 
-        trackNumber={4} 
-        sampleSelected={sampleSellected} 
-      />
+      <SequenceProvider>
+        <TrackList 
+          trackNumber={4} 
+          sampleSelected={sampleSellected} 
+        />
+      </SequenceProvider>
       <BankSampleList handleDragStart={handleDragStart} />
     </div>
   );

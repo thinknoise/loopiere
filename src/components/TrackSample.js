@@ -31,7 +31,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
       const buffer = await loadAudio(fullPath);
       setAudioBuffer(buffer); // Set audioBuffer state
       setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
-      console.log('track sample', sample)
+      // console.log('track sample', sample)
     };
 
     loadAudioFile();
