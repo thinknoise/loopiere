@@ -1,7 +1,7 @@
 
 export async function fetchAudioData(bank) {
-  const url = bank ? `/${bank}` : '/samples.json'; // Adjusted path
-
+  const url = bank ? `./${bank}` : './samples.json'; // Adjusted path
+  console.log(url)
   try {
     const response = await fetch(url, {
       method: 'GET',

@@ -2,6 +2,7 @@
   "name": "loopiere",
   "version": "0.1.0",
   "private": true,
+  "homepage": "https://modelglue.com/loopiere",
   "dependencies": {
     "@rive-app/react-canvas": "^4.14.4",
     "@testing-library/jest-dom": "^5.17.0",
