@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import WaveFormDrawing from './WaveFormDrawing'; // Import the WaveFormDrawing component
-import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
+import { loadAudio } from '../utils/audioManager'; // Import the utility
 
 import '../style/bankSample.css';
 import '../style/trackSample.css';
@@ -24,14 +24,11 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
 
   useEffect(() => {
     const loadAudioFile = async () => {
-      // do this in button also
-      // needs to getAudioContext else do this
       const fullPath = `/samples/${sample.path}`;
 
       const buffer = await loadAudio(fullPath);
       setAudioBuffer(buffer); // Set audioBuffer state
       setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
-      console.log('track sample', sample)
     };
 
     loadAudioFile();
@@ -59,7 +56,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
       x: newXPos,
       y: 0, // Always on the top of the track it's in
     });
-  }, [isDraggingRef.current, startPos.x, trackLeft]);
+  }, [isDraggingRef, startPos.x, trackLeft]);
 
   // Memoize handleMouseUp with useCallback
   const handleMouseUp = useCallback((e) => {
@@ -73,7 +70,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
 
     updateSamplesWithNewPosition(sampleRef.current.trackSampleId, newXPositionPercentage)
 
-  }, [startPos.x, trackLeft, trackWidth, sample]);
+  }, [startPos.x, trackLeft, trackWidth, updateSamplesWithNewPosition]);
 
   const handleRemoveSample = (e) => {
     e.stopPropagation();

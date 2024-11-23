@@ -1,12 +1,10 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import Track from './Track';
 import { saveAllSamplesToLocalStorage, getAllSamplesFromLocalStorage } from '../utils/storageUtils';
 import useTrackWidth from '../hooks/useTrackWidth';
 import useAudioPlayback from '../hooks/useAudioPlayback'; // Import the custom hook
 import useTrackSequence from '../hooks/useTrackSequence';
 import '../style/tracklist.css';
-
-import { useRive } from "@rive-app/react-canvas";
 
 const generateTracks = (trackNumber) => {
   return Array.from({ length: trackNumber }, (_, index) => ({
@@ -36,20 +34,11 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     latestBpm,
     setBPM,
     saveSequence,
-    shareSequence,
     setAllSamples,
     clearAllSamples,
     updateAllSamples,
     updateSamplesWithNewPosition,
   } = useTrackSequence(80)
-
-
-  const { rive, RiveComponent } = useRive({
-    src: '/play_button.riv',
-    stateMachines: "basicWhammo",
-    autoplay: false,
-  });
-  
 
   const updateSliderValue = (e) => {
     setBPM(e.target.value);
@@ -60,13 +49,6 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   return (
     <div>
-            {/* Button to play all samples */}
-      <div className="RiveContainer">
-        <RiveComponent
-          onMouseEnter={() => rive && rive.play()}
-          onMouseLeave={() => rive && rive.pause()}
-        />
-      </div>
       <button className='play' onClick={() => playAudioSet(latestSamplesRef, latestBpm)}>Play Tracks</button>
       <button className='stop' onClick={handleStopAllSamples}>Stop</button>
       <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
