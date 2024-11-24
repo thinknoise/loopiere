@@ -7,7 +7,7 @@ const Track = React.forwardRef(({
     sampleSelected, 
     trackWidth,
     trackLeft,
-    updateAllSamples, 
+    editSampleOfSamples, 
     allSamples, 
     bpm, updateSamplesWithNewPosition 
   }, ref) => {
@@ -35,7 +35,7 @@ const Track = React.forwardRef(({
       };
 
       // ONLY send the newsample 
-      updateAllSamples(newSample)
+      editSampleOfSamples(newSample)
     }
   };
 
@@ -56,7 +56,7 @@ const Track = React.forwardRef(({
           trackWidth={trackWidth}
           trackLeft={trackLeft}
           bpm={bpm}
-          updateAllSamples={updateAllSamples}
+          editSampleOfSamples={editSampleOfSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}
         />
       ))}

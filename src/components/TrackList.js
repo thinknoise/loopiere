@@ -36,7 +36,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
     saveSequence,
     setAllSamples,
     clearAllSamples,
-    updateAllSamples,
+    editSampleOfSamples,
     updateSamplesWithNewPosition,
   } = useTrackSequence(80)
 
@@ -99,7 +99,7 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
           trackWidth={trackWidth}
           trackLeft={trackLeft}
           bpm={bpm}
-          updateAllSamples={updateAllSamples} // Pass the memoized add to allSamples function
+          editSampleOfSamples={editSampleOfSamples} // Pass the memoized add to allSamples function
           updateSamplesWithNewPosition={updateSamplesWithNewPosition} 
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
         />

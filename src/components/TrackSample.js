@@ -5,7 +5,7 @@ import { loadAudio } from '../utils/audioManager'; // Import the utility
 import '../style/bankSample.css';
 import '../style/trackSample.css';
 
-const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, updateSamplesWithNewPosition }) => {
+const TrackSample = ({ sample, trackWidth, trackLeft, editSampleOfSamples, bpm, updateSamplesWithNewPosition }) => {
 
   const canvasRef = useRef(null);  // To reference the canvas element
 
@@ -75,7 +75,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, updateAllSamples, bpm, upd
   const handleRemoveSample = (e) => {
     e.stopPropagation();
     e.preventDefault();
-    updateAllSamples(sampleRef.current, true);
+    editSampleOfSamples(sampleRef.current, true);
   };
 
   // Event listener setup

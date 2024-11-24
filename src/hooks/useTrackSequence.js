@@ -19,7 +19,7 @@ const useTrackSequence = (initialBpm = 90) => {
 
 
   // Add or remove samples
-  const updateAllSamples = useCallback((newSample, removeSample = false) => {
+  const editSampleOfSamples = useCallback((newSample, removeSample = false) => {
     setAllSamples((prevSamples) => {
       return removeSample
         ? prevSamples.filter(sample => sample.trackSampleId !== newSample.trackSampleId)
@@ -60,7 +60,7 @@ const useTrackSequence = (initialBpm = 90) => {
     shareSequence,
     setAllSamples,
     clearAllSamples,
-    updateAllSamples,
+    editSampleOfSamples,
     updateSamplesWithNewPosition,
     latestSamplesRef
   };
