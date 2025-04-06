@@ -61,17 +61,20 @@ const TrackSample = ({ sample, trackWidth, trackLeft, editSampleOfSamples, bpm, 
   // Memoize handleMouseUp with useCallback
   const handleMouseUp = useCallback((e) => {
     if (!isDraggingRef.current) return;
-
+  
     isDraggingRef.current = false;
-
+    
     const startRelativeLeft = startPos.x - trackLeft;
     const deltaX = e.clientX - startPos.x;
-    const newXPositionPercentage = (startRelativeLeft + deltaX) / trackWidth;
-
-    updateSamplesWithNewPosition(sampleRef.current.trackSampleId, newXPositionPercentage)
-
+    // Calculate the new X position, clamping it to 0 if it's negative.
+    let newX = startRelativeLeft + deltaX;
+    newX = Math.max(newX, 0);
+    
+    // Calculate new xPos as a percentage of trackWidth.
+    const newXPositionPercentage = newX / trackWidth;
+    updateSamplesWithNewPosition(sampleRef.current.trackSampleId, newXPositionPercentage);
   }, [startPos.x, trackLeft, trackWidth, updateSamplesWithNewPosition]);
-
+  
   const handleRemoveSample = (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -94,20 +97,22 @@ const TrackSample = ({ sample, trackWidth, trackLeft, editSampleOfSamples, bpm, 
   }, [handleMouseMove, handleMouseUp]);
 
   return (
-    <div className='track-btn-wrapper'
+    <div
+      className="track-btn-wrapper"
       style={{
-        left: `${isDraggingRef.current ? draggingPosition.x : sample.xPos * trackWidth}px`,
-        top: `0px`,
-        width: sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}px` : 'auto',
+        left: `${Math.max(0, isDraggingRef.current ? draggingPosition.x : sample.xPos * trackWidth)}px`,
+        top: '0px',
+        width: sample.xPos ? `${(audioDuration / secsPerMeasure) * trackWidth}px` : 'auto',
       }}
     >
+
       <button className='remove-track-btn' onClick={handleRemoveSample}></button>
       <button
         key={sample.trackSampleId}
         className="track-sample-btn"
         onMouseDown={handleMouseDown}
         style={{
-          width: sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}px` : 'auto',
+          width: audioDuration ? `${(audioDuration/secsPerMeasure) * trackWidth}px` : 'auto',
         }}
       >
         <span>{sample.filename.slice(0, -4)}</span>
@@ -115,7 +120,7 @@ const TrackSample = ({ sample, trackWidth, trackLeft, editSampleOfSamples, bpm, 
         <WaveFormDrawing 
           ref={canvasRef} 
           buffer={audioBuffer} 
-          width={sample.xPos ? `${(audioDuration/secsPerMeasure) * trackWidth}` : '120'}
+          width={audioDuration ? `${(audioDuration/secsPerMeasure) * trackWidth}` : '120'}
           height="53" 
         />
       </button>

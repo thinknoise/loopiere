@@ -11,6 +11,11 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
   const [audioDuration, setAudioDuration] = useState(null);
   const canvasRef = useRef(null);
 
+  // Define constants for calculating the width of the sample.
+  const BEATS_PER_MEASURE = 4;
+  const TOTAL_TRACK_WIDTH = 916; // This is the width representing 4 beats.
+  const pixelsPerSecond = TOTAL_TRACK_WIDTH / BEATS_PER_MEASURE; // ~229 px per second
+
   useEffect(() => {
     const loadAudioFile = async () => {
       const fullPath = `./samples/${sample.path}`;
@@ -22,12 +27,11 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
     loadAudioFile();
   }, [sample.path]);
 
-  // Handle drag start by calculating the offset and updating the context.
+  // Handle drag start by calculating the mouse offset and updating the selected sample context.
   const handleDragStart = (e) => {
     if (audioBuffer) {
       const targetRect = e.target.getBoundingClientRect();
       const xDivMouse = e.clientX - targetRect.left;
-      // Create an updated sample with the drag offset and audioBuffer.
       const updatedSample = {
         ...sample,
         xDragOffset: xDivMouse,
@@ -59,7 +63,7 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
       className="bank-sample-btn"
       style={{
         left: offset ? `${offset}px` : '',
-        width: offset ? `${audioDuration * (916 / 4)}px` : 'auto',
+        width: offset ? `${audioDuration * pixelsPerSecond}px` : 'auto',
       }}
     >
       <span>{sample.filename.slice(0, -4)}</span>
