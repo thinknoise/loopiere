@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import WaveFormDrawing from './WaveFormDrawing';
 import { loadAudio } from '../utils/audioManager';
-import '../style/bankSample.css';
+import useEventListener from '../hooks/useEventListener';
 import '../style/trackSample.css';
 
 const TrackSample = ({
@@ -12,13 +12,19 @@ const TrackSample = ({
   bpm,
   updateSamplesWithNewPosition,
 }) => {
+  // Group audio-related state
+  const [audioState, setAudioState] = useState({
+    buffer: null,
+    duration: null,
+  });
+  // Group dragging-related state
+  const [dragState, setDragState] = useState({
+    isDragging: false,
+    position: { x: 0, y: 0 },
+    offset: 0,
+  });
   const canvasRef = useRef(null);
-  const [audioBuffer, setAudioBuffer] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(null);
-  const [draggingPosition, setDraggingPosition] = useState({ x: 0, y: 0 });
   const sampleRef = useRef(sample);
-  const isDraggingRef = useRef(false);
-  const offsetRef = useRef(0); // Store the offset where the user clicked
 
   const secsPerMeasure = (60 / bpm) * 4;
 
@@ -26,43 +32,50 @@ const TrackSample = ({
     const loadAudioFile = async () => {
       const fullPath = `/samples/${sample.path}`;
       const buffer = await loadAudio(fullPath);
-      setAudioBuffer(buffer);
-      setAudioDuration(Math.round(buffer.duration * 10) / 10);
+      setAudioState({
+        buffer,
+        duration: Math.round(buffer.duration * 10) / 10,
+      });
     };
-
     loadAudioFile();
   }, [sample.path]);
 
-  // When the user clicks down on the sample, record the offset
+  // Record where within the sample the user clicked
   const handleMouseDown = (e) => {
-    isDraggingRef.current = true;
     const rect = e.target.getBoundingClientRect();
-    offsetRef.current = e.clientX - rect.left;
+    const offset = e.clientX - rect.left;
+    setDragState((prev) => ({ ...prev, isDragging: true, offset }));
   };
 
-  // While dragging, update the position relative to the initial click offset
+  // Update the dragging position based on the stored offset
   const handleMouseMove = useCallback(
     (e) => {
-      if (!isDraggingRef.current) return;
-      let newX = e.clientX - trackLeft - offsetRef.current;
+      if (!dragState.isDragging) return;
+      let newX = e.clientX - trackLeft - dragState.offset;
       newX = Math.max(newX, 0); // Clamp to 0 if negative
-      setDraggingPosition({ x: newX, y: 0 });
+      setDragState((prev) => ({ ...prev, position: { x: newX, y: 0 } }));
     },
-    [trackLeft]
+    [dragState.isDragging, dragState.offset, trackLeft]
   );
 
   // When the drag ends, update the sample's position on the track
   const handleMouseUp = useCallback(
     (e) => {
-      if (!isDraggingRef.current) return;
-      isDraggingRef.current = false;
-      let newX = e.clientX - trackLeft - offsetRef.current;
+      if (!dragState.isDragging) return;
+      setDragState((prev) => ({ ...prev, isDragging: false }));
+      let newX = e.clientX - trackLeft - dragState.offset;
       newX = Math.max(newX, 0);
       const newXPositionPercentage = newX / trackWidth;
       updateSamplesWithNewPosition(sampleRef.current.trackSampleId, newXPositionPercentage);
     },
-    [trackLeft, trackWidth, updateSamplesWithNewPosition]
+    [dragState.isDragging, dragState.offset, trackLeft, trackWidth, updateSamplesWithNewPosition]
   );
+
+  // Use our custom hook to attach global event listeners.
+  useEventListener('mousemove', handleMouseMove);
+  useEventListener('mouseup', (e) => {
+    if (dragState.isDragging) handleMouseUp(e);
+  });
 
   const handleRemoveSample = (e) => {
     e.stopPropagation();
@@ -70,29 +83,13 @@ const TrackSample = ({
     editSampleOfSamples(sampleRef.current, true);
   };
 
-  useEffect(() => {
-    const handleWindowMouseUp = (e) => {
-      if (isDraggingRef.current) {
-        handleMouseUp(e);
-      }
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleWindowMouseUp);
-
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleWindowMouseUp);
-    };
-  }, [handleMouseMove, handleMouseUp]);
-
   return (
     <div
       className="track-btn-wrapper"
       style={{
-        left: `${isDraggingRef.current ? draggingPosition.x : sample.xPos * trackWidth}px`,
+        left: `${dragState.isDragging ? dragState.position.x : sample.xPos * trackWidth}px`,
         top: '0px',
-        width: audioDuration ? `${(audioDuration / secsPerMeasure) * trackWidth}px` : 'auto',
+        width: audioState.duration ? `${(audioState.duration / secsPerMeasure) * trackWidth}px` : 'auto',
       }}
     >
       <button className="remove-track-btn" onClick={handleRemoveSample}></button>
@@ -101,11 +98,11 @@ const TrackSample = ({
         className="track-sample-btn"
         onMouseDown={handleMouseDown}
         style={{
-          width: audioDuration ? `${(audioDuration / secsPerMeasure) * trackWidth}px` : 'auto',
+          width: audioState.duration ? `${(audioState.duration / secsPerMeasure) * trackWidth}px` : 'auto',
         }}
       >
         <span>{sample.filename.slice(0, -4)}</span>
-        <WaveFormDrawing ref={canvasRef} buffer={audioBuffer} width="120" height="53" />
+        <WaveFormDrawing ref={canvasRef} buffer={audioState.buffer} width="120" height="53" />
       </button>
     </div>
   );
