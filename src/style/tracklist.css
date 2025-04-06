@@ -1,5 +1,6 @@
 .bpm-slider {
-  margin-top: 40px;
+  margin: 10px auto;
+  display: block;
 }
 
 .track-sample-listing {
@@ -34,4 +35,10 @@
 
 .track-status span {
   margin: 0 20px;
+}
+
+.button-group {
+  width: 80%;
+  margin: 20px auto;   /* Centers the container */
+  text-align: center;  /* Centers the inline buttons inside */
 }

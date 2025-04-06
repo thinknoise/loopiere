@@ -1,6 +1,9 @@
 .bank-tabs {
   padding-top: 40px;
   height: 40px;
+  width: 80%;
+  margin: 0 auto;    /* Auto left/right margins to center the container */
+  text-align: center; /* Center inline or inline-block elements inside */
 }
 
 .bank-tabs .tab {

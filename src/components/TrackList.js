@@ -49,18 +49,19 @@ const TrackList = ({ trackNumber, sampleSelected }) => {
 
   return (
     <div>
-      <button className='play' onClick={() => playAudioSet(latestSamplesRef, latestBpm)}>Play Tracks</button>
-      <button className='stop' onClick={handleStopAllSamples}>Stop</button>
-      <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
-      <br/>
-      <button className='save-sequence' onClick={() => saveSequence(latestBpm.current, bpm)}>Save Loop</button>
-      <button className='unsave-sequence' onClick={() => saveAllSamplesToLocalStorage([], 80)}>Delete Saved Loop</button>
-      <button className='load-sequence' onClick={() => {
-        const savedSamples = getAllSamplesFromLocalStorage();
-        setAllSamples(savedSamples)
-      }}>Load Saved Loop</button>
-
-      <br/>
+      <div className="button-group">
+        <button className='play' onClick={() => playAudioSet(latestSamplesRef, latestBpm)}>Play Tracks</button>
+        <button className='stop' onClick={handleStopAllSamples}>Stop</button>
+        <button className='clear' onClick={clearAllSamples}>Clear Loop</button>
+        <br />
+        <button className='save-sequence' onClick={() => saveSequence(latestBpm.current, bpm)}>Save Loop</button>
+        <button className='unsave-sequence' onClick={() => saveAllSamplesToLocalStorage([], 80)}>Delete Saved Loop</button>
+        <button className='load-sequence' onClick={() => {
+          const savedSamples = getAllSamplesFromLocalStorage();
+          setAllSamples(savedSamples)
+        }}>Load Saved Loop</button>
+      </div>
+      <br />
       <input 
         ref={latestBpm} 
         className='bpm-slider'
