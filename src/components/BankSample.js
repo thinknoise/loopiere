@@ -1,29 +1,48 @@
+// BankSample.js
 import React, { useEffect, useState, useRef } from 'react';
-import WaveFormDrawing from './WaveFormDrawing'; // Import the WaveFormDrawing component
-import { loadAudio, getAudioContext } from '../utils/audioManager'; // Import the utility
-
+import WaveFormDrawing from './WaveFormDrawing';
+import { loadAudio, getAudioContext } from '../utils/audioManager';
+import { useSelectedSample } from '../context/SelectedSampleContext';
 import '../style/bankSample.css';
 
-const BankSample = ({ id, handleDragStart, sample, btnClass, offset }) => {
+const BankSample = ({ id, sample, btnClass, offset }) => {
+  const { updateSelectedSample } = useSelectedSample();
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
-  const canvasRef = useRef(null);  // To reference the canvas element
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     const loadAudioFile = async () => {
       const fullPath = `./samples/${sample.path}`;
       const buffer = await loadAudio(fullPath);
-      setAudioBuffer(buffer); // Set audioBuffer state
-      setAudioDuration(Math.round(buffer.duration * 10) / 10); // Set duration in seconds
+      setAudioBuffer(buffer);
+      setAudioDuration(Math.round(buffer.duration * 10) / 10);
     };
 
     loadAudioFile();
   }, [sample.path]);
 
-  // Function to play the audio
+  // Handle drag start by calculating the offset and updating the context.
+  const handleDragStart = (e) => {
+    if (audioBuffer) {
+      const targetRect = e.target.getBoundingClientRect();
+      const xDivMouse = e.clientX - targetRect.left;
+      // Create an updated sample with the drag offset and audioBuffer.
+      const updatedSample = {
+        ...sample,
+        xDragOffset: xDivMouse,
+        audioBuffer,
+      };
+      updateSelectedSample(updatedSample);
+    } else {
+      console.log('Audio buffer is not yet loaded');
+    }
+  };
+
+  // Play the audio using the shared AudioContext.
   const playAudio = async () => {
     if (audioBuffer) {
-      const context = getAudioContext(); // Use the shared AudioContext
+      const context = getAudioContext();
       const source = context.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(context.destination);
@@ -35,16 +54,8 @@ const BankSample = ({ id, handleDragStart, sample, btnClass, offset }) => {
     <button
       key={id}
       draggable
-      onDragStart={(e) => {
-        if (audioBuffer) {
-          // Pass audioBuffer if it's available
-          handleDragStart(e, sample, audioBuffer);
-        } else {
-          // Handle the case where audioBuffer isn't ready
-          console.log('Audio buffer is not yet loaded');
-        }
-      }}
-      onClick={playAudio} // Play audio when the button is clicked
+      onDragStart={handleDragStart}
+      onClick={playAudio}
       className="bank-sample-btn"
       style={{
         left: offset ? `${offset}px` : '',
@@ -52,7 +63,6 @@ const BankSample = ({ id, handleDragStart, sample, btnClass, offset }) => {
       }}
     >
       <span>{sample.filename.slice(0, -4)}</span>
-      {/* Call the WaveFormDrawing component here */}
       <WaveFormDrawing ref={canvasRef} buffer={audioBuffer} width="120" height="53" />
     </button>
   );
