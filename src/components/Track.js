@@ -1,6 +1,6 @@
 // Track.js
 import React from 'react';
-import { useSelectedSample } from '../context/SelectedSampleContext';
+import { useDrag } from '../context/DragContext';     // ← use the drag context
 import TrackSample from './TrackSample';
 import '../style/track.css';
 
@@ -13,49 +13,45 @@ const Track = React.forwardRef(({
   bpm,
   updateSamplesWithNewPosition
 }, ref) => {
-  const { selectedSample, updateSelectedSample } = useSelectedSample();
+  const { dragItem, updateDragItem } = useDrag();     // ← grab dragItem
 
   const handleDragOver = (e) => {
-    e.preventDefault(); // Necessary to allow the drop event
+    e.preventDefault();
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
+    if (!dragItem) return;
+
     const dropArea = e.currentTarget.getBoundingClientRect();
     const relativeX = e.clientX - dropArea.left;
-  
-    if (selectedSample) {
-      // Calculate the drop position by subtracting the drag offset.
-      let dropX = Math.round(relativeX - selectedSample.xDragOffset);
-      // Clamp the drop position to 0 if it's negative.
-      dropX = dropX < 0 ? 0 : dropX;
-  
-      const newSample = {
-        ...selectedSample,
-        trackSampleId: `${selectedSample.filename}-${trackInfo.id}-${Math.round(Math.random() * 1000)}`,
-        trackId: trackInfo.id,
-        onTrack: true,
-        xPos: dropX / trackWidth,
-      };
-  
-      editSampleOfSamples(newSample);
-      updateSelectedSample(null);
-    }
+    let dropX = Math.round(relativeX - dragItem.xDragOffset);
+    dropX = Math.max(dropX, 0);
+
+    const newSample = {
+      ...dragItem,
+      trackSampleId: `${dragItem.filename}-${trackInfo.id}-${Math.round(Math.random() * 1000)}`,
+      trackId: trackInfo.id,
+      onTrack: true,
+      xPos: dropX / trackWidth,
+    };
+
+    editSampleOfSamples(newSample);
+    updateDragItem(null);                             // ← clear the drag item
   };
-  
+
   return (
     <div
       ref={ref}
-      key={`track-${trackInfo.id}`}
       className="track drop-zone"
-      onDrop={handleDrop}
       onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
       <div className="middle-line" />
       <span className="track-name">{trackInfo.name}</span>
-      {allSamples.map((sampleInfo, index) => (
+      {allSamples.map((sampleInfo, idx) => (
         <TrackSample
-          key={`${index}_${sampleInfo.id}`}
+          key={sampleInfo.trackSampleId}
           sample={sampleInfo}
           trackWidth={trackWidth}
           trackLeft={trackLeft}

@@ -1,73 +1,78 @@
 // BankSample.js
 import React, { useEffect, useState, useRef } from 'react';
-import WaveFormDrawing from './WaveFormDrawing';
-import { loadAudio, getAudioContext } from '../utils/audioManager';
-import { useSelectedSample } from '../context/SelectedSampleContext';
+import WaveSurferWaveform from './WaveSurferWaveform';
+import { loadAudio } from '../utils/audioManager';
+import { useDrag } from '../context/DragContext';
 import '../style/bankSample.css';
 
-const BankSample = ({ id, sample, btnClass, offset }) => {
-  const { updateSelectedSample } = useSelectedSample();
-  const [audioBuffer, setAudioBuffer] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(null);
-  const canvasRef = useRef(null);
+const BEATS_PER_MEASURE = 4;
+const TOTAL_TRACK_WIDTH = 916;
+const PIXELS_PER_SECOND = TOTAL_TRACK_WIDTH / BEATS_PER_MEASURE;
+const DEFAULT_BANK_WIDTH = 250;
 
-  // Define constants for calculating the width of the sample.
-  const BEATS_PER_MEASURE = 4;
-  const TOTAL_TRACK_WIDTH = 916; // This is the width representing 4 beats.
-  const pixelsPerSecond = TOTAL_TRACK_WIDTH / BEATS_PER_MEASURE; // ~229 px per second
+const BankSample = ({ id, sample }) => {
+  const [audioState, setAudioState] = useState({ buffer: null, duration: null });
+  const { updateDragItem, updateDragPosition } = useDrag();
+  const offsetRef = useRef(0);
 
+  // load buffer & duration
   useEffect(() => {
-    const loadAudioFile = async () => {
-      const fullPath = `./samples/${sample.path}`;
-      const buffer = await loadAudio(fullPath);
-      setAudioBuffer(buffer);
-      setAudioDuration(Math.round(buffer.duration * 10) / 10);
-    };
-
-    loadAudioFile();
+    let cancelled = false;
+    (async () => {
+      const buffer = await loadAudio(`/samples/${sample.path}`);
+      if (!cancelled) {
+        setAudioState({ buffer, duration: Math.round(buffer.duration * 10) / 10 });
+      }
+    })();
+    return () => { cancelled = true; };
   }, [sample.path]);
 
-  // Handle drag start by calculating the mouse offset and updating the selected sample context.
-  const handleDragStart = (e) => {
-    if (audioBuffer) {
-      const targetRect = e.target.getBoundingClientRect();
-      const xDivMouse = e.clientX - targetRect.left;
-      const updatedSample = {
-        ...sample,
-        xDragOffset: xDivMouse,
-        audioBuffer,
-      };
-      updateSelectedSample(updatedSample);
-    } else {
-      console.log('Audio buffer is not yet loaded');
-    }
-  };
+  // compute width
+  const sampleWidth = audioState.duration
+    ? audioState.duration * PIXELS_PER_SECOND
+    : DEFAULT_BANK_WIDTH;
 
-  // Play the audio using the shared AudioContext.
-  const playAudio = async () => {
-    if (audioBuffer) {
-      const context = getAudioContext();
-      const source = context.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(context.destination);
-      source.start();
-    }
+  // THIS is your native drag start
+  const handleNativeDragStart = (e) => {
+    // record where within the button the user grabbed
+    const rect = e.currentTarget.getBoundingClientRect();
+    const offset = e.clientX - rect.left;
+    offsetRef.current = offset;
+
+    // update global drag context
+    updateDragItem({
+      ...sample,
+      xDragOffset: offset,
+      audioBuffer: audioState.buffer,
+      audioDuration: audioState.duration,
+      path: sample.path,
+      filename: sample.filename,
+    });
+    updateDragPosition({ x: e.clientX, y: e.clientY });
+
+    // tell the browser “this is a move‐type drag”
+    e.dataTransfer.setData('text/plain', '');
+    e.dataTransfer.effectAllowed = 'move';
   };
 
   return (
     <button
       key={id}
-      draggable
-      onDragStart={handleDragStart}
-      onClick={playAudio}
       className="bank-sample-btn"
-      style={{
-        left: offset ? `${offset}px` : '',
-        width: offset ? `${audioDuration * pixelsPerSecond}px` : 'auto',
-      }}
+      draggable="true"
+      onDragStart={handleNativeDragStart}  // ← real drag start
+      style={{ width: `${sampleWidth}px` }}
     >
       <span>{sample.filename.slice(0, -4)}</span>
-      <WaveFormDrawing ref={canvasRef} buffer={audioBuffer} width="120" height="53" />
+      {audioState.buffer && (
+        <WaveSurferWaveform
+          url={`/samples/${sample.path}`}
+          pixelWidth={sampleWidth}
+          height={53}
+          waveColor="rgba(83, 180, 253, 0.83)"
+          progressColor="#036"
+        />
+      )}
     </button>
   );
 };
