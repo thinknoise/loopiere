@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useRef } from "react";
 import WaveFormDrawing from "./WaveFormDrawing";
 import { loadAudio, getAudioContext } from "../utils/audioManager";
+import { timeToPixels } from "../utils/timingUtils";
+
 import "../style/bankSample.css";
 
 const BankSample = ({ id, sample, btnClass, offset }) => {
@@ -10,9 +12,7 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
   const canvasRef = useRef(null);
 
   // Define constants for calculating the width of the sample.
-  const BEATS_PER_MEASURE = 4;
-  const TOTAL_TRACK_WIDTH = 916; // This is the width representing 4 beats.
-  const pixelsPerSecond = TOTAL_TRACK_WIDTH / BEATS_PER_MEASURE;
+  const TOTAL_TRACK_WIDTH = 916;
 
   useEffect(() => {
     const loadAudioFile = async () => {
@@ -63,7 +63,9 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
       className="bank-sample-btn"
       style={{
         left: offset ? `${offset}px` : "",
-        width: offset ? `${audioDuration * pixelsPerSecond}px` : "auto",
+        width: offset
+          ? `${timeToPixels(audioDuration, TOTAL_TRACK_WIDTH, 120)}px`
+          : "auto",
       }}
     >
       <span>{sample.filename.slice(0, -4)}</span>
