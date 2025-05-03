@@ -1,12 +1,10 @@
 // BankSample.js
-import React, { useEffect, useState, useRef } from 'react';
-import WaveFormDrawing from './WaveFormDrawing';
-import { loadAudio, getAudioContext } from '../utils/audioManager';
-import { useSelectedSample } from '../context/SelectedSampleContext';
-import '../style/bankSample.css';
+import React, { useEffect, useState, useRef } from "react";
+import WaveFormDrawing from "./WaveFormDrawing";
+import { loadAudio, getAudioContext } from "../utils/audioManager";
+import "../style/bankSample.css";
 
 const BankSample = ({ id, sample, btnClass, offset }) => {
-  const { updateSelectedSample } = useSelectedSample();
   const [audioBuffer, setAudioBuffer] = useState(null);
   const [audioDuration, setAudioDuration] = useState(null);
   const canvasRef = useRef(null);
@@ -14,7 +12,7 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
   // Define constants for calculating the width of the sample.
   const BEATS_PER_MEASURE = 4;
   const TOTAL_TRACK_WIDTH = 916; // This is the width representing 4 beats.
-  const pixelsPerSecond = TOTAL_TRACK_WIDTH / BEATS_PER_MEASURE; // ~229 px per second
+  const pixelsPerSecond = TOTAL_TRACK_WIDTH / BEATS_PER_MEASURE;
 
   useEffect(() => {
     const loadAudioFile = async () => {
@@ -27,19 +25,21 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
     loadAudioFile();
   }, [sample.path]);
 
-  // Handle drag start by calculating the mouse offset and updating the selected sample context.
+  // Handle drag start by serializing sample data and storing in dataTransfer
   const handleDragStart = (e) => {
     if (audioBuffer) {
       const targetRect = e.target.getBoundingClientRect();
       const xDivMouse = e.clientX - targetRect.left;
-      const updatedSample = {
+
+      // Prepare the sample data for drag — omit audioBuffer
+      const dragSample = {
         ...sample,
         xDragOffset: xDivMouse,
-        audioBuffer,
       };
-      updateSelectedSample(updatedSample);
+
+      e.dataTransfer.setData("application/json", JSON.stringify(dragSample));
     } else {
-      console.log('Audio buffer is not yet loaded');
+      console.log("Audio buffer not yet loaded");
     }
   };
 
@@ -62,12 +62,17 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
       onClick={playAudio}
       className="bank-sample-btn"
       style={{
-        left: offset ? `${offset}px` : '',
-        width: offset ? `${audioDuration * pixelsPerSecond}px` : 'auto',
+        left: offset ? `${offset}px` : "",
+        width: offset ? `${audioDuration * pixelsPerSecond}px` : "auto",
       }}
     >
       <span>{sample.filename.slice(0, -4)}</span>
-      <WaveFormDrawing ref={canvasRef} buffer={audioBuffer} width="120" height="53" />
+      <WaveFormDrawing
+        ref={canvasRef}
+        buffer={audioBuffer}
+        width="120"
+        height="53"
+      />
     </button>
   );
 };

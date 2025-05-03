@@ -1,6 +1,6 @@
-import { useState, useRef } from 'react';
-import { getAudioContext } from '../utils/audioManager';
-import { loadAudio } from '../utils/audioManager'; // Import the utility
+import { useState, useRef } from "react";
+import { getAudioContext } from "../utils/audioManager";
+import { loadAudio } from "../utils/audioManager"; // Import the utility
 
 // Custom hook for handling audio playback with recursive timer
 const useAudioPlaybackWithTimer = () => {
@@ -8,28 +8,30 @@ const useAudioPlaybackWithTimer = () => {
   const isPlayingRef = useRef(false); // Ref to track if playback is active
   const startTimeRef = useRef(0); // Ref to store the start time of the loop
 
-
   const playAudioSet = async (latestSamplesRef, latestBpm) => {
     const secsPerMeasure = (60 / latestBpm.current) * 4;
 
-    // refactor ? - wiley 
-    const audioBuffers = await Promise.all (latestSamplesRef.current.map(async sample => {
-      console.log('playAudioSet', !sample.audioBuffer.duration)
-      if (!sample.audioBuffer.duration) {
-        const fullPath = `/samples/${sample.path}`;
-        return await loadAudio(fullPath);
-      }
-      return sample.audioBuffer
-    })); 
+    // Check if samples are available
+    const audioBuffers = await Promise.all(
+      latestSamplesRef.current.map(async (sample) => {
+        if (!sample.audioBuffer || !sample.audioBuffer.duration) {
+          const fullPath = `/samples/${sample.path}`;
+          const buffer = await loadAudio(fullPath);
+          // update the sample object with loaded buffer for future use
+          sample.audioBuffer = buffer;
+          return buffer;
+        }
+        return sample.audioBuffer;
+      })
+    );
 
-    
-    const offsets = latestSamplesRef.current.map(sample => sample.xPos); // Use xPos as offset time
+    const offsets = latestSamplesRef.current.map((sample) => sample.xPos); // Use xPos as offset time
 
     if (!audioBuffers || audioBuffers.length === 0) return;
 
     const context = getAudioContext();
     const sources = [];
-    console.log('audioBuffers', audioBuffers)
+    console.log("audioBuffers", audioBuffers);
 
     audioBuffers.forEach((buffer, index) => {
       const source = context.createBufferSource();
@@ -60,8 +62,8 @@ const useAudioPlaybackWithTimer = () => {
       if (elapsed >= secsPerMeasure) {
         // Stop the current playback
         handleStopAllSamples();
-        // Restart the playback loop by calling 
-        playAudioSet(latestSamplesRef, latestBpm); 
+        // Restart the playback loop by calling
+        playAudioSet(latestSamplesRef, latestBpm);
 
         // Reset the start time for the next loop
         startTimeRef.current = context.currentTime;
