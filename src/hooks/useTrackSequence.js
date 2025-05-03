@@ -1,7 +1,7 @@
 // hooks/useTrackSequence.js
-import { useState, useCallback, useEffect, useRef } from 'react';
-import { saveAllSamplesToLocalStorage } from '../utils/storageUtils';
-import { addParamsToUrl } from '../utils/urlUtils';
+import { useState, useCallback, useEffect, useRef } from "react";
+import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
+import { addParamsToUrl } from "../utils/urlUtils";
 
 const useTrackSequence = (initialBpm = 90) => {
   const [allSamples, setAllSamples] = useState([]);
@@ -14,29 +14,33 @@ const useTrackSequence = (initialBpm = 90) => {
   // Sync latestSamplesRef with allSamples whenever allSamples changes
   useEffect(() => {
     latestSamplesRef.current = allSamples;
-    latestBpm.current = bpm
+    latestBpm.current = bpm;
   }, [allSamples, bpm]);
-
 
   // Add or remove samples
   const editSampleOfSamples = useCallback((newSample, removeSample = false) => {
     setAllSamples((prevSamples) => {
       return removeSample
-        ? prevSamples.filter(sample => sample.trackSampleId !== newSample.trackSampleId)
+        ? prevSamples.filter(
+            (sample) => sample.trackSampleId !== newSample.trackSampleId
+          )
         : [...prevSamples, newSample];
     });
   }, []);
 
   // Update sample positions
-  const updateSamplesWithNewPosition = useCallback((trackSampleId, newPosition) => {
-    setAllSamples((prevSamples) =>
-      prevSamples.map(sample =>
-        sample.trackSampleId === trackSampleId
-          ? { ...sample, xPos: newPosition }
-          : sample
-      )
-    );
-  }, []);
+  const updateSamplesWithNewPosition = useCallback(
+    (trackSampleId, newPosition) => {
+      setAllSamples((prevSamples) =>
+        prevSamples.map((sample) =>
+          sample.id === trackSampleId
+            ? { ...sample, xPos: newPosition }
+            : sample
+        )
+      );
+    },
+    []
+  );
 
   // Save to local storage
   const saveSequence = () => {
@@ -45,7 +49,7 @@ const useTrackSequence = (initialBpm = 90) => {
 
   const shareSequence = () => {
     addParamsToUrl(allSamples, bpm);
-  }
+  };
 
   const clearAllSamples = () => {
     setAllSamples([]);
@@ -62,7 +66,7 @@ const useTrackSequence = (initialBpm = 90) => {
     clearAllSamples,
     editSampleOfSamples,
     updateSamplesWithNewPosition,
-    latestSamplesRef
+    latestSamplesRef,
   };
 };
 

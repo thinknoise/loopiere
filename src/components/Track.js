@@ -1,6 +1,8 @@
 // Track.js
 import React from "react";
 import TrackSample from "./TrackSample";
+import { createTrackSample } from "../utils/sampleUtils";
+
 import "../style/track.css";
 
 const Track = React.forwardRef(
@@ -34,15 +36,12 @@ const Track = React.forwardRef(
       let dropX = Math.round(relativeX - droppedSample.xDragOffset);
       dropX = dropX < 0 ? 0 : dropX;
 
-      const newSample = {
-        ...droppedSample,
-        trackSampleId: `${droppedSample.filename}-${trackInfo.id}-${Math.round(
-          Math.random() * 1000
-        )}`,
-        trackId: trackInfo.id,
-        onTrack: true,
-        xPos: dropX / trackWidth,
-      };
+      const xPosFraction = dropX / trackWidth;
+      const newSample = createTrackSample(
+        droppedSample,
+        trackInfo.id,
+        xPosFraction
+      );
 
       editSampleOfSamples(newSample);
     };
