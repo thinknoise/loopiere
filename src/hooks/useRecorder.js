@@ -4,21 +4,28 @@ export function useRecorder(audioContext) {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBuffer, setAudioBuffer] = useState(null);
 
+  // Refs to manage recorder, buffers, and the raw media stream
   const mediaRecorderRef = useRef(null);
+  const mediaStreamRef = useRef(null);
   const chunksRef = useRef([]);
 
   const startRecording = useCallback(async () => {
+    // 1. Capture microphone stream
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
+    mediaStreamRef.current = stream;
 
+    // 2. Create MediaRecorder
+    const recorder = new MediaRecorder(stream);
     chunksRef.current = [];
 
+    // 3. Collect data as it becomes available
     recorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
         chunksRef.current.push(e.data);
       }
     };
 
+    // 4. When stopped, decode into an AudioBuffer
     recorder.onstop = async () => {
       console.log("Recording stopped");
       const blob = new Blob(chunksRef.current);
@@ -27,6 +34,7 @@ export function useRecorder(audioContext) {
       setAudioBuffer(decoded);
     };
 
+    // 5. Start recording
     recorder.start();
     console.log("Recording started");
     mediaRecorderRef.current = recorder;
@@ -34,9 +42,18 @@ export function useRecorder(audioContext) {
   }, [audioContext]);
 
   const stopRecording = useCallback(() => {
+    // 1. Stop the MediaRecorder (fires onstop)
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
+      mediaRecorderRef.current = null;
     }
+
+    // 2. Turn off the microphone by stopping all tracks
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+
     setIsRecording(false);
   }, []);
 
@@ -54,13 +71,11 @@ export function useRecorder(audioContext) {
     bufferSource.start();
 
     return offlineCtx.startRendering().then((renderedBuffer) => {
-      // Convert to WAV Blob
       const wavBlob = audioBufferToWavBlob(renderedBuffer);
       return URL.createObjectURL(wavBlob);
     });
   };
 
-  // WAV encoder helper
   function audioBufferToWavBlob(buffer) {
     const numOfChan = buffer.numberOfChannels;
     const length = buffer.length * numOfChan * 2 + 44;
@@ -73,7 +88,6 @@ export function useRecorder(audioContext) {
       }
     }
 
-    // Write WAV file header
     let offset = 0;
     writeUTFBytes(view, offset, "RIFF");
     offset += 4;
@@ -102,7 +116,6 @@ export function useRecorder(audioContext) {
     view.setUint32(offset, buffer.length * numOfChan * 2, true);
     offset += 4;
 
-    // Write PCM samples
     for (let i = 0; i < buffer.length; i++) {
       for (let ch = 0; ch < numOfChan; ch++) {
         let sample = buffer.getChannelData(ch)[i];
