@@ -1,12 +1,11 @@
-
 export async function fetchAudioData(bank) {
-  const url = bank ? `./${bank}` : './samples.json'; // Adjusted path
-  console.log(url)
+  const url = bank ? `./${bank}` : "./samples.json"; // Adjusted path
+  console.log(url);
   try {
     const response = await fetch(url, {
-      method: 'GET',
+      method: "GET",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -17,7 +16,7 @@ export async function fetchAudioData(bank) {
     const data = await response.json();
     return data;
   } catch (error) {
-    console.error('Failed to fetch audio data:', error);
+    console.error("Failed to fetch audio data:", error);
     return null;
   }
 }

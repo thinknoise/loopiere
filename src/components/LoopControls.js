@@ -46,6 +46,7 @@ const LoopControls = memo(
         boxShadow: 3,
         width: "518px",
         mx: "auto", // centers the Box horizontally
+        mb: 4,
         display: "flex",
         flexDirection: "column",
         gap: 2,
