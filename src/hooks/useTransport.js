@@ -13,10 +13,10 @@ export default function useTransport(bpm, onLoopCallback) {
   // Update loop duration when BPM changes
   useEffect(() => {
     loopDurationRef.current = bpmToSecondsPerLoop(bpm);
-    console.log(
-      "[transport] BPM changed → new loop duration:",
-      loopDurationRef.current.toFixed(3)
-    );
+    // console.log(
+    //   "[transport] BPM changed → new loop duration:",
+    //   loopDurationRef.current.toFixed(3)
+    // );
   }, [bpm]);
 
   // Track latest callback to avoid stale closure

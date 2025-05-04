@@ -38,7 +38,7 @@ const useTrackSequence = (initialBpm = 90) => {
       setAllSamples((prevSamples) =>
         prevSamples.map((sample) => {
           const match = sample.id === trackSampleId;
-          console.log(`Checking sample: ${sample.id} → match? ${match}`);
+          // console.log(`Checking sample: ${sample.id} → match? ${match}`);
           return match ? { ...sample, xPos: newPosition } : sample;
         })
       );
