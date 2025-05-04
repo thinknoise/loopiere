@@ -2,11 +2,12 @@
 import React, { memo } from "react";
 import { TiArrowLoop } from "react-icons/ti";
 import { IoStopCircleOutline } from "react-icons/io5";
-import { PiCloudArrowUpDuotone } from "react-icons/pi";
-
-import { PiEraserDuotone } from "react-icons/pi";
-import { PiCloudFogDuotone } from "react-icons/pi";
-import { PiCloudSlashDuotone } from "react-icons/pi";
+import {
+  PiCloudArrowUpDuotone,
+  PiEraserDuotone,
+  PiCloudFogDuotone,
+  PiCloudSlashDuotone,
+} from "react-icons/pi";
 import { Box, IconButton, Slider, Typography } from "@mui/material";
 
 /**

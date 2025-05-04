@@ -11,11 +11,7 @@ import useAudioPlayback from "../hooks/useAudioPlayback";
 import useTrackSequence from "../hooks/useTrackSequence";
 import useTransport from "../hooks/useTransport";
 import { useRecorder } from "../hooks/useRecorder";
-import {
-  getAudioContext,
-  loadAudio,
-  prepareAllTracks,
-} from "../utils/audioManager";
+import { getAudioContext, prepareAllTracks } from "../utils/audioManager";
 import { bpmToSecondsPerLoop, getPixelsPerSecond } from "../utils/timingUtils";
 import "../style/tracklist.css";
 
@@ -76,7 +72,6 @@ const TrackList = ({ trackNumber = 4 }) => {
     [
       stop,
       stopAll,
-      prepareAllTracks,
       playNow,
       allSamples,
       latestBpm,
