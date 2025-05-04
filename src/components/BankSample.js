@@ -1,82 +1,99 @@
 // BankSample.js
 import React, { useEffect, useState, useRef } from "react";
-import WaveFormDrawing from "./WaveFormDrawing";
+import CompactWaveform from "./CompactWaveform";
 import { loadAudio, getAudioContext } from "../utils/audioManager";
 import { timeToPixels } from "../utils/timingUtils";
-
 import "../style/bankSample.css";
 
-const BankSample = ({ id, sample, btnClass, offset }) => {
+const TOTAL_TRACK_WIDTH = 916; // same as your track width constant
+const DEFAULT_WAVEFORM_WIDTH = 120;
+const WAVEFORM_HEIGHT = 53;
+
+export default function BankSample({ id, sample, btnClass = "", offset }) {
   const [audioBuffer, setAudioBuffer] = useState(null);
-  const [audioDuration, setAudioDuration] = useState(null);
-  const canvasRef = useRef(null);
+  const [duration, setDuration] = useState(0);
+  const btnRef = useRef(null);
 
-  // Define constants for calculating the width of the sample.
-  const TOTAL_TRACK_WIDTH = 916;
-
+  // Load buffer once (either from sample.buffer or from disk)
   useEffect(() => {
-    const loadAudioFile = async () => {
-      const fullPath = `./samples/${sample.path}`;
-      const buffer = await loadAudio(fullPath);
-      setAudioBuffer(buffer);
-      setAudioDuration(Math.round(buffer.duration * 10) / 10);
-    };
-
-    loadAudioFile();
-  }, [sample.path]);
-
-  // Handle drag start by serializing sample data and storing in dataTransfer
-  const handleDragStart = (e) => {
-    if (audioBuffer) {
-      const targetRect = e.target.getBoundingClientRect();
-      const xDivMouse = e.clientX - targetRect.left;
-
-      // Prepare the sample data for drag — omit audioBuffer
-      const dragSample = {
-        ...sample,
-        xDragOffset: xDivMouse,
-      };
-
-      e.dataTransfer.setData("application/json", JSON.stringify(dragSample));
-    } else {
-      console.log("Audio buffer not yet loaded");
+    let cancelled = false;
+    async function fetchBuffer() {
+      if (sample.buffer) {
+        setAudioBuffer(sample.buffer);
+        setDuration(sample.buffer.duration);
+      } else if (sample.path) {
+        try {
+          const buf = await loadAudio(`/samples/${sample.path}`);
+          if (!cancelled) {
+            setAudioBuffer(buf);
+            setDuration(buf.duration);
+          }
+        } catch (err) {
+          console.error("Failed to load bank sample:", sample.path, err);
+        }
+      }
     }
+    fetchBuffer();
+    return () => {
+      cancelled = true;
+    };
+  }, [sample]);
+
+  // Compute the waveform width, clamp to avoid invalid array lengths
+  const waveformWidth = Math.max(
+    1,
+    Math.min(
+      TOTAL_TRACK_WIDTH,
+      offset != null
+        ? Math.floor(
+            timeToPixels(duration, TOTAL_TRACK_WIDTH, DEFAULT_WAVEFORM_WIDTH)
+          )
+        : DEFAULT_WAVEFORM_WIDTH
+    )
+  );
+
+  // Drag payload carries the buffer-less sample plus the mouse offset
+  const handleDragStart = (e) => {
+    if (!audioBuffer) return;
+    const rect = btnRef.current.getBoundingClientRect();
+    const xDragOffset = e.clientX - rect.left;
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ ...sample, xDragOffset })
+    );
   };
 
-  // Play the audio using the shared AudioContext.
-  const playAudio = async () => {
-    if (audioBuffer) {
-      const context = getAudioContext();
-      const source = context.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(context.destination);
-      source.start();
-    }
+  // Quick play on click
+  const handleClick = () => {
+    if (!audioBuffer) return;
+    const ctx = getAudioContext();
+    const src = ctx.createBufferSource();
+    src.buffer = audioBuffer;
+    src.connect(ctx.destination);
+    src.start();
   };
 
   return (
     <button
+      ref={btnRef}
       key={id}
       draggable
       onDragStart={handleDragStart}
-      onClick={playAudio}
-      className="bank-sample-btn"
+      onClick={handleClick}
+      className={`bank-sample-btn ${btnClass}`}
       style={{
-        left: offset ? `${offset}px` : "",
-        width: offset
-          ? `${timeToPixels(audioDuration, TOTAL_TRACK_WIDTH, 120)}px`
-          : "auto",
+        left: offset != null ? `${offset}px` : undefined,
+        width: `${waveformWidth}px`,
       }}
     >
-      <span>{sample.filename.slice(0, -4)}</span>
-      <WaveFormDrawing
-        ref={canvasRef}
-        buffer={audioBuffer}
-        width="120"
-        height="53"
-      />
+      <span>{sample.filename.replace(/\.\w+$/, "")}</span>
+      {audioBuffer && (
+        <CompactWaveform
+          buffer={audioBuffer}
+          width={waveformWidth}
+          height={WAVEFORM_HEIGHT}
+        />
+      )}
     </button>
   );
-};
-
-export default BankSample;
+}

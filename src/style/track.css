@@ -18,16 +18,19 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 2px; /* Line width */
+  width: 2px;
+  /* Line width */
   background-color: black;
 }
 
 .drop-zone::before {
-  left: 25%; /* First line */
+  left: 25%;
+  /* First line */
 }
 
 .drop-zone::after {
-  left: 75%; /* Second line */
+  left: 75%;
+  /* Second line */
 }
 
 .drop-zone .middle-line {
