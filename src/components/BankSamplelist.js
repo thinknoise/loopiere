@@ -1,13 +1,20 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import BankSample from './BankSample';
-import { fetchAudioData } from '../utils/fetchAudioData';
-import banks from '../data/banks.json';
-import '../style/bankTab.css';
+import React, { useEffect, useState, useCallback } from "react";
+import BankSample from "./BankSample";
+import { fetchAudioData } from "../utils/fetchAudioData";
+import banks from "../data/banks.json";
+import { useRecorder } from "../hooks/useRecorder";
+import WaveformPreview from "./WaveformPreview";
+import { getAudioContext } from "../utils/audioManager";
+
+import "../style/bankTab.css";
 
 const BankSampleList = ({ handleDragStart }) => {
   const [buttons, setButtons] = useState([]);
-  const [bankFilename, setBankFilename] = useState(banks[0].filename); // Initialize state with the first bank filename
+  const [bankFilename, setBankFilename] = useState("recorded"); // default to "recorded" or any default
+  const [recordedBuffer, setRecordedBuffer] = useState(null);
 
+  const { startRecording, stopRecording, isRecording, audioBuffer } =
+    useRecorder(getAudioContext());
   // Memoize the spawnButton function
   const spawnButton = useCallback((filename) => {
     fetchAudioData(filename)
@@ -18,7 +25,7 @@ const BankSampleList = ({ handleDragStart }) => {
         }
       })
       .catch((error) => {
-        console.error('Error fetching or setting buttons:', error);
+        console.error("Error fetching or setting buttons:", error);
       });
   }, []);
 
@@ -27,26 +34,57 @@ const BankSampleList = ({ handleDragStart }) => {
     spawnButton(bankFilename);
   }, [bankFilename, spawnButton]); // Add spawnButton to the dependency array
 
+  useEffect(() => {
+    if (audioBuffer) {
+      setRecordedBuffer(audioBuffer);
+      console.log("Recorded buffer set!", audioBuffer);
+    }
+  }, [audioBuffer]);
+
   return (
-    <div className='bank-tabs'>
-      {banks.map((bank, index) => (
-        <button 
-          className={bankFilename === bank.filename ? 'tab selected' : 'tab'} 
-          key={index} 
-          onClick={() => setBankFilename(bank.filename)}
+    <div className="bank-tabs">
+      {["recorded", ...banks.map((b) => b.filename)].map((filename, index) => (
+        <button
+          key={index}
+          className={bankFilename === filename ? "tab selected" : "tab"}
+          onClick={() => setBankFilename(filename)}
         >
-          {bank.name}
+          {filename === "recorded"
+            ? "Recorded"
+            : banks.find((b) => b.filename === filename)?.name || filename}
         </button>
-      ))}
+      ))}{" "}
       <div className="button-container">
-        {buttons.map((sample, index) => (
-          <BankSample
-            key={index}
-            id={index}
-            sample={sample}
-            handleDragStart={handleDragStart}
-          />
-        ))}
+        {bankFilename === "recorded" ? (
+          <div className="recording-ui">
+            <button onClick={startRecording}>🎙 Start Rec</button>
+            <button onClick={stopRecording}>⏹ Stop Rec</button>
+            {isRecording && <p>Recording...</p>}
+            {recordedBuffer && (
+              <BankSample
+                key="live-recorded"
+                id="live-recorded"
+                sample={{
+                  id: Date.now(),
+                  buffer: recordedBuffer,
+                  filename: "Live Recording",
+                  duration: recordedBuffer.duration,
+                  path: null,
+                  url: null,
+                }}
+              />
+            )}
+          </div>
+        ) : (
+          buttons.map((sample, index) => (
+            <BankSample
+              key={index}
+              id={index}
+              sample={sample}
+              handleDragStart={handleDragStart}
+            />
+          ))
+        )}
       </div>
     </div>
   );

@@ -32,18 +32,21 @@ const Track = React.forwardRef(
 
       const droppedSample = JSON.parse(data);
 
-      // Calculate the drop position by subtracting the drag offset.
-      let dropX = Math.round(relativeX - droppedSample.xDragOffset);
-      dropX = dropX < 0 ? 0 : dropX;
-
-      const xPosFraction = dropX / trackWidth;
-      const newSample = createTrackSample(
-        droppedSample,
-        trackInfo.id,
-        xPosFraction
+      // Calculate the drop position by subtracting the original drag offset
+      const dropX = Math.max(
+        0,
+        Math.round(relativeX - (droppedSample.xDragOffset || 0))
       );
 
-      editSampleOfSamples(newSample);
+      const xPosFraction = dropX / trackWidth;
+
+      const updatedSample = createTrackSample(
+        droppedSample,
+        trackInfo.id, // new track ID (could be same or different)
+        xPosFraction // new horizontal position
+      );
+
+      editSampleOfSamples(updatedSample);
     };
 
     return (

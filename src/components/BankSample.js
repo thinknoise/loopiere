@@ -3,6 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import WaveFormDrawing from "./WaveFormDrawing";
 import { loadAudio, getAudioContext } from "../utils/audioManager";
 import { timeToPixels } from "../utils/timingUtils";
+import CompactWaveform from "./CompactWaveform";
 
 import "../style/bankSample.css";
 
@@ -15,15 +16,19 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
   const TOTAL_TRACK_WIDTH = 916;
 
   useEffect(() => {
-    const loadAudioFile = async () => {
-      const fullPath = `./samples/${sample.path}`;
-      const buffer = await loadAudio(fullPath);
-      setAudioBuffer(buffer);
-      setAudioDuration(Math.round(buffer.duration * 10) / 10);
-    };
-
-    loadAudioFile();
-  }, [sample.path]);
+    if (sample.buffer) {
+      setAudioBuffer(sample.buffer);
+      setAudioDuration(Math.round(sample.buffer.duration * 10) / 10);
+    } else if (sample.path) {
+      const loadAudioFile = async () => {
+        const fullPath = `/samples/${sample.path}`;
+        const buffer = await loadAudio(fullPath);
+        setAudioBuffer(buffer);
+        setAudioDuration(Math.round(buffer.duration * 10) / 10);
+      };
+      loadAudioFile();
+    }
+  }, [sample]);
 
   // Handle drag start by serializing sample data and storing in dataTransfer
   const handleDragStart = (e) => {
@@ -54,6 +59,21 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
     }
   };
 
+  useEffect(() => {
+    if (sample.buffer) {
+      setAudioBuffer(sample.buffer);
+      setAudioDuration(Math.round(sample.buffer.duration * 10) / 10);
+    } else if (sample.path) {
+      const loadAudioFile = async () => {
+        const fullPath = `/samples/${sample.path}`;
+        const buffer = await loadAudio(fullPath);
+        setAudioBuffer(buffer);
+        setAudioDuration(Math.round(buffer.duration * 10) / 10);
+      };
+      loadAudioFile();
+    }
+  }, [sample]);
+
   return (
     <button
       key={id}
@@ -69,12 +89,7 @@ const BankSample = ({ id, sample, btnClass, offset }) => {
       }}
     >
       <span>{sample.filename.slice(0, -4)}</span>
-      <WaveFormDrawing
-        ref={canvasRef}
-        buffer={audioBuffer}
-        width="120"
-        height="53"
-      />
+      <CompactWaveform buffer={audioBuffer} width={120} height={53} />
     </button>
   );
 };
