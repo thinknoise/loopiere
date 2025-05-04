@@ -36,7 +36,7 @@ const BankSampleList = ({ handleDragStart }) => {
   useEffect(() => {
     if (audioBuffer) {
       setRecordedBuffer(audioBuffer);
-      console.log("Recorded buffer set!", audioBuffer);
+      // console.log("Recorded buffer set!", audioBuffer);
     }
   }, [audioBuffer]);
 
