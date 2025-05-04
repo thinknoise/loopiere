@@ -29,12 +29,12 @@ const useTrackSequence = (initialBpm = 90) => {
   // Update sample positions
   const updateSamplesWithNewPosition = useCallback(
     (trackSampleId, newPosition) => {
-      console.log(
-        "[UPDATE POSITION] Trying to move ID:",
-        trackSampleId,
-        "to xPos:",
-        newPosition
-      );
+      // console.log(
+      //   "[UPDATE POSITION] Trying to move ID:",
+      //   trackSampleId,
+      //   "to xPos:",
+      //   newPosition
+      // );
       setAllSamples((prevSamples) =>
         prevSamples.map((sample) => {
           const match = sample.id === trackSampleId;
