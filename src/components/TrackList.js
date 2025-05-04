@@ -9,9 +9,11 @@ import useTrackWidth from "../hooks/useTrackWidth";
 import useAudioPlayback from "../hooks/useAudioPlayback";
 import useTrackSequence from "../hooks/useTrackSequence";
 import useTransport from "../hooks/useTransport";
-
+import { useRecorder } from "../hooks/useRecorder";
 import { getAudioContext, loadAudio } from "../utils/audioManager";
 import { bpmToSecondsPerLoop, getPixelsPerSecond } from "../utils/timingUtils";
+import WaveformPreview from "../components/WaveformPreview";
+
 import "../style/tracklist.css";
 
 const generateTracks = (trackNumber) => {
@@ -46,6 +48,7 @@ const TrackList = ({ trackNumber = 4 }) => {
   const { start, stop } = useTransport(bpm, onLoop);
 
   const { playNow, stopAll } = useAudioPlayback();
+  const [recordedSamples, setRecordedSamples] = useState([]);
 
   const prepareAllTracks = async () => {
     const samplesByTrackId = allSamples.reduce((acc, sample) => {
@@ -105,9 +108,29 @@ const TrackList = ({ trackNumber = 4 }) => {
   const PixelsPerSecond = getPixelsPerSecond(trackWidth, latestBpm.current);
 
   const tracks = generateTracks(trackNumber);
+  const audioContext = getAudioContext();
+  const { startRecording, stopRecording, isRecording, audioBuffer } =
+    useRecorder(audioContext);
 
   return (
     <div>
+      <div className="button-group">
+        <button onClick={startRecording}>🎙 Start Rec</button>
+        <button onClick={stopRecording}>⏹ Stop Rec</button>
+
+        {audioBuffer && (
+          <div className="track-name">
+            Got buffer: {audioBuffer.duration.toFixed(2)} sec
+          </div>
+        )}
+        {audioBuffer && (
+          <div className="waveform-preview-wrapper">
+            <WaveformPreview buffer={audioBuffer} width={600} height={100} />
+          </div>
+        )}
+
+        {isRecording && <div className="track-name">Recording...</div>}
+      </div>
       <div className="button-group">
         <button className="play" onClick={handleStart}>
           Play Tracks

@@ -39,6 +39,16 @@
 
 .button-group {
   width: 80%;
-  margin: 20px auto;   /* Centers the container */
-  text-align: center;  /* Centers the inline buttons inside */
+  margin: 20px auto;
+  /* Centers the container */
+  text-align: center;
+  /* Centers the inline buttons inside */
+}
+
+.waveform-preview-wrapper {
+  margin-top: 1rem;
+  background: #0e1122;
+  /* dark navy background like manufacture-ai.com */
+  padding: 1rem;
+  border-radius: 8px;
 }
