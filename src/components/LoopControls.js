@@ -1,13 +1,12 @@
 // LoopControls.js
 import React, { memo } from "react";
-import {
-  PlayArrow,
-  Stop,
-  Delete,
-  Save,
-  DeleteForever,
-  CloudDownload,
-} from "@mui/icons-material";
+import { TiArrowLoop } from "react-icons/ti";
+import { IoStopCircleOutline } from "react-icons/io5";
+import { PiCloudArrowUpDuotone } from "react-icons/pi";
+
+import { PiEraserDuotone } from "react-icons/pi";
+import { PiCloudFogDuotone } from "react-icons/pi";
+import { PiCloudSlashDuotone } from "react-icons/pi";
 import { Box, IconButton, Slider, Typography } from "@mui/material";
 
 /**
@@ -61,14 +60,16 @@ const LoopControls = memo(
       >
         <IconButton
           onClick={onStart}
-          aria-label="Play"
+          aria-label="Play Loop"
           sx={{
             color: "common.white",
+            width: 50,
             bgcolor: "success.main",
             "&:hover": { bgcolor: "success.dark" },
+            transform: "rotate(180deg)",
           }}
         >
-          <PlayArrow fontSize="large" />
+          <TiArrowLoop fontSize={35} />
         </IconButton>
         <IconButton
           onClick={onStop}
@@ -79,19 +80,19 @@ const LoopControls = memo(
             "&:hover": { bgcolor: "error.dark" },
           }}
         >
-          <Stop fontSize="large" />
+          <IoStopCircleOutline fontSize={32} />
         </IconButton>
         <IconButton
           onClick={onClear}
           aria-label="Clear Loop"
           sx={{
             color: "common.white",
-            bgcolor: "warning.main",
             "&:hover": { bgcolor: "warning.dark" },
           }}
         >
-          <Delete fontSize="large" />
+          <PiEraserDuotone fontSize={32} />
         </IconButton>
+
         <IconButton
           onClick={onSave}
           aria-label="Save Loop"
@@ -101,7 +102,7 @@ const LoopControls = memo(
             "&:hover": { bgcolor: "primary.dark" },
           }}
         >
-          <Save fontSize="large" />
+          <PiCloudArrowUpDuotone fontSize={32} />
         </IconButton>
         <IconButton
           onClick={onLoad}
@@ -112,21 +113,18 @@ const LoopControls = memo(
             "&:hover": { bgcolor: "info.dark" },
           }}
         >
-          <CloudDownload
-            fontSize="large"
-            sx={{ transform: "rotate(180deg)" }}
-          />{" "}
+          <PiCloudFogDuotone fontSize={32} />
         </IconButton>
         <IconButton
           onClick={onDelete}
           aria-label="Delete Loop"
           sx={{
             color: "common.white",
-            bgcolor: "purple.600",
+            bgcolor: "error.main",
             "&:hover": { bgcolor: "purple.800" },
           }}
         >
-          <DeleteForever fontSize="large" />
+          <PiCloudSlashDuotone fontSize={32} />
         </IconButton>
       </Box>
 
