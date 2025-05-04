@@ -47,6 +47,16 @@ const Track = React.forwardRef(
       );
 
       editSampleOfSamples(updatedSample);
+      // ✅ Debug log: show all samples' IDs and positions
+      console.log("[After Drop] Sample just added:");
+      console.table(
+        allSamples.map((s) => ({
+          id: s.id,
+          filename: s.filename,
+          xPos: s.xPos,
+          trackId: s.trackId,
+        }))
+      );
     };
 
     return (

@@ -3,7 +3,6 @@ import BankSample from "./BankSample";
 import { fetchAudioData } from "../utils/fetchAudioData";
 import banks from "../data/banks.json";
 import { useRecorder } from "../hooks/useRecorder";
-import WaveformPreview from "./WaveformPreview";
 import { getAudioContext } from "../utils/audioManager";
 
 import "../style/bankTab.css";
@@ -65,7 +64,7 @@ const BankSampleList = ({ handleDragStart }) => {
                 key="live-recorded"
                 id="live-recorded"
                 sample={{
-                  id: Date.now(),
+                  id: crypto.randomUUID(), // ✅ Unique per placed sample
                   buffer: recordedBuffer,
                   filename: "Live Recording",
                   duration: recordedBuffer.duration,

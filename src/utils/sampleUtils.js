@@ -1,11 +1,11 @@
 export function createTrackSample(sample, trackId, xPosFraction) {
   return {
-    id: `${sample.filename}-${trackId}-${Math.round(Math.random() * 1000)}`,
+    id: crypto.randomUUID(), // ✅ Unique ID per track instance
     filename: sample.filename,
     path: sample.path,
     xPos: xPosFraction,
     trackId,
     onTrack: true,
-    audioBuffer: sample.audioBuffer || null,
+    audioBuffer: sample.audioBuffer || sample.buffer || null,
   };
 }

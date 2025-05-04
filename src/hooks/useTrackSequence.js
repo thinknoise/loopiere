@@ -21,9 +21,7 @@ const useTrackSequence = (initialBpm = 90) => {
   const editSampleOfSamples = useCallback((newSample, removeSample = false) => {
     setAllSamples((prevSamples) => {
       return removeSample
-        ? prevSamples.filter(
-            (sample) => sample.trackSampleId !== newSample.trackSampleId
-          )
+        ? prevSamples.filter((sample) => sample.id !== newSample.id)
         : [...prevSamples, newSample];
     });
   }, []);
@@ -31,12 +29,18 @@ const useTrackSequence = (initialBpm = 90) => {
   // Update sample positions
   const updateSamplesWithNewPosition = useCallback(
     (trackSampleId, newPosition) => {
+      console.log(
+        "[UPDATE POSITION] Trying to move ID:",
+        trackSampleId,
+        "to xPos:",
+        newPosition
+      );
       setAllSamples((prevSamples) =>
-        prevSamples.map((sample) =>
-          sample.id === trackSampleId
-            ? { ...sample, xPos: newPosition }
-            : sample
-        )
+        prevSamples.map((sample) => {
+          const match = sample.id === trackSampleId;
+          console.log(`Checking sample: ${sample.id} → match? ${match}`);
+          return match ? { ...sample, xPos: newPosition } : sample;
+        })
       );
     },
     []

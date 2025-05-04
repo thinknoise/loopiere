@@ -1,5 +1,5 @@
 // TrackList.js
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Track from "./Track";
 import {
   saveAllSamplesToLocalStorage,
@@ -12,7 +12,6 @@ import useTransport from "../hooks/useTransport";
 import { useRecorder } from "../hooks/useRecorder";
 import { getAudioContext, loadAudio } from "../utils/audioManager";
 import { bpmToSecondsPerLoop, getPixelsPerSecond } from "../utils/timingUtils";
-import WaveformPreview from "../components/WaveformPreview";
 
 import "../style/tracklist.css";
 
@@ -64,15 +63,23 @@ const TrackList = ({ trackNumber = 4 }) => {
         const url =
           sample.url || (sample.path ? `/samples/${sample.path}` : null);
 
-        if (!url) {
+        if (!url && !sample.buffer) {
           console.warn(
-            "[prepareAllTracks] Sample is missing 'path' or 'url':",
+            "[prepareAllTracks] Sample is missing 'path', 'url', and has no buffer:",
             sample
           );
           continue;
         }
 
         if (!sample.buffer) {
+          if (!url) {
+            console.warn(
+              "[prepareAllTracks] Skipping sample with no URL or buffer:",
+              sample
+            );
+            continue;
+          }
+
           try {
             const buffer = await loadAudio(url);
             sample.buffer = buffer;
@@ -111,26 +118,27 @@ const TrackList = ({ trackNumber = 4 }) => {
   const audioContext = getAudioContext();
   const { startRecording, stopRecording, isRecording, audioBuffer } =
     useRecorder(audioContext);
+  // recording stuff
+  useEffect(() => {
+    if (!audioBuffer) return;
+
+    // Decide where to place it (e.g., Track 1, start at 0)
+    const newSample = {
+      id: Date.now(), // unique ID
+      trackId: 1, // or whichever is selected
+      buffer: audioBuffer,
+      url: null, // it's not from a file
+      startTime: 0, // place at the beginning
+      duration: audioBuffer.duration,
+      filename: "Live Recording",
+      path: null,
+    };
+
+    setAllSamples((prev) => [...prev, newSample]);
+  }, [audioBuffer, setAllSamples]);
 
   return (
     <div>
-      <div className="button-group">
-        <button onClick={startRecording}>🎙 Start Rec</button>
-        <button onClick={stopRecording}>⏹ Stop Rec</button>
-
-        {audioBuffer && (
-          <div className="track-name">
-            Got buffer: {audioBuffer.duration.toFixed(2)} sec
-          </div>
-        )}
-        {audioBuffer && (
-          <div className="waveform-preview-wrapper">
-            <WaveformPreview buffer={audioBuffer} width={600} height={100} />
-          </div>
-        )}
-
-        {isRecording && <div className="track-name">Recording...</div>}
-      </div>
       <div className="button-group">
         <button className="play" onClick={handleStart}>
           Play Tracks
