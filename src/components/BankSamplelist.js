@@ -4,12 +4,14 @@ import { fetchAudioData } from "../utils/fetchAudioData";
 import banks from "../data/banks.json";
 import { useRecorder } from "../hooks/useRecorder";
 import { getAudioContext } from "../utils/audioManager";
+import { BiSolidMicrophoneAlt } from "react-icons/bi";
+import { PiMicrophoneSlashDuotone } from "react-icons/pi";
 
 import "../style/bankTab.css";
 
 const BankSampleList = ({ handleDragStart }) => {
   const [buttons, setButtons] = useState([]);
-  const [bankFilename, setBankFilename] = useState("recorded"); // default to "recorded" or any default
+  const [bankFilename, setBankFilename] = useState("onehits.json"); // Default bank - no space . json
   const [recordedBuffer, setRecordedBuffer] = useState(null);
 
   const { startRecording, stopRecording, isRecording, audioBuffer } =
@@ -42,7 +44,7 @@ const BankSampleList = ({ handleDragStart }) => {
 
   return (
     <div className="bank-tabs">
-      {["recorded", ...banks.map((b) => b.filename)].map((filename, index) => (
+      {[...banks.map((b) => b.filename), "recorded"].map((filename, index) => (
         <button
           key={index}
           className={bankFilename === filename ? "tab selected" : "tab"}
@@ -56,15 +58,45 @@ const BankSampleList = ({ handleDragStart }) => {
       <div className="button-container">
         {bankFilename === "recorded" ? (
           <div className="recording-ui">
-            <button onClick={startRecording}>🎙 Start Rec</button>
-            <button onClick={stopRecording}>⏹ Stop Rec</button>
+            <button
+              className="record-btn-wrapper"
+              style={{
+                zIndex: isRecording ? 0 : 1,
+              }}
+              onClick={startRecording}
+            >
+              <BiSolidMicrophoneAlt
+                size={32}
+                style={{
+                  color: "white",
+                  opacity: isRecording ? 0 : 1,
+                  transition: "opacity 0.2s ease-in-out",
+                }}
+              />
+            </button>
+            <button
+              className="record-btn-wrapper"
+              style={{
+                zIndex: isRecording ? 1 : 0,
+              }}
+              onClick={stopRecording}
+            >
+              <PiMicrophoneSlashDuotone
+                size={32}
+                style={{
+                  color: "red",
+                  opacity: isRecording ? 1 : 0,
+                  transition: "opacity 0.2s ease-in-out",
+                }}
+              />
+            </button>
             {isRecording && <p>Recording...</p>}
             {recordedBuffer && (
               <BankSample
                 key="live-recorded"
                 id="live-recorded"
                 sample={{
-                  id: crypto.randomUUID(), // ✅ Unique per placed sample
+                  id: crypto.randomUUID(),
                   buffer: recordedBuffer,
                   filename: "Live Recording",
                   duration: recordedBuffer.duration,

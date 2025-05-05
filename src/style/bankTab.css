@@ -2,8 +2,10 @@
   padding-top: 40px;
   height: 40px;
   width: 80%;
-  margin: 0 auto;    /* Auto left/right margins to center the container */
-  text-align: center; /* Center inline or inline-block elements inside */
+  margin: 0 auto;
+  /* Auto left/right margins to center the container */
+  text-align: center;
+  /* Center inline or inline-block elements inside */
 }
 
 .bank-tabs .tab {
@@ -22,4 +24,16 @@
 .bank-tabs .tab.selected {
   padding: 10px 10px;
   margin: 10px 10px 0px 10px;
+}
+
+.record-btn-wrapper {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  border: none;
+  background: none;
+  /* or background-color: transparent; */
+  cursor: pointer;
+  outline: none;
+  /* if you also want to remove the focus ring */
 }

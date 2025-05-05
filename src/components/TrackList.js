@@ -18,27 +18,25 @@ import "../style/tracklist.css";
 const generateTracks = (n) =>
   Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Track ${i + 1}` }));
 
-const TrackList = ({ trackNumber = 4 }) => {
+const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
   const [isListingSelected, setListingSelected] = useState(false);
   const trackRef = useRef(null);
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
+  // BPM state
+  const [bpm, setBpm] = useState(initialBpm);
+
   const {
     allSamples,
-    bpm,
-    latestBpm,
-    setBPM,
     saveSequence,
     setAllSamples,
     clearAllSamples,
     editSampleOfSamples,
     updateSamplesWithNewPosition,
-  } = useTrackSequence(80);
+  } = useTrackSequence(bpm);
 
   const { playNow, stopAll } = useAudioPlayback();
-  const { start, stop } = useTransport(bpm, () =>
-    playNow(allSamples, latestBpm.current)
-  );
+  const { start, stop } = useTransport(bpm, () => playNow(allSamples, bpm));
 
   // tracks used by prepareAllTracks and rendering
   const tracks = useMemo(() => generateTracks(trackNumber), [trackNumber]);
@@ -52,7 +50,7 @@ const TrackList = ({ trackNumber = 4 }) => {
         await prepareAllTracks();
         const context = getAudioContext();
         await context.resume();
-        playNow(allSamples, latestBpm.current);
+        playNow(allSamples, bpm);
         start();
       },
       onStop: () => {
@@ -64,33 +62,31 @@ const TrackList = ({ trackNumber = 4 }) => {
         stopAll();
         clearAllSamples();
       },
-      onSave: () => saveSequence(latestBpm.current, bpm),
-      onDelete: () => saveAllSamplesToLocalStorage([], 80),
+      onSave: () => saveSequence(bpm),
+      onDelete: () => saveAllSamplesToLocalStorage([], initialBpm),
       onLoad: () => setAllSamples(getAllSamplesFromLocalStorage()),
-      onBpmChange: (e) => setBPM(parseInt(e.target.value, 10)),
+      onBpmChange: (e) => setBpm(parseInt(e.target.value, 10)),
     }),
     [
       stop,
       stopAll,
       playNow,
       allSamples,
-      latestBpm,
+      bpm,
       start,
       clearAllSamples,
       saveSequence,
-      bpm,
       setAllSamples,
-      setBPM,
+      setBpm,
+      initialBpm,
     ]
   );
 
-  const secsPerLoop = useMemo(
-    () => bpmToSecondsPerLoop(latestBpm.current),
-    [latestBpm]
-  );
+  const secsPerLoop = useMemo(() => bpmToSecondsPerLoop(bpm), [bpm]);
+
   const pixelsPerSecond = useMemo(
-    () => Math.round(getPixelsPerSecond(trackWidth, latestBpm.current)),
-    [trackWidth, latestBpm]
+    () => Math.round(getPixelsPerSecond(trackWidth, bpm)),
+    [trackWidth, bpm]
   );
 
   // recording context & effect
@@ -116,7 +112,6 @@ const TrackList = ({ trackNumber = 4 }) => {
       <LoopControls
         {...actions}
         bpm={bpm}
-        sliderRef={latestBpm}
         trackWidth={trackWidth}
         secsPerLoop={secsPerLoop}
         trackLeft={trackLeft}
