@@ -1,5 +1,5 @@
 .drop-zone {
-  width: 80%;
+  width: 93vw;
   height: 53px;
   margin: 0px auto;
   background-color: lightgray;
@@ -9,6 +9,7 @@
   justify-content: center;
   font-weight: bold;
   position: relative;
+  border-radius: 5px;
 }
 
 /* Vertical lines within the drop-zone */
@@ -53,5 +54,5 @@
 .track-name {
   position: absolute;
   left: 8px;
-  color: #2e2a2a;
+  color: #838185;
 }
