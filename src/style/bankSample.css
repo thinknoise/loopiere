@@ -1,9 +1,11 @@
 .button-container {
+  position: relative;
   margin: 0px;
   background-color: #333;
+  margin: auto;
   padding: 40px;
   width: 80%;
-  margin: auto;
+  min-height: 138px;
 }
 
 .bank-sample-btn {

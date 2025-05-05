@@ -47,10 +47,11 @@
   display: flex;
   flex-direction: row;
   z-index: 0;
+  overflow: hidden;
 }
 
 .track-name {
   position: absolute;
-  left: -80px;
-  color: #fff;
+  left: 8px;
+  color: #2e2a2a;
 }
