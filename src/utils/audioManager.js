@@ -1,6 +1,9 @@
 // audioManager.js
 let audioContext = null;
 
+/**
+ * Singleton AudioContext
+ */
 export const getAudioContext = () => {
   if (!audioContext) {
     audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -8,10 +11,34 @@ export const getAudioContext = () => {
   return audioContext;
 };
 
+// Base URL helper, respects PUBLIC_URL (e.g. for subdirectory deployments)
+const BASE = process.env.PUBLIC_URL || "";
+export function assetUrl(path) {
+  // collapse duplicate slashes
+  return `${BASE}/${path}`.replace(/\/{2,}/g, "/");
+}
+
+/**
+ * Fetches and decodes an audio file, automatically resolving
+ * any leading-absolute or relative paths under PUBLIC_URL.
+ * @param {string} filePath - e.g. '/onehits/foo.wav' or 'samples/bar.wav'
+ * @returns {Promise<AudioBuffer>}
+ */
 export const loadAudio = async (filePath) => {
+  // Resolve under PUBLIC_URL
+  let resolvedPath = filePath;
+  // If absolute path, strip leading slash and prefix
+  if (resolvedPath.startsWith("/")) {
+    resolvedPath = assetUrl(resolvedPath.replace(/^\/+/, ""));
+  }
+  // If relative (no http://), prefix too
+  else if (!/^[a-z]+:\/\//i.test(resolvedPath)) {
+    resolvedPath = assetUrl(resolvedPath);
+  }
+
   const context = getAudioContext();
   try {
-    const response = await fetch(filePath);
+    const response = await fetch(resolvedPath);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -20,16 +47,51 @@ export const loadAudio = async (filePath) => {
       throw new Error(`Invalid content-type: ${contentType}`);
     }
     const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await context.decodeAudioData(arrayBuffer);
-    return audioBuffer;
+    return await context.decodeAudioData(arrayBuffer);
   } catch (error) {
-    console.error("Error loading audio:", error);
+    console.error("Error loading audio:", error, "from", resolvedPath);
     throw error;
   }
 };
 
+// In-memory cache for decoded buffers
+const bufferCache = new Map();
+
+/**
+ * Loads (and decodes) a sample once.
+ * Supports both sample.url (explicit path) and sample.path (filename under samples/).
+ * @param {{ path?: string, url?: string, buffer?: AudioBuffer }} sample
+ * @returns {Promise<AudioBuffer>}
+ */
+export async function getSampleBuffer(sample) {
+  if (sample.buffer) return sample.buffer;
+
+  let cacheKey = sample.path || sample.url;
+  if (cacheKey && bufferCache.has(cacheKey)) {
+    sample.buffer = bufferCache.get(cacheKey);
+    return sample.buffer;
+  }
+
+  // Determine asset path
+  let rawPath;
+  if (sample.url) {
+    rawPath = sample.url.replace(/^\/+/, "");
+  } else if (sample.path) {
+    rawPath = `samples/${sample.path}`;
+  } else {
+    throw new Error("getSampleBuffer: sample missing both url and path");
+  }
+
+  // Fetch & decode via loadAudio (handles prefixing)
+  const buffer = await loadAudio(rawPath);
+  sample.buffer = buffer;
+  if (cacheKey) bufferCache.set(cacheKey, buffer);
+  return buffer;
+}
+
 /**
  * Load and decode all sample buffers for the given tracks.
+ * Delegates to getSampleBuffer for correct path resolution and caching.
  * @param {Array} allSamples - list of sample objects with trackId, url, path, buffer fields
  * @param {Array} tracks - list of track objects with id field
  */
@@ -51,22 +113,11 @@ export const prepareAllTracks = async (allSamples = [], tracks = []) => {
     if (!track || track.id == null) continue;
     const samples = samplesByTrack[track.id] || [];
     for (const sample of samples) {
-      if (!sample || sample.buffer) continue;
-      const url =
-        sample.url || (sample.path ? `/samples/${sample.path}` : null);
-      if (!url) {
-        console.warn(
-          "[prepareAllTracks] skipping sample with no URL or buffer",
-          sample
-        );
-        continue;
-      }
+      if (!sample) continue;
       try {
-        const buffer = await loadAudio(url);
-        sample.buffer = buffer;
-        sample.url = url;
+        await getSampleBuffer(sample);
       } catch (err) {
-        console.error("[prepareAllTracks] failed to load sample:", url, err);
+        console.error("[prepareAllTracks] failed to load sample:", sample, err);
       }
     }
   }
