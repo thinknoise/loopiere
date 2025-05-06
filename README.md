@@ -4,9 +4,9 @@
 
 https://modelglue.com/loopiere/
 
-This is a simple looper
+This is a simple looper with simple samples. 
 
-Loopiere is an interactive web-based loop sequencer built with the Web Audio API. It lets you drag and drop audio samples into multiple tracks, arrange them along a timeline based on tempo, and create seamless loops entirely in the browser.
+Loopiere is an interactive web-based looper built with the Web Audio API. It lets you drag and drop audio samples into multiple tracks, arrange them along a timeline based on tempo, and create seamless loops entirely in the browser.
 
 ## Project Motivation
 
