@@ -1,6 +1,6 @@
 // hooks/useAudioPlayback.js
 import { useState, useRef } from "react";
-import { getAudioContext, loadAudio } from "../utils/audioManager";
+import { getAudioContext, getSampleBuffer } from "../utils/audioManager";
 
 const useAudioPlayback = () => {
   const [playingSources, setPlayingSources] = useState([]);
@@ -10,15 +10,7 @@ const useAudioPlayback = () => {
     const secsPerMeasure = (60 / bpm) * 4;
 
     const audioBuffers = await Promise.all(
-      samples.map(async (sample) => {
-        if (!sample.audioBuffer || !sample.audioBuffer.duration) {
-          const fullPath = `/samples/${sample.path}`;
-          const buffer = await loadAudio(fullPath);
-          sample.audioBuffer = buffer;
-          return buffer;
-        }
-        return sample.audioBuffer;
-      })
+      samples.map((sample) => getSampleBuffer(sample))
     );
 
     const context = getAudioContext();

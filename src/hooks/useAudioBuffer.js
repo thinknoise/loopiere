@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { loadAudio } from "../utils/audioManager";
+import { getSampleBuffer } from "../utils/audioManager";
 
 /**
  * Custom hook to load an audio buffer from a sample object.
@@ -19,8 +19,7 @@ export default function useAudioBuffer(sample) {
         setDuration(sample.buffer.duration);
       }
     } else if (sample.path) {
-      // Otherwise, load/ decode from disk
-      loadAudio(`/samples/${sample.path}`)
+      getSampleBuffer(sample)
         .then((audio) => {
           if (isMounted) {
             setBuffer(audio);
@@ -31,7 +30,6 @@ export default function useAudioBuffer(sample) {
           console.error("useAudioBuffer: failed to load", sample.path, err)
         );
     }
-
     return () => {
       isMounted = false;
     };
