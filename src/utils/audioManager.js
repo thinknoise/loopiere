@@ -15,7 +15,7 @@ export const getAudioContext = () => {
 const BASE = process.env.PUBLIC_URL || "";
 export function assetUrl(path) {
   // collapse duplicate slashes
-  return `${BASE}/${path}`.replace(/\/{2,}/g, "/");
+  return `${BASE}/${path}`.replace(/\/\/{2,}/g, "/");
 }
 
 /**
@@ -25,14 +25,16 @@ export function assetUrl(path) {
  * @returns {Promise<AudioBuffer>}
  */
 export const loadAudio = async (filePath) => {
-  // Resolve under PUBLIC_URL
   let resolvedPath = filePath;
   // If absolute path, strip leading slash and prefix
   if (resolvedPath.startsWith("/")) {
     resolvedPath = assetUrl(resolvedPath.replace(/^\/+/, ""));
   }
-  // If relative (no http://), prefix too
-  else if (!/^[a-z]+:\/\//i.test(resolvedPath)) {
+  // If relative (no http:// or blob:), prefix too
+  else if (
+    !/^[a-z]+:\/\//i.test(resolvedPath) &&
+    !resolvedPath.startsWith("blob:")
+  ) {
     resolvedPath = assetUrl(resolvedPath);
   }
 
@@ -60,19 +62,41 @@ const bufferCache = new Map();
 /**
  * Loads (and decodes) a sample once.
  * Supports both sample.url (explicit path) and sample.path (filename under samples/).
+ * Handles blob URLs in either url or path to avoid invalid content-type errors.
  * @param {{ path?: string, url?: string, buffer?: AudioBuffer }} sample
  * @returns {Promise<AudioBuffer>}
  */
 export async function getSampleBuffer(sample) {
+  // Return existing buffer if present
   if (sample.buffer) return sample.buffer;
 
+  // Determine if this is a blob URL in url or path
+  const blobUrl = sample.url?.startsWith("blob:")
+    ? sample.url
+    : sample.path?.startsWith("blob:")
+    ? sample.path
+    : null;
+  if (blobUrl) {
+    const context = getAudioContext();
+    try {
+      const arrayBuffer = await fetch(blobUrl).then((r) => r.arrayBuffer());
+      const decoded = await context.decodeAudioData(arrayBuffer);
+      sample.buffer = decoded;
+      return decoded;
+    } catch (error) {
+      console.error("Error decoding blob URL audio:", error);
+      throw error;
+    }
+  }
+
+  // Cache lookup key
   let cacheKey = sample.path || sample.url;
   if (cacheKey && bufferCache.has(cacheKey)) {
     sample.buffer = bufferCache.get(cacheKey);
     return sample.buffer;
   }
 
-  // Determine asset path
+  // Determine asset path for non-blob URLs
   let rawPath;
   if (sample.url) {
     rawPath = sample.url.replace(/^\/+/, "");
@@ -92,8 +116,6 @@ export async function getSampleBuffer(sample) {
 /**
  * Load and decode all sample buffers for the given tracks.
  * Delegates to getSampleBuffer for correct path resolution and caching.
- * @param {Array} allSamples - list of sample objects with trackId, url, path, buffer fields
- * @param {Array} tracks - list of track objects with id field
  */
 export const prepareAllTracks = async (allSamples = [], tracks = []) => {
   if (!Array.isArray(allSamples) || !Array.isArray(tracks)) {

@@ -3,6 +3,7 @@ import { getSampleBuffer } from "../utils/audioManager";
 
 /**
  * Custom hook to load an audio buffer from a sample object.
+ * Supports pre-buffered samples, static files, and blob URLs uniformly.
  */
 export default function useAudioBuffer(sample) {
   const [buffer, setBuffer] = useState(null);
@@ -12,24 +13,30 @@ export default function useAudioBuffer(sample) {
     let isMounted = true;
     if (!sample) return;
 
-    // Only accept sample.buffer if it really is an AudioBuffer
-    if (sample.buffer && typeof sample.buffer.getChannelData === "function") {
-      if (isMounted) {
-        setBuffer(sample.buffer);
-        setDuration(sample.buffer.duration);
+    const loadBuffer = async () => {
+      try {
+        let audioBuf;
+        // If sample already has an AudioBuffer, use it
+        if (
+          sample.buffer &&
+          typeof sample.buffer.getChannelData === "function"
+        ) {
+          audioBuf = sample.buffer;
+        } else {
+          // Otherwise, delegate to getSampleBuffer (handles URLs, paths, blobs)
+          audioBuf = await getSampleBuffer(sample);
+        }
+        if (isMounted) {
+          setBuffer(audioBuf);
+          setDuration(audioBuf.duration);
+        }
+      } catch (err) {
+        console.error("useAudioBuffer: failed to load sample", sample, err);
       }
-    } else if (sample.path) {
-      getSampleBuffer(sample)
-        .then((audio) => {
-          if (isMounted) {
-            setBuffer(audio);
-            setDuration(audio.duration);
-          }
-        })
-        .catch((err) =>
-          console.error("useAudioBuffer: failed to load", sample.path, err)
-        );
-    }
+    };
+
+    loadBuffer();
+
     return () => {
       isMounted = false;
     };
