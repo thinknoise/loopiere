@@ -28,6 +28,7 @@ const LoopControls = memo(
     onStop,
     onClear,
     onSave,
+    emptyTracks,
     onDelete,
     onLoad,
     bpm,
@@ -35,8 +36,8 @@ const LoopControls = memo(
     sliderRef,
     trackWidth,
     secsPerLoop,
-    trackLeft,
-    pixelsPerSecond,
+    // trackLeft,
+    // pixelsPerSecond,
   }) => (
     <Box
       sx={{
@@ -97,11 +98,23 @@ const LoopControls = memo(
 
         <IconButton
           onClick={onSave}
+          disabled={emptyTracks}
           aria-label="Save Loop"
           sx={{
+            // normal state
             color: "common.white",
             bgcolor: "primary.main",
             "&:hover": { bgcolor: "primary.dark" },
+
+            // disabled state
+            "&:disabled": {
+              color: "#3b3b3b", // greyed‐out icon
+              bgcolor: "grey",
+              pointerEvents: "none", // ensures no hover/click
+              "&:hover": {
+                bgcolor: "grey",
+              },
+            },
           }}
         >
           <PiCloudArrowUpDuotone fontSize={32} />
@@ -160,8 +173,7 @@ const LoopControls = memo(
       >
         <Typography variant="body2">Width: {trackWidth}px</Typography>
         <Typography variant="body2">Loop: {secsPerLoop.toFixed(2)}s</Typography>
-        {/* <Typography variant="body2">Left: {trackLeft}px</Typography> */}
-        <Typography variant="body2">Pixels/sec: {pixelsPerSecond}</Typography>
+        {/* <Typography variant="body2">Pixels/sec: {pixelsPerSecond}</Typography> */}
       </Box>
     </Box>
   )

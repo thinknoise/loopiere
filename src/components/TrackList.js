@@ -125,8 +125,7 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
         bpm={bpm}
         trackWidth={trackWidth}
         secsPerLoop={secsPerLoop}
-        trackLeft={trackLeft}
-        pixelsPerSecond={pixelsPerSecond}
+        emptyTracks={allSamples.length === 0}
       />
 
       {tracks.map((track) => (
