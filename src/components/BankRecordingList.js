@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
-import { getAudioContext } from "../utils/audioManager";
+import { useAudioContext } from "./AudioContextProvider";
 import { BiSolidMicrophoneAlt } from "react-icons/bi";
 import { PiMicrophoneSlashDuotone } from "react-icons/pi";
 
@@ -19,7 +19,7 @@ const BankRecordingList = ({ handleDragStart }) => {
     isRecording,
     audioBuffer,
     getRecordedBlobURL,
-  } = useRecorder(getAudioContext());
+  } = useRecorder(useAudioContext());
 
   useEffect(() => {
     if (!audioBuffer) return;

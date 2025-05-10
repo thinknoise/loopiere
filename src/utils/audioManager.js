@@ -1,15 +1,5 @@
 // audioManager.js
-let audioContext = null;
-
-/**
- * Singleton AudioContext
- */
-export const getAudioContext = () => {
-  if (!audioContext) {
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  }
-  return audioContext;
-};
+import { getAudioContext } from "./audioContextSetup";
 
 // Base URL helper, respects PUBLIC_URL (e.g. for subdirectory deployments)
 const BASE = process.env.PUBLIC_URL || "";
@@ -38,7 +28,6 @@ export const loadAudio = async (filePath) => {
     resolvedPath = assetUrl(resolvedPath);
   }
 
-  const context = getAudioContext();
   try {
     const response = await fetch(resolvedPath);
     if (!response.ok) {
@@ -49,7 +38,8 @@ export const loadAudio = async (filePath) => {
       throw new Error(`Invalid content-type: ${contentType}`);
     }
     const arrayBuffer = await response.arrayBuffer();
-    return await context.decodeAudioData(arrayBuffer);
+    const raw = getAudioContext();
+    return await raw.decodeAudioData(arrayBuffer);
   } catch (error) {
     console.error("Error loading audio:", error, "from", resolvedPath);
     throw error;
@@ -77,12 +67,11 @@ export async function getSampleBuffer(sample) {
     ? sample.path
     : null;
   if (blobUrl) {
-    const context = getAudioContext();
     try {
       const arrayBuffer = await fetch(blobUrl).then((r) => r.arrayBuffer());
-      const decoded = await context.decodeAudioData(arrayBuffer);
-      sample.buffer = decoded;
-      return decoded;
+      const audioCtx = getAudioContext();
+      sample.buffer = await audioCtx.decodeAudioData(arrayBuffer);
+      return sample.buffer;
     } catch (error) {
       console.error("Error decoding blob URL audio:", error);
       throw error;
