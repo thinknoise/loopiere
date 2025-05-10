@@ -1,7 +1,9 @@
 // BankSample.js
 import React, { useEffect, useState, useRef } from "react";
 import CompactWaveform from "./CompactWaveform";
-import { loadAudio, getAudioContext } from "../utils/audioManager";
+import { loadAudio } from "../utils/audioManager";
+import { useAudioContext } from "./AudioContextProvider";
+import { resumeAudioContext } from "../utils/audioContextSetup";
 import { timeToPixels } from "../utils/timingUtils";
 import "../style/bankSample.css";
 
@@ -14,6 +16,7 @@ export default function BankSample({ id, sample, btnClass = "", offset }) {
   const [duration, setDuration] = useState(0);
   const btnRef = useRef(null);
 
+  const audioContext = useAudioContext();
   // Load buffer once (either from sample.buffer or from disk)
   useEffect(() => {
     let cancelled = false;
@@ -66,10 +69,11 @@ export default function BankSample({ id, sample, btnClass = "", offset }) {
   // Quick play on click
   const handleClick = () => {
     if (!audioBuffer) return;
-    const ctx = getAudioContext();
-    const src = ctx.createBufferSource();
+    // Resume context if needed
+    resumeAudioContext();
+    const src = audioContext.createBufferSource();
     src.buffer = audioBuffer;
-    src.connect(ctx.destination);
+    src.connect(audioContext.destination);
     src.start();
   };
 

@@ -3,7 +3,6 @@ import BankSample from "./BankSample";
 import RecordingBankList from "./BankRecordingList";
 import { fetchAudioData as fetchAudio } from "../utils/fetchAudioData";
 import banks from "../data/banks.json";
-import { getAudioContext } from "../utils/audioManager";
 
 import "../style/bankTab.css";
 

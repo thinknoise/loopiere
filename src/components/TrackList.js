@@ -11,7 +11,10 @@ import useAudioPlayback from "../hooks/useAudioPlayback";
 import useTrackSequence from "../hooks/useTrackSequence";
 import useTransport from "../hooks/useTransport";
 import { useRecorder } from "../hooks/useRecorder";
-import { getAudioContext, prepareAllTracks } from "../utils/audioManager";
+import { prepareAllTracks } from "../utils/audioManager";
+import { useAudioContext } from "./AudioContextProvider";
+import { resumeAudioContext } from "../utils/audioContextSetup";
+
 import { bpmToSecondsPerLoop, getPixelsPerSecond } from "../utils/timingUtils";
 import "../style/tracklist.css";
 
@@ -48,9 +51,9 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
         stop();
         stopAll();
         await prepareAllTracks();
-        const context = getAudioContext();
-        await context.resume();
+        resumeAudioContext();
         playNow(allSamples, bpm);
+        console.log(allSamples);
         start();
       },
       onStop: () => {
@@ -64,7 +67,15 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
       },
       onSave: () => saveSequence(bpm),
       onDelete: () => saveAllSamplesToLocalStorage([], initialBpm),
-      onLoad: () => setAllSamples(getAllSamplesFromLocalStorage()),
+      onLoad: async () => {
+        const audioContext = new AudioContext();
+        const restored = await getAllSamplesFromLocalStorage(audioContext);
+        setAllSamples(restored);
+        const storedBpm = Number(localStorage.getItem("LoopiereBPM"));
+        if (!isNaN(storedBpm)) {
+          setBpm(storedBpm);
+        }
+      },
       onBpmChange: (e) => setBpm(parseInt(e.target.value, 10)),
     }),
     [
@@ -90,7 +101,7 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
   );
 
   // recording context & effect
-  const audioContext = getAudioContext();
+  const audioContext = useAudioContext();
   const { audioBuffer } = useRecorder(audioContext);
   useEffect(() => {
     if (!audioBuffer) return;

@@ -1,6 +1,6 @@
 {
   "name": "loopiere",
-  "version": "0.2.0",
+  "version": "1.2.0",
   "homepage": "/loopiere",
   "private": true,
   "dependencies": {

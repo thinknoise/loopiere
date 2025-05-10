@@ -1,22 +1,18 @@
+// useTransport.js
 import { useEffect, useRef } from "react";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
-import { getAudioContext } from "../utils/audioManager";
+import { useAudioContext } from "../components/AudioContextProvider";
 
 export default function useTransport(bpm, onLoopCallback) {
   const isRunning = useRef(false);
   const rafId = useRef(null);
   const startTimeRef = useRef(0);
   const loopDurationRef = useRef(bpmToSecondsPerLoop(bpm));
-  const audioContext = getAudioContext(); // ✅ plain var, not ref
   const latestCallback = useRef(onLoopCallback);
 
   // Update loop duration when BPM changes
   useEffect(() => {
     loopDurationRef.current = bpmToSecondsPerLoop(bpm);
-    // console.log(
-    //   "[transport] BPM changed → new loop duration:",
-    //   loopDurationRef.current.toFixed(3)
-    // );
   }, [bpm]);
 
   // Track latest callback to avoid stale closure
@@ -25,14 +21,8 @@ export default function useTransport(bpm, onLoopCallback) {
   }, [onLoopCallback]);
 
   const loop = () => {
-    const now = audioContext.currentTime;
+    const now = useAudioContext.currentTime;
     const elapsed = now - startTimeRef.current;
-
-    // console.log(
-    //   `[transport] loop running — elapsed: ${elapsed.toFixed(
-    //     3
-    //   )} / duration: ${loopDurationRef.current.toFixed(3)}`
-    // );
 
     if (elapsed >= loopDurationRef.current) {
       latestCallback.current?.();
@@ -48,7 +38,7 @@ export default function useTransport(bpm, onLoopCallback) {
     if (!isRunning.current) {
       console.log("[transport] ▶ starting");
       isRunning.current = true;
-      startTimeRef.current = audioContext.currentTime;
+      startTimeRef.current = useAudioContext.currentTime;
       rafId.current = requestAnimationFrame(loop);
     }
   };
