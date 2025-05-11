@@ -14,12 +14,10 @@ export function createTrackSample(
   xPosFraction: number
 ): SampleDescriptor {
   return {
-    id: Date.now() + Math.floor(Math.random() * 1000),
-    filename: sample.filename,
-    path: sample.path,
-    buffer: sample.buffer ?? null,
-    trackId,
-    xPos: xPosFraction,
-    onTrack: true,
+    ...sample, // carry over buffer, url, path, filename, etc.
+    id: Date.now() + Math.floor(Math.random() * 1000), // new unique ID
+    trackId, // the target track
+    xPos: xPosFraction, // fractional start
+    onTrack: true, // optional flag
   };
 }

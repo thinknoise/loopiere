@@ -1,82 +1,48 @@
 // src/components/BankRecordingList.tsx
 
-import React, { useEffect, useState, useRef, FC } from "react";
-import BankSample from "./BankSample";
+import React, { useEffect, useState, FC } from "react";
+import BankSample, { Sample } from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { BiSolidMicrophoneAlt } from "react-icons/bi";
 import { PiMicrophoneSlashDuotone } from "react-icons/pi";
 import { v4 as uuid } from "uuid";
+import "../style/bankTab.css";
 
-// shape of each recording
-interface Recording {
+interface Recording extends Sample {
   id: string;
   buffer: AudioBuffer;
   filename: string;
   duration: number;
-  path: string;
   url: string;
 }
 
-// props for this component
-interface BankRecordingListProps {
-  handleDragStart: (...args: any[]) => void;
-}
-
-// explicit typing for our recorder hook
-interface UseRecorderResult {
-  startRecording: () => void;
-  stopRecording: () => void;
-  isRecording: boolean;
-  audioBuffer: AudioBuffer | null;
-  getRecordedBlobURL: () => Promise<string>;
-}
-
-const BankRecordingList: FC<BankRecordingListProps> = ({ handleDragStart }) => {
+const BankRecordingList: FC = () => {
   const [recordings, setRecordings] = useState<Recording[]>([]);
-  const processedRef = useRef<Set<AudioBuffer>>(new Set());
-
-  // assert the hook return so TS knows the shapes
   const {
     startRecording,
     stopRecording,
     isRecording,
     audioBuffer,
     getRecordedBlobURL,
-  } = useRecorder(useAudioContext()) as UseRecorderResult;
+  } = useRecorder(useAudioContext()) as any;
 
   useEffect(() => {
     if (!audioBuffer) return;
-
-    // skip duplicates
-    if (processedRef.current.has(audioBuffer)) return;
-    processedRef.current.add(audioBuffer);
-
-    let isMounted = true;
     (async () => {
-      try {
-        const url = await getRecordedBlobURL();
-        if (!isMounted) return;
-
-        setRecordings((prev) => [
-          ...prev,
-          {
-            id: uuid(),
-            buffer: audioBuffer,
-            filename: `Recording ${prev.length + 1}`,
-            duration: audioBuffer.duration,
-            path: url,
-            url,
-          },
-        ]);
-      } catch (error) {
-        console.error("Error generating recording URL", error);
-      }
+      const url = await getRecordedBlobURL();
+      setRecordings((prev) => [
+        ...prev,
+        {
+          id: uuid(),
+          buffer: audioBuffer,
+          filename: `Recording ${prev.length + 1}`,
+          duration: audioBuffer.duration,
+          path: url,
+          url,
+        },
+      ]);
     })();
-
-    return () => {
-      isMounted = false;
-    };
   }, [audioBuffer, getRecordedBlobURL]);
 
   return (
@@ -108,17 +74,10 @@ const BankRecordingList: FC<BankRecordingListProps> = ({ handleDragStart }) => {
           }}
         />
       </button>
-
       {isRecording && <p>Recording...</p>}
-
       <div className="samples">
-        {recordings.map((sample, i) => (
-          <BankSample
-            key={sample.id}
-            id={i}
-            sample={sample}
-            handleDragStart={handleDragStart}
-          />
+        {recordings.map((recording) => (
+          <BankSample key={recording.id} sample={recording} />
         ))}
       </div>
     </div>
