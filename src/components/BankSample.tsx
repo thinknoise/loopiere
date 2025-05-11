@@ -1,67 +1,63 @@
 // src/components/BankSample.tsx
 
-import React, { useEffect, useState, useRef, FC, DragEvent } from "react";
+import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
 import CompactWaveform from "./CompactWaveform";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { timeToPixels } from "../utils/timingUtils";
 import "../style/bankSample.css";
-import { Sample } from "./BankSampleList";
+
+export interface Sample {
+  id?: string | number;
+  filename: string;
+  path?: string | null;
+  url?: string | null;
+  buffer?: AudioBuffer | null;
+  [key: string]: any;
+}
+
+export interface BankSampleProps {
+  sample: Sample;
+  offset?: number;
+  btnClass?: string;
+}
 
 const TOTAL_TRACK_WIDTH = 916;
 const DEFAULT_WAVEFORM_WIDTH = 120;
 const WAVEFORM_HEIGHT = 53;
 
-export interface BankSampleProps {
-  id: number;
-  sample: Sample;
-  btnClass?: string;
-  offset?: number;
-  handleDragStart: (...args: any[]) => void;
-}
-
-const BankSample: FC<BankSampleProps> = ({
-  id,
-  sample,
-  btnClass = "",
-  offset,
-  handleDragStart,
-}) => {
+const BankSample: FC<BankSampleProps> = ({ sample, offset, btnClass = "" }) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
   const btnRef = useRef<HTMLButtonElement>(null);
-
   const audioContext = useAudioContext();
 
-  // Load the audio buffer once per sample
   useEffect(() => {
     let cancelled = false;
-
-    async function fetchBuffer(): Promise<void> {
+    async function fetchBuffer() {
       if (sample.buffer) {
         setAudioBuffer(sample.buffer);
         setDuration(sample.buffer.duration);
-      } else if (sample.path) {
+      } else if (sample.url || sample.path) {
         try {
-          const buf = await loadAudio(`/samples/${sample.path}`);
+          const src = sample.url ?? `/samples/${sample.path}`;
+          const buf = await loadAudio(src);
           if (!cancelled) {
             setAudioBuffer(buf);
             setDuration(buf.duration);
           }
         } catch (err) {
-          console.error("Failed to load bank sample:", sample.path, err);
+          console.error("Failed to load sample:", sample, err);
         }
       }
     }
-
     fetchBuffer();
     return () => {
       cancelled = true;
     };
   }, [sample]);
 
-  // Compute waveform width, clamped to valid range
   const waveformWidth = Math.max(
     1,
     Math.min(
@@ -74,22 +70,26 @@ const BankSample: FC<BankSampleProps> = ({
     )
   );
 
-  // Handle drag start: set data + forward to parent handler
-  const onDragStart = (e: DragEvent<HTMLButtonElement>): void => {
-    if (!audioBuffer || !btnRef.current) return;
-
+  const onDragStart = (e: DragEvent<HTMLButtonElement>) => {
+    if (!btnRef.current) return;
     const rect = btnRef.current.getBoundingClientRect();
     const xDragOffset = e.clientX - rect.left;
-    e.dataTransfer.setData(
-      "application/json",
-      JSON.stringify({ ...sample, xDragOffset })
-    );
 
-    handleDragStart(e, id);
+    // If we have a URL (bank .path or recording .url), ship the full descriptor:
+    if (sample.path || sample.url) {
+      e.dataTransfer.setData(
+        "application/json",
+        JSON.stringify({ ...sample, xDragOffset })
+      );
+    } else {
+      // Fallback: ship only the ID (this should be rare now)
+      e.dataTransfer.setData(
+        "application/json",
+        JSON.stringify({ id: sample.id, xDragOffset })
+      );
+    }
   };
-
-  // Quick play on click
-  const onClick = (): void => {
+  const onClick = () => {
     if (!audioBuffer) return;
     resumeAudioContext();
     const src = audioContext.createBufferSource();

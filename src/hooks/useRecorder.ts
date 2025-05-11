@@ -19,7 +19,9 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  // START RECORDING
   const startRecording = useCallback(async (): Promise<void> => {
+    console.log("start recording");
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaStreamRef.current = stream;
 

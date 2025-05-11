@@ -18,6 +18,14 @@ export interface TrackProps {
   bpm: number;
 }
 
+interface DragPayload {
+  id: number;
+  xDragOffset: number;
+  filename?: string;
+  path?: string;
+  url?: string;
+  buffer?: any; // we’ll ignore buffer here
+}
 const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
   HTMLDivElement,
   TrackProps
@@ -40,29 +48,43 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
 
     const handleDrop = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
-      if (!ref || !(ref as React.RefObject<HTMLDivElement>).current) return;
+      const { id, xDragOffset, filename, path, url } = JSON.parse(
+        e.dataTransfer.getData("application/json")
+      ) as DragPayload;
 
-      const dropArea = (
-        ref as React.RefObject<HTMLDivElement>
-      ).current!.getBoundingClientRect();
-      const relativeX = e.clientX - dropArea.left;
+      // compute xPosFraction…
+      const rect = e.currentTarget.getBoundingClientRect();
+      const dropX = Math.max(0, e.clientX - rect.left - xDragOffset);
+      const xPos = dropX / trackWidth;
 
-      const data = e.dataTransfer.getData("application/json");
-      if (!data) return;
+      // Reconstruct the “original” descriptor:
+      let original: SampleDescriptor;
+      if (path || url) {
+        // Bank or recorded (via blob URL) – we have all the fields we need
+        original = {
+          id,
+          filename: filename!,
+          path,
+          url,
+          buffer: null, // will be loaded lazily via useAudioBuffer
+          xPos: 0, // placeholder
+        };
+      } else {
+        // Pure ID fallback (unlikely now)
+        original =
+          allSamples.find((s) => s.id === id) || ({} as SampleDescriptor);
+      }
 
-      const droppedSample = JSON.parse(data) as any;
-      const xDragOffset = droppedSample.xDragOffset ?? 0;
+      // Now stamp on track placement
+      const trackSample: SampleDescriptor = {
+        ...original,
+        id: Date.now(),
+        trackId: trackInfo.id,
+        xPos,
+        onTrack: true,
+      };
 
-      const dropX = Math.max(0, Math.round(relativeX - xDragOffset));
-      const xPosFraction = dropX / trackWidth;
-
-      const updated = createTrackSample(
-        droppedSample,
-        trackInfo.id,
-        xPosFraction
-      );
-
-      editSampleOfSamples(updated);
+      editSampleOfSamples(trackSample);
     };
 
     return (

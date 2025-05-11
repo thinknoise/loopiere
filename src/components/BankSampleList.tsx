@@ -1,58 +1,33 @@
 // src/components/BankSampleList.tsx
 
 import React, { useEffect, useState, useCallback, FC, DragEvent } from "react";
-import BankSample from "./BankSample";
-import RecordingBankList from "./BankRecordingList";
+import BankSample, { Sample } from "./BankSample";
+import BankRecordingList from "./BankRecordingList";
 import { fetchAudioData as fetchAudio } from "../utils/fetchAudioData";
 import banks from "../data/banks.json";
 import "../style/bankTab.css";
 
-// shape of entries in banks.json
-interface Bank {
-  filename: string;
-  name: string;
-}
-
-// replace this with a better sample type when you know it
-export interface Sample {
-  [key: string]: any;
-}
-
 const BankSampleList: FC = () => {
-  const [buttons, setButtons] = useState<Sample[]>([]);
+  const [bankSamples, setBankSamples] = useState<Sample[]>([]);
   const [bankFilename, setBankFilename] = useState<string>("onehits.json");
 
-  // load samples when tab changes
-  const spawnButton = useCallback((filename: string): void => {
+  const spawnSamples = useCallback((filename: string): void => {
     fetchAudio(filename)
       .then((data: Sample[] | null) => {
-        if (data) setButtons(data);
+        if (data) setBankSamples(data);
       })
       .catch((err) => console.error("Error fetching audio data:", err));
   }, []);
 
   useEffect(() => {
-    spawnButton(bankFilename);
-  }, [bankFilename, spawnButton]);
-
-  // internal drag‐start handler
-  const handleDragStart = useCallback(
-    (e: DragEvent<HTMLButtonElement>, index: number) => {
-      const sample = buttons[index];
-      const rect = e.currentTarget.getBoundingClientRect();
-      const xDragOffset = e.clientX - rect.left;
-      e.dataTransfer.setData(
-        "application/json",
-        JSON.stringify({ ...sample, xDragOffset })
-      );
-    },
-    [buttons]
-  );
+    spawnSamples(bankFilename);
+  }, [bankFilename, spawnSamples]);
 
   const tabFilenames = banks.map((b) => b.filename).concat("recorded");
 
   return (
     <div className="bank-tabs">
+      {/* Tabs */}
       {tabFilenames.map((filename, i) => (
         <button
           key={i}
@@ -65,17 +40,13 @@ const BankSampleList: FC = () => {
         </button>
       ))}
 
+      {/* Sample buttons */}
       <div className="button-container">
         {bankFilename === "recorded" ? (
-          <RecordingBankList handleDragStart={handleDragStart} />
+          <BankRecordingList />
         ) : (
-          buttons.map((sample, idx) => (
-            <BankSample
-              key={idx}
-              id={idx}
-              sample={sample}
-              handleDragStart={handleDragStart}
-            />
+          bankSamples.map((bankSample, index) => (
+            <BankSample key={index} sample={bankSample} />
           ))
         )}
       </div>
