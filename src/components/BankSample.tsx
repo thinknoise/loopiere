@@ -1,26 +1,44 @@
-// BankSample.js
-import React, { useEffect, useState, useRef } from "react";
+// src/components/BankSample.tsx
+
+import React, { useEffect, useState, useRef, FC, DragEvent } from "react";
 import CompactWaveform from "./CompactWaveform";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { timeToPixels } from "../utils/timingUtils";
 import "../style/bankSample.css";
+import { Sample } from "./BankSampleList";
 
-const TOTAL_TRACK_WIDTH = 916; // same as your track width constant
+const TOTAL_TRACK_WIDTH = 916;
 const DEFAULT_WAVEFORM_WIDTH = 120;
 const WAVEFORM_HEIGHT = 53;
 
-export default function BankSample({ id, sample, btnClass = "", offset }) {
-  const [audioBuffer, setAudioBuffer] = useState(null);
-  const [duration, setDuration] = useState(0);
-  const btnRef = useRef(null);
+export interface BankSampleProps {
+  id: number;
+  sample: Sample;
+  btnClass?: string;
+  offset?: number;
+  handleDragStart: (...args: any[]) => void;
+}
+
+const BankSample: FC<BankSampleProps> = ({
+  id,
+  sample,
+  btnClass = "",
+  offset,
+  handleDragStart,
+}) => {
+  const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
+  const [duration, setDuration] = useState<number>(0);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const audioContext = useAudioContext();
-  // Load buffer once (either from sample.buffer or from disk)
+
+  // Load the audio buffer once per sample
   useEffect(() => {
     let cancelled = false;
-    async function fetchBuffer() {
+
+    async function fetchBuffer(): Promise<void> {
       if (sample.buffer) {
         setAudioBuffer(sample.buffer);
         setDuration(sample.buffer.duration);
@@ -36,13 +54,14 @@ export default function BankSample({ id, sample, btnClass = "", offset }) {
         }
       }
     }
+
     fetchBuffer();
     return () => {
       cancelled = true;
     };
   }, [sample]);
 
-  // Compute the waveform width, clamp to avoid invalid array lengths
+  // Compute waveform width, clamped to valid range
   const waveformWidth = Math.max(
     1,
     Math.min(
@@ -55,21 +74,23 @@ export default function BankSample({ id, sample, btnClass = "", offset }) {
     )
   );
 
-  // Drag payload carries the buffer-less sample plus the mouse offset
-  const handleDragStart = (e) => {
-    if (!audioBuffer) return;
+  // Handle drag start: set data + forward to parent handler
+  const onDragStart = (e: DragEvent<HTMLButtonElement>): void => {
+    if (!audioBuffer || !btnRef.current) return;
+
     const rect = btnRef.current.getBoundingClientRect();
     const xDragOffset = e.clientX - rect.left;
     e.dataTransfer.setData(
       "application/json",
       JSON.stringify({ ...sample, xDragOffset })
     );
+
+    handleDragStart(e, id);
   };
 
   // Quick play on click
-  const handleClick = () => {
+  const onClick = (): void => {
     if (!audioBuffer) return;
-    // Resume context if needed
     resumeAudioContext();
     const src = audioContext.createBufferSource();
     src.buffer = audioBuffer;
@@ -80,10 +101,9 @@ export default function BankSample({ id, sample, btnClass = "", offset }) {
   return (
     <button
       ref={btnRef}
-      key={id}
       draggable
-      onDragStart={handleDragStart}
-      onClick={handleClick}
+      onDragStart={onDragStart}
+      onClick={onClick}
       className={`bank-sample-btn ${btnClass}`}
       style={{
         left: offset != null ? `${offset}px` : undefined,
@@ -100,4 +120,6 @@ export default function BankSample({ id, sample, btnClass = "", offset }) {
       )}
     </button>
   );
-}
+};
+
+export default BankSample;

@@ -1,5 +1,14 @@
-// TrackList.js
-import React, { useState, useRef, useEffect, useMemo } from "react";
+// src/components/TrackList.tsx
+
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useMemo,
+  FC,
+  RefObject,
+  ChangeEvent,
+} from "react";
 import LoopControls from "./LoopControls";
 import Track from "./Track";
 import {
@@ -10,25 +19,50 @@ import useTrackWidth from "../hooks/useTrackWidth";
 import useAudioPlayback from "../hooks/useAudioPlayback";
 import useTrackSequence from "../hooks/useTrackSequence";
 import useTransport from "../hooks/useTransport";
-import { useRecorder } from "../hooks/useRecorder";
+import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
 import { prepareAllTracks } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 
+import { type SampleDescriptor } from "../utils/audioManager";
+import { type UpdateSamplePositionFn } from "../types/sample";
 import { bpmToSecondsPerLoop, getPixelsPerSecond } from "../utils/timingUtils";
 import "../style/tracklist.css";
 
-const generateTracks = (n) =>
+// --- Types ---
+export interface TrackInfo {
+  id: number;
+  name: string;
+}
+
+export interface TrackListProps {
+  trackNumber?: number;
+  initialBpm?: number;
+  updateSamplesWithNewPosition: UpdateSamplePositionFn;
+}
+
+// --- Helpers ---
+const generateTracks = (n: number): TrackInfo[] =>
   Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Track ${i + 1}` }));
 
-const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
-  const [isListingSelected, setListingSelected] = useState(false);
-  const trackRef = useRef(null);
+// --- Component ---
+const TrackList: FC<TrackListProps> = ({
+  trackNumber = 4,
+  initialBpm = 80,
+}) => {
+  // listing toggle
+  const [isListingSelected, setListingSelected] = useState<boolean>(false);
+
+  // ref to a track container (passed into each <Track />)
+  const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
+
+  // measure width & left offset
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
   // BPM state
-  const [bpm, setBpm] = useState(initialBpm);
+  const [bpm, setBpm] = useState<number>(initialBpm);
 
+  // sequencing hook
   const {
     allSamples,
     saveSequence,
@@ -38,82 +72,89 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
     updateSamplesWithNewPosition,
   } = useTrackSequence(bpm);
 
+  // playback & transport
   const { playNow, stopAll } = useAudioPlayback();
   const { start, stop } = useTransport(bpm, () => playNow(allSamples, bpm));
 
-  // tracks used by prepareAllTracks and rendering
-  const tracks = useMemo(() => generateTracks(trackNumber), [trackNumber]);
+  // tracks to render & preload
+  const tracks = useMemo<TrackInfo[]>(
+    () => generateTracks(trackNumber),
+    [trackNumber]
+  );
 
-  // grouped action callbacks
-  const actions = useMemo(
-    () => ({
-      onStart: async () => {
+  // grouped callbacks passed to LoopControls
+  const actions = useMemo(() => {
+    return {
+      onStart: async (): Promise<void> => {
         stop();
         stopAll();
-        await prepareAllTracks();
+        await prepareAllTracks(allSamples, tracks);
         resumeAudioContext();
         playNow(allSamples, bpm);
-        console.log(allSamples);
         start();
       },
-      onStop: () => {
+      onStop: (): void => {
         stop();
         stopAll();
       },
-      onClear: () => {
+      onClear: (): void => {
         stop();
         stopAll();
         clearAllSamples();
       },
-      onSave: () => saveSequence(bpm),
-      onDelete: () => saveAllSamplesToLocalStorage([], initialBpm),
-      onLoad: async () => {
-        const audioContext = new AudioContext();
+      onSave: (): void => saveSequence(),
+      onDelete: (): void => saveAllSamplesToLocalStorage([], initialBpm),
+      onLoad: async (): Promise<void> => {
+        const audioContext = new AudioContext(); // or new AudioContext()
         const restored = await getAllSamplesFromLocalStorage(audioContext);
         setAllSamples(restored);
-        const storedBpm = Number(localStorage.getItem("LoopiereBPM"));
-        if (!isNaN(storedBpm)) {
-          setBpm(storedBpm);
+        const stored = Number(localStorage.getItem("LoopiereBPM"));
+        if (!isNaN(stored)) setBpm(stored);
+      },
+      onBpmChange: (event: Event, value: number | number[]): void => {
+        if (typeof value === "number") {
+          setBpm(value);
+        } else {
+          setBpm(value[88]);
         }
       },
-      onBpmChange: (e) => setBpm(parseInt(e.target.value, 10)),
-    }),
-    [
-      stop,
-      stopAll,
-      playNow,
-      allSamples,
-      bpm,
-      start,
-      clearAllSamples,
-      saveSequence,
-      setAllSamples,
-      setBpm,
-      initialBpm,
-    ]
-  );
+    };
+  }, [
+    stop,
+    stopAll,
+    playNow,
+    allSamples,
+    bpm,
+    start,
+    clearAllSamples,
+    saveSequence,
+    initialBpm,
+    setAllSamples,
+    tracks,
+  ]);
 
-  const secsPerLoop = useMemo(() => bpmToSecondsPerLoop(bpm), [bpm]);
-
-  const pixelsPerSecond = useMemo(
+  // derived metrics
+  const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
+  const pixelsPerSecond = useMemo<number>(
     () => Math.round(getPixelsPerSecond(trackWidth, bpm)),
     [trackWidth, bpm]
   );
 
-  // recording context & effect
+  // record hook
   const audioContext = useAudioContext();
-  const { audioBuffer } = useRecorder(audioContext);
+  const { audioBuffer }: UseRecorderResult = useRecorder(audioContext);
   useEffect(() => {
     if (!audioBuffer) return;
-    const newSample = {
+    const newSample: SampleDescriptor = {
       id: Date.now(),
       trackId: 1,
       buffer: audioBuffer,
       url: null,
+      path: null,
       startTime: 0,
       duration: audioBuffer.duration,
       filename: "Live Recording",
-      path: null,
+      xPos: 0,
     };
     setAllSamples((prev) => [...prev, newSample]);
   }, [audioBuffer, setAllSamples]);
@@ -121,6 +162,7 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
   return (
     <div>
       <LoopControls
+        sliderRef={null}
         {...actions}
         bpm={bpm}
         trackWidth={trackWidth}
@@ -150,9 +192,7 @@ const TrackList = ({ trackNumber = 4, initialBpm = 80 }) => {
       >
         <h3>Track Samples:</h3>
         {allSamples.map((sample) => (
-          <pre key={sample.id}>
-            {sample.id} - {sample.filename}
-          </pre>
+          <pre key={sample.id}>{sample.filename}</pre>
         ))}
       </div>
     </div>
