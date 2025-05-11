@@ -1,55 +1,82 @@
-import React, { useRef, useState, useCallback } from "react";
+// src/components/TrackSample.tsx
+
+import React, { useRef, useState, useCallback, FC, MouseEvent } from "react";
 import useAudioBuffer from "../hooks/useAudioBuffer";
 import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
+import type { SampleDescriptor } from "../utils/audioManager";
+import type { UpdateSamplePositionFn } from "../types/sample";
 import "../style/trackSample.css";
 
-const TrackSample = ({
+export interface TrackSampleProps {
+  sample: SampleDescriptor;
+  trackWidth: number;
+  trackLeft: number;
+  bpm: number;
+  /**
+   * Edit or remove a sample.
+   * @param sample Sample descriptor to update or remove.
+   * @param remove If true, remove the sample; otherwise update it.
+   */
+  editSampleOfSamples: (sample: SampleDescriptor, remove?: boolean) => void;
+  /**
+   * Move a sample to a new fractional position.
+   * @param sampleId The numeric ID of the sample.
+   * @param xPosFraction New position as a fraction of track width (0–1).
+   */
+  updateSamplesWithNewPosition: UpdateSamplePositionFn;
+}
+
+const TrackSample: FC<TrackSampleProps> = ({
   sample,
   trackWidth,
   trackLeft,
-  editSampleOfSamples,
   bpm,
+  editSampleOfSamples,
   updateSamplesWithNewPosition,
 }) => {
   const { buffer: audioBuffer, duration: audioDuration } =
     useAudioBuffer(sample);
 
-  const [dragState, setDragState] = useState({
+  const [dragState, setDragState] = useState<{
+    isDragging: boolean;
+    offset: number;
+    position: number;
+  }>({
     isDragging: false,
     offset: 0,
     position: 0,
   });
 
-  const wrapperRef = useRef(null);
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+
   const secsPerMeasure = (60 / bpm) * 4;
 
-  // Compute raw width (in pixels) based on duration and track width
+  // raw pixel width based on duration & trackWidth
   const rawWidth = audioDuration
     ? Math.floor((audioDuration / secsPerMeasure) * trackWidth)
     : 0;
 
-  // Clamp width between 1px and trackWidth
   const sampleWidth = Math.max(1, Math.min(rawWidth, trackWidth));
 
-  // Determine left offset: either during drag or from sample.xPos
   const sampleLeft = dragState.isDragging
     ? dragState.position
     : sample.xPos * trackWidth;
 
-  // Start dragging
-  const handleMouseDown = (e) => {
-    const rect = wrapperRef.current.getBoundingClientRect();
-    const offset = e.clientX - rect.left;
+  // Begin drag: record offset
+  const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+    const rect = wrapperRef.current?.getBoundingClientRect();
+    if (!rect) return;
     setDragState({
       isDragging: true,
-      offset,
+      offset: e.clientX - rect.left,
       position: sample.xPos * trackWidth,
     });
   };
 
+  // Move drag
   const handleMouseMove = useCallback(
-    (e) => {
+    (e: globalThis.MouseEvent) => {
       if (!dragState.isDragging) return;
       const newX = Math.max(0, e.clientX - trackLeft - dragState.offset);
       setDragState((prev) => ({ ...prev, position: newX }));
@@ -57,28 +84,29 @@ const TrackSample = ({
     [dragState.isDragging, dragState.offset, trackLeft]
   );
 
+  // End drag: compute fraction & update
   const handleMouseUp = useCallback(
-    (e) => {
+    (e: globalThis.MouseEvent) => {
       if (!dragState.isDragging) return;
       const newX = Math.max(0, e.clientX - trackLeft - dragState.offset);
       const newPosFraction = newX / trackWidth;
       setDragState((prev) => ({ ...prev, isDragging: false, position: 0 }));
-      updateSamplesWithNewPosition(sample.id, newPosFraction);
+      updateSamplesWithNewPosition(sample, newPosFraction);
     },
     [
       dragState.isDragging,
       dragState.offset,
       trackLeft,
       trackWidth,
-      sample.id,
       updateSamplesWithNewPosition,
+      sample,
     ]
   );
 
   useEventListener("mousemove", handleMouseMove);
   useEventListener("mouseup", handleMouseUp);
 
-  const handleRemoveSample = (e) => {
+  const handleRemoveSample = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
     editSampleOfSamples(sample, true);
@@ -97,9 +125,13 @@ const TrackSample = ({
         cursor: dragState.isDragging ? "grabbing" : "grab",
       }}
     >
-      <button className="remove-track-btn" onClick={handleRemoveSample} />
+      <button
+        className="remove-track-btn"
+        onClick={handleRemoveSample}
+        aria-label="Remove sample"
+      />
       <button className="track-sample-btn" style={{ width: "100%" }}>
-        <span>{sample.filename.replace(/\.\w+$/, "")}</span>
+        <span>{sample.filename?.replace(/\.\w+$/, "")}</span>
         {audioBuffer && (
           <CompactWaveform
             buffer={audioBuffer}

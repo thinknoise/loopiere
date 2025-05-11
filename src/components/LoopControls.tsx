@@ -1,5 +1,6 @@
-// LoopControls.js
-import React, { memo } from "react";
+// src/components/LoopControls.tsx
+
+import React, { memo, FC, Ref } from "react";
 import { TiArrowLoop } from "react-icons/ti";
 import { IoStopCircleOutline } from "react-icons/io5";
 import {
@@ -10,34 +11,36 @@ import {
 } from "react-icons/pi";
 import { Box, IconButton, Slider, Typography } from "@mui/material";
 
-/**
- * Presentational loop controls: icon buttons, slider, and status.
- * Props:
- *  - onStart, onStop, onClear, onSave, onDelete, onLoad: () => void | async
- *  - bpm: number
- *  - onBpmChange: (e) => void
- *  - sliderRef: React.RefObject
- *  - trackWidth: number
- *  - secsPerLoop: number
- *  - trackLeft: number
- *  - pixelsPerSecond: number
- */
-const LoopControls = memo(
+export interface LoopControlsProps {
+  onStart: () => void | Promise<void>;
+  onStop: () => void | Promise<void>;
+  onClear: () => void | Promise<void>;
+  onSave: () => void | Promise<void>;
+  onDelete: () => void | Promise<void>;
+  onLoad: () => void | Promise<void>;
+  emptyTracks: boolean;
+  bpm: number;
+  onBpmChange: (event: Event, value: number | number[]) => void;
+  /** A ref to the underlying Slider element (renders as a <span>) */
+  sliderRef: Ref<HTMLSpanElement>;
+  trackWidth: number;
+  secsPerLoop: number;
+}
+
+const LoopControls: FC<LoopControlsProps> = memo(
   ({
     onStart,
     onStop,
     onClear,
     onSave,
-    emptyTracks,
     onDelete,
     onLoad,
+    emptyTracks,
     bpm,
     onBpmChange,
     sliderRef,
     trackWidth,
     secsPerLoop,
-    // trackLeft,
-    // pixelsPerSecond,
   }) => (
     <Box
       sx={{
@@ -46,7 +49,7 @@ const LoopControls = memo(
         borderRadius: 2,
         boxShadow: 3,
         width: "518px",
-        mx: "auto", // centers the Box horizontally
+        mx: "auto",
         mb: 4,
         display: "flex",
         flexDirection: "column",
@@ -95,25 +98,19 @@ const LoopControls = memo(
         >
           <PiEraserDuotone fontSize={32} />
         </IconButton>
-
         <IconButton
           onClick={onSave}
           disabled={emptyTracks}
           aria-label="Save Loop"
           sx={{
-            // normal state
             color: "common.white",
             bgcolor: "primary.main",
             "&:hover": { bgcolor: "primary.dark" },
-
-            // disabled state
             "&:disabled": {
-              color: "#3b3b3b", // greyed‐out icon
+              color: "#3b3b3b",
               bgcolor: "grey",
-              pointerEvents: "none", // ensures no hover/click
-              "&:hover": {
-                bgcolor: "grey",
-              },
+              pointerEvents: "none",
+              "&:hover": { bgcolor: "grey" },
             },
           }}
         >
@@ -155,7 +152,7 @@ const LoopControls = memo(
           color: "primary.main",
           mt: 5,
           "& .MuiSlider-valueLabel": {
-            pv: 0, // reduce padding to half
+            pv: 0,
             bgcolor: "primary.main",
             borderRadius: 1,
           },
@@ -173,7 +170,6 @@ const LoopControls = memo(
       >
         <Typography variant="body2">Width: {trackWidth}px</Typography>
         <Typography variant="body2">Loop: {secsPerLoop.toFixed(2)}s</Typography>
-        {/* <Typography variant="body2">Pixels/sec: {pixelsPerSecond}</Typography> */}
       </Box>
     </Box>
   )
