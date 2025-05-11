@@ -103,11 +103,12 @@ export async function getSampleBuffer(
   if (sample.url) {
     assetPath = sample.url.replace(/^\/+/, "");
   } else if (sample.path) {
-    assetPath = `samples/${sample.path}`;
+    // strip leading slashes so loadAudio can find it
+    const relative = sample.path.replace(/^\/+/, "");
+    assetPath = `samples/${relative}`;
   } else {
     throw new Error("getSampleBuffer: sample missing both url and path");
   }
-
   const decoded = await loadAudio(assetPath);
   sample.buffer = decoded;
   if (cacheKey) bufferCache.set(cacheKey, decoded);
