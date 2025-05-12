@@ -7,7 +7,7 @@ import React, {
   useMemo,
   FC,
   RefObject,
-  ChangeEvent,
+  useCallback,
 } from "react";
 import LoopControls from "./LoopControls";
 import Track from "./Track";
@@ -26,7 +26,7 @@ import { resumeAudioContext } from "../utils/audioContextSetup";
 
 import { type SampleDescriptor } from "../utils/audioManager";
 import { type UpdateSamplePositionFn } from "../types/sample";
-import { bpmToSecondsPerLoop, getPixelsPerSecond } from "../utils/timingUtils";
+import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import "../style/tracklist.css";
 
 // --- Types ---
@@ -75,8 +75,11 @@ const TrackList: FC<TrackListProps> = ({
   // playback & transport
   const { playNow, stopAll } = useAudioPlayback();
 
-  const getPlacedSamples = (): PlaybackSample[] =>
-    allSamples.filter((s): s is PlaybackSample => typeof s.xPos === "number");
+  const getPlacedSamples = useCallback(
+    (): PlaybackSample[] =>
+      allSamples.filter((s): s is PlaybackSample => typeof s.xPos === "number"),
+    [allSamples]
+  );
 
   const { start, stop } = useTransport(bpm, () =>
     playNow(getPlacedSamples(), bpm)
@@ -130,23 +133,20 @@ const TrackList: FC<TrackListProps> = ({
   }, [
     stop,
     stopAll,
-    playNow,
     allSamples,
-    bpm,
+    tracks,
+    getPlacedSamples,
     start,
+    playNow,
+    bpm,
     clearAllSamples,
     saveSequence,
     initialBpm,
     setAllSamples,
-    tracks,
   ]);
 
   // derived metrics
   const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
-  const pixelsPerSecond = useMemo<number>(
-    () => Math.round(getPixelsPerSecond(trackWidth, bpm)),
-    [trackWidth, bpm]
-  );
 
   // record hook
   const audioContext = useAudioContext();

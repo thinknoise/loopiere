@@ -1,15 +1,14 @@
 // src/components/BankRecordingList.tsx
 
 import React, { useEffect, useState, FC } from "react";
-import BankSample, { Sample } from "./BankSample";
+import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { BiSolidMicrophoneAlt } from "react-icons/bi";
 import { PiMicrophoneSlashDuotone } from "react-icons/pi";
-import { v4 as uuid } from "uuid";
-import "../style/bankTab.css";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
 import { SampleDescriptor } from "../utils/audioManager";
+import "../style/bankTab.css";
 
 export interface Recording extends SampleDescriptor {
   id: number; // numeric

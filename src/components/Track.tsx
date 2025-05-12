@@ -2,7 +2,6 @@
 
 import React, { forwardRef, Ref, DragEvent, FC } from "react";
 import TrackSample from "./TrackSample";
-import { createTrackSample } from "../utils/sampleUtils";
 import { TrackInfo } from "./TrackList";
 import type { SampleDescriptor } from "../utils/audioManager";
 import { UpdateSamplePositionFn } from "../types/sample";

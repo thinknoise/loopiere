@@ -1,6 +1,6 @@
 // src/components/BankSampleList.tsx
 
-import React, { useEffect, useState, useCallback, FC, DragEvent } from "react";
+import React, { useEffect, useState, useCallback, FC } from "react";
 import BankSample, { Sample } from "./BankSample";
 import BankRecordingList from "./BankRecordingList";
 import { fetchAudioData as fetchAudio } from "../utils/fetchAudioData";

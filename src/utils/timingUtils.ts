@@ -44,22 +44,6 @@ export function timeToPixels(
 }
 
 /**
- * Convert a pixel length to a time duration (in seconds).
- *
- * @param pixels - Length in pixels.
- * @param trackWidth - Width of the track (in pixels).
- * @param bpm - Beats per minute.
- * @returns Time in seconds.
- */
-export function pixelsToTime(
-  pixels: number,
-  trackWidth: number,
-  bpm: number
-): number {
-  return pixels / getPixelsPerSecond(trackWidth, bpm);
-}
-
-/**
  * Convert a fractional x-position (0–1) of the track to time in seconds.
  *
  * @param xPosFraction - Fractional position across the track (0 = start, 1 = end).
