@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
-import { addParamsToUrl } from "../utils/urlUtils";
+import { addParamsToUrl, SequenceParam } from "../utils/urlUtils";
 import type { SampleDescriptor } from "../utils/audioManager";
 import { UpdateSamplePositionFn } from "../types/sample";
 
@@ -83,15 +83,18 @@ export default function useTrackSequence(
     saveAllSamplesToLocalStorage(allSamples, bpm);
   };
 
-  // is this used wiley TODO
   const shareSequence = (): void => {
-    addParamsToUrl(
-      allSamples.map((sample) => ({
-        trackSampleId: sample.id,
-        xPos: sample.xPos,
-      })),
-      bpm
-    );
+    const placedParams: SequenceParam[] = allSamples
+      .filter(
+        (s): s is SampleDescriptor & { xPos: number } =>
+          typeof s.xPos === "number"
+      )
+      .map((s) => ({
+        trackSampleId: s.id,
+        xPos: s.xPos, // now guaranteed to be a number
+      }));
+
+    addParamsToUrl(placedParams, bpm);
   };
 
   const clearAllSamples = (): void => {

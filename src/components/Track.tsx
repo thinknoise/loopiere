@@ -7,6 +7,7 @@ import { TrackInfo } from "./TrackList";
 import type { SampleDescriptor } from "../utils/audioManager";
 import { UpdateSamplePositionFn } from "../types/sample";
 import "../style/track.css";
+import { getSampleFromRegistry } from "../utils/sampleRegistry";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -18,14 +19,6 @@ export interface TrackProps {
   bpm: number;
 }
 
-interface DragPayload {
-  id: number;
-  xDragOffset: number;
-  filename?: string;
-  path?: string;
-  url?: string;
-  buffer?: any; // we’ll ignore buffer here
-}
 const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
   HTMLDivElement,
   TrackProps
@@ -46,44 +39,34 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       e.preventDefault();
     };
 
-    const handleDrop = (e: DragEvent<HTMLDivElement>): void => {
+    const handleDrop = (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
-      const { id, xDragOffset, filename, path, url } = JSON.parse(
-        e.dataTransfer.getData("application/json")
-      ) as DragPayload;
 
-      // compute xPosFraction…
+      // 1) Bare‐bones payload
+      const { id: sampleId, xDragOffset } = JSON.parse(
+        e.dataTransfer.getData("application/json")
+      ) as { id: number; xDragOffset: number };
+
+      // 2) Compute fractional position
       const rect = e.currentTarget.getBoundingClientRect();
       const dropX = Math.max(0, e.clientX - rect.left - xDragOffset);
       const xPos = dropX / trackWidth;
 
-      // Reconstruct the “original” descriptor:
-      let original: SampleDescriptor;
-      if (path || url) {
-        // Bank or recorded (via blob URL) – we have all the fields we need
-        original = {
-          id,
-          filename: filename!,
-          path,
-          url,
-          buffer: null, // will be loaded lazily via useAudioBuffer
-          xPos: 0, // placeholder
-        };
-      } else {
-        // Pure ID fallback (unlikely now)
-        original =
-          allSamples.find((s) => s.id === id) || ({} as SampleDescriptor);
-      }
+      // 3) Rehydrate the original sample from your registry
+      const original = getSampleFromRegistry(sampleId);
+      console.log("Dropped ID:", sampleId, "Original:", original);
+      if (!original) return;
 
-      // Now stamp on track placement
+      // 4) Create a fresh trackSample
       const trackSample: SampleDescriptor = {
         ...original,
-        id: Date.now(),
         trackId: trackInfo.id,
         xPos,
         onTrack: true,
+        id: Date.now(),
       };
 
+      // 5) Insert into your hook state
       editSampleOfSamples(trackSample);
     };
 

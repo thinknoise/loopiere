@@ -16,7 +16,7 @@ import {
   getAllSamplesFromLocalStorage,
 } from "../utils/storageUtils";
 import useTrackWidth from "../hooks/useTrackWidth";
-import useAudioPlayback from "../hooks/useAudioPlayback";
+import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
 import useTrackSequence from "../hooks/useTrackSequence";
 import useTransport from "../hooks/useTransport";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
@@ -74,7 +74,13 @@ const TrackList: FC<TrackListProps> = ({
 
   // playback & transport
   const { playNow, stopAll } = useAudioPlayback();
-  const { start, stop } = useTransport(bpm, () => playNow(allSamples, bpm));
+
+  const getPlacedSamples = (): PlaybackSample[] =>
+    allSamples.filter((s): s is PlaybackSample => typeof s.xPos === "number");
+
+  const { start, stop } = useTransport(bpm, () =>
+    playNow(getPlacedSamples(), bpm)
+  );
 
   // tracks to render & preload
   const tracks = useMemo<TrackInfo[]>(
@@ -90,8 +96,10 @@ const TrackList: FC<TrackListProps> = ({
         stopAll();
         await prepareAllTracks(allSamples, tracks);
         resumeAudioContext();
-        playNow(allSamples, bpm);
+        const placed = getPlacedSamples();
+        await prepareAllTracks(placed, tracks);
         start();
+        playNow(placed, bpm);
       },
       onStop: (): void => {
         stop();

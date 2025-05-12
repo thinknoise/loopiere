@@ -8,13 +8,16 @@ import { BiSolidMicrophoneAlt } from "react-icons/bi";
 import { PiMicrophoneSlashDuotone } from "react-icons/pi";
 import { v4 as uuid } from "uuid";
 import "../style/bankTab.css";
+import { addSampleToRegistry } from "../utils/sampleRegistry";
+import { SampleDescriptor } from "../utils/audioManager";
 
-interface Recording extends Sample {
-  id: string;
-  buffer: AudioBuffer;
-  filename: string;
-  duration: number;
-  url: string;
+export interface Recording extends SampleDescriptor {
+  id: number; // numeric
+  buffer: AudioBuffer; // must be present
+  url: string; // must have a blob URL
+  filename: string; // must have a human label
+  duration: number; // must have duration
+  // trackId/xPos/onTrack/startTime are still optional until placement
 }
 
 const BankRecordingList: FC = () => {
@@ -29,19 +32,32 @@ const BankRecordingList: FC = () => {
 
   useEffect(() => {
     if (!audioBuffer) return;
+
     (async () => {
       const url = await getRecordedBlobURL();
-      setRecordings((prev) => [
-        ...prev,
-        {
-          id: uuid(),
+
+      setRecordings((prevRecordings) => {
+        // compute the new filename from prevRecordings, not the outer `recordings`
+        const filename = `Recording ${prevRecordings.length + 1}`;
+
+        const newRecording: Recording = {
+          id: Date.now(),
           buffer: audioBuffer,
-          filename: `Recording ${prev.length + 1}`,
+          url,
+          filename,
           duration: audioBuffer.duration,
           path: url,
-          url,
-        },
-      ]);
+          xPos: 0,
+          onTrack: false,
+          trackId: undefined,
+        };
+
+        // register it after constructing (so registry never misses it)
+        addSampleToRegistry(newRecording);
+
+        // return the new array
+        return [...prevRecordings, newRecording];
+      });
     })();
   }, [audioBuffer, getRecordedBlobURL]);
 

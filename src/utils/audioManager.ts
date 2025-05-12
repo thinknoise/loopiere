@@ -56,15 +56,17 @@ const bufferCache: Map<string, AudioBuffer> = new Map();
  */
 export interface SampleDescriptor {
   id: number;
-  trackId?: number;
-  xPos: number;
-  buffer?: AudioBuffer | null;
-  url?: string | null;
+  filename: string;
   path?: string | null;
-  startTime?: number;
+  url?: string | null;
+  buffer?: AudioBuffer | null;
   duration?: number;
-  filename?: string;
+
+  // Placed‐on‐track metadata:
+  trackId?: number;
+  xPos?: number;
   onTrack?: boolean;
+  startTime?: number;
 }
 
 /**

@@ -6,6 +6,8 @@ import BankRecordingList from "./BankRecordingList";
 import { fetchAudioData as fetchAudio } from "../utils/fetchAudioData";
 import banks from "../data/banks.json";
 import "../style/bankTab.css";
+import { addSampleToRegistry } from "../utils/sampleRegistry";
+import { SampleDescriptor } from "../utils/audioManager";
 
 const BankSampleList: FC = () => {
   const [bankSamples, setBankSamples] = useState<Sample[]>([]);
@@ -13,8 +15,30 @@ const BankSampleList: FC = () => {
 
   const spawnSamples = useCallback((filename: string): void => {
     fetchAudio(filename)
-      .then((data: Sample[] | null) => {
-        if (data) setBankSamples(data);
+      .then((data: any[] | null) => {
+        if (!data) {
+          setBankSamples([]);
+          return;
+        }
+        // Augment each raw sample with your metadata, then register it
+        const augmented: SampleDescriptor[] = data.map((raw, idx) => {
+          const sample: SampleDescriptor = {
+            // pull in whatever the fetch gave you
+            ...raw,
+            // give it a unique numeric ID (bank-specific namespace)
+            id: Date.now() + idx,
+            // not yet placed on a track
+            xPos: 0,
+            onTrack: false,
+            trackId: undefined,
+            // filename, path/url, buffer, duration should already be on raw
+          };
+          addSampleToRegistry(sample);
+          return sample;
+        });
+
+        // Now store your fully-typed samples for rendering
+        setBankSamples(augmented);
       })
       .catch((err) => console.error("Error fetching audio data:", err));
   }, []);

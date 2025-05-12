@@ -38,6 +38,8 @@ const TrackSample: FC<TrackSampleProps> = ({
   const { buffer: audioBuffer, duration: audioDuration } =
     useAudioBuffer(sample);
 
+  const xPos = sample.xPos ?? 0;
+
   const [dragState, setDragState] = useState<{
     isDragging: boolean;
     offset: number;
@@ -59,9 +61,10 @@ const TrackSample: FC<TrackSampleProps> = ({
 
   const sampleWidth = Math.max(1, Math.min(rawWidth, trackWidth));
 
+  // use the non-optional xPos here:
   const sampleLeft = dragState.isDragging
     ? dragState.position
-    : sample.xPos * trackWidth;
+    : xPos * trackWidth;
 
   // Begin drag: record offset
   const handleMouseDown = (e: MouseEvent<HTMLDivElement>) => {
@@ -70,7 +73,7 @@ const TrackSample: FC<TrackSampleProps> = ({
     setDragState({
       isDragging: true,
       offset: e.clientX - rect.left,
-      position: sample.xPos * trackWidth,
+      position: xPos * trackWidth,
     });
   };
 

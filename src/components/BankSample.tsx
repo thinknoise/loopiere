@@ -71,24 +71,14 @@ const BankSample: FC<BankSampleProps> = ({ sample, offset, btnClass = "" }) => {
   );
 
   const onDragStart = (e: DragEvent<HTMLButtonElement>) => {
-    if (!btnRef.current) return;
-    const rect = btnRef.current.getBoundingClientRect();
+    const rect = btnRef.current!.getBoundingClientRect();
     const xDragOffset = e.clientX - rect.left;
-
-    // If we have a URL (bank .path or recording .url), ship the full descriptor:
-    if (sample.path || sample.url) {
-      e.dataTransfer.setData(
-        "application/json",
-        JSON.stringify({ ...sample, xDragOffset })
-      );
-    } else {
-      // Fallback: ship only the ID (this should be rare now)
-      e.dataTransfer.setData(
-        "application/json",
-        JSON.stringify({ id: sample.id, xDragOffset })
-      );
-    }
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ id: sample.id, xDragOffset })
+    );
   };
+
   const onClick = () => {
     if (!audioBuffer) return;
     resumeAudioContext();
