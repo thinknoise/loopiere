@@ -1,6 +1,7 @@
 // src/hooks/useRecorder.ts
 
 import { useRef, useState, useCallback, useEffect } from "react";
+import { trimAudioBufferSilence } from "../utils/audioUtils";
 
 // Shape of the hook’s return value
 export interface UseRecorderResult {
@@ -45,7 +46,8 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
       const blob = new Blob(chunksRef.current);
       const arrayBuffer = await blob.arrayBuffer();
       const decoded = await audioContext.decodeAudioData(arrayBuffer);
-      setAudioBuffer(decoded);
+      const trimmed = trimAudioBufferSilence(decoded, audioContext, 0.02, 10);
+      setAudioBuffer(trimmed);
     };
 
     recorder.start();
