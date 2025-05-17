@@ -5,3 +5,8 @@
 h1 {
   color: grey;
 }
+
+.track-add-remove {
+  padding-left: 5%;
+  text-align: left;
+}
