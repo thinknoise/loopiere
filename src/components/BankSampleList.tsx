@@ -11,7 +11,7 @@ import { SampleDescriptor } from "../utils/audioManager";
 
 const BankSampleList: FC = () => {
   const [bankSamples, setBankSamples] = useState<Sample[]>([]);
-  const [bankFilename, setBankFilename] = useState<string>("onehits.json");
+  const [bankFilename, setBankFilename] = useState<string>("recorded");
 
   const spawnSamples = useCallback((filename: string): void => {
     fetchAudio(filename)
@@ -47,7 +47,8 @@ const BankSampleList: FC = () => {
     spawnSamples(bankFilename);
   }, [bankFilename, spawnSamples]);
 
-  const tabFilenames = banks.map((b) => b.filename).concat("recorded");
+  const tabFilenames = banks.map((b) => b.filename);
+  tabFilenames.unshift("recorded"); // Adds to the start
 
   return (
     <div className="bank-tabs">
