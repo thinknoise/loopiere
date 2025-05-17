@@ -4,7 +4,7 @@
 
 https://modelglue.com/loopiere/
 
-This is a simple looper with simple samples. 
+This is a simple looper with simple samples.
 
 Loopiere is an interactive web-based looper built with the Web Audio API. It lets you drag and drop audio samples into multiple tracks, arrange them along a timeline based on tempo, and create seamless loops entirely in the browser.
 
@@ -38,7 +38,7 @@ Loopiere is an interactive web-based looper built with the Web Audio API. It let
    ```
 3. **Run the development server**
    ```bash
-   npm run dev
+   npm start
    ```
 
 ## Available Scripts
@@ -50,10 +50,6 @@ In the project directory, you can run:
 Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
 ### `npm test`
-
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
 
 See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
