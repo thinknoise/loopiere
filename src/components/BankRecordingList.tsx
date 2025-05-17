@@ -1,6 +1,6 @@
 // src/components/BankRecordingList.tsx
 
-import React, { useEffect, useState, FC } from "react";
+import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
@@ -31,17 +31,17 @@ const BankRecordingList: FC = () => {
     getRecordedBlobURL,
     inputLevel,
   } = useRecorder(useAudioContext()) as any;
+  const lastHandledBuffer = useRef<AudioBuffer | null>(null);
 
   useEffect(() => {
     if (!audioBuffer) return;
+    if (audioBuffer === lastHandledBuffer.current) return; // Already handled!
+    lastHandledBuffer.current = audioBuffer;
 
     (async () => {
       const url = await getRecordedBlobURL();
-
       setRecordings((prevRecordings) => {
-        // compute the new filename from prevRecordings, not the outer `recordings`
         const filename = `Recording ${prevRecordings.length + 1}`;
-
         const newRecording: Recording = {
           id: Date.now(),
           buffer: audioBuffer,
@@ -55,10 +55,7 @@ const BankRecordingList: FC = () => {
           inputLevel: 0,
         };
 
-        // register it after constructing (so registry never misses it)
         addSampleToRegistry(newRecording);
-
-        // return the new array
         return [...prevRecordings, newRecording];
       });
     })();
@@ -93,7 +90,7 @@ const BankRecordingList: FC = () => {
           }}
         />
       </button>
-      {/* {isRecording && <VUMeter inputLevel={inputLevel} />} */}
+      {/* let the vu meter always be there */}
       {<VUMeter inputLevel={inputLevel} />}
       <div className="samples">
         {recordings.map((recording) => (
