@@ -1,20 +1,30 @@
 {
   "compilerOptions": {
-    "target": "ESNext", // modern JS output
-    "useDefineForClassFields": true, // align with future JS
-    "lib": ["DOM", "DOM.Iterable", "ESNext"], // what built-ins to include
-    "module": "ESNext", // native ES modules
-    "moduleResolution": "node", // resolve like Node
-    "jsx": "react-jsx", // new JSX transform
-    "strict": true, // enable all strict checks
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": [
+      "DOM",
+      "DOM.Iterable",
+      "ESNext"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "jsx": "preserve",
+    "strict": true,
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": false,
-    "skipLibCheck": true, // speed up by skipping d.ts checks
-    "resolveJsonModule": true, // import .json files
-    "isolatedModules": true, // required by Vite
-    "noEmit": true // don’t output .js
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "allowJs": true
   },
-  "include": ["src"], // your source files
-  "exclude": ["node_modules", "dist"] // ignore these
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
