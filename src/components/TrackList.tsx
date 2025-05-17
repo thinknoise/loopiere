@@ -11,22 +11,25 @@ import React, {
 } from "react";
 import LoopControls from "./LoopControls";
 import Track from "./Track";
-import {
-  saveAllSamplesToLocalStorage,
-  getAllSamplesFromLocalStorage,
-} from "../utils/storageUtils";
 import useTrackWidth from "../hooks/useTrackWidth";
 import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
 import useTrackSequence from "../hooks/useTrackSequence";
 import useTransport from "../hooks/useTransport";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
-import { prepareAllTracks } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
-import { resumeAudioContext } from "../utils/audioContextSetup";
+import { startPlayback, stopPlayback } from "../utils/audioPlaybackManager";
 
 import { type SampleDescriptor } from "../utils/audioManager";
 import { type UpdateSamplePositionFn } from "../types/sample";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
+import {
+  saveSequence,
+  loadSequence,
+  deleteSequence,
+  clearSamples,
+  changeBpm,
+} from "../utils/loopStateManager";
+
 import "../style/tracklist.css";
 
 // --- Types ---
@@ -65,9 +68,7 @@ const TrackList: FC<TrackListProps> = ({
   // sequencing hook
   const {
     allSamples,
-    saveSequence,
     setAllSamples,
-    clearAllSamples,
     editSampleOfSamples,
     updateSamplesWithNewPosition,
   } = useTrackSequence(bpm);
@@ -94,55 +95,40 @@ const TrackList: FC<TrackListProps> = ({
   // grouped callbacks passed to LoopControls
   const actions = useMemo(() => {
     return {
-      onStart: async (): Promise<void> => {
+      onStart: async () =>
+        startPlayback({
+          allSamples,
+          tracks,
+          bpm,
+          getPlacedSamples,
+          playNow,
+          stop,
+          stopAll,
+          start,
+        }),
+      onStop: () => stopPlayback({ stop, stopAll }),
+      onClear: () => {
         stop();
         stopAll();
-        await prepareAllTracks(allSamples, tracks);
-        resumeAudioContext();
-        const placed = getPlacedSamples();
-        await prepareAllTracks(placed, tracks);
-        start();
-        playNow(placed, bpm);
+        clearSamples(setAllSamples);
       },
-      onStop: (): void => {
-        stop();
-        stopAll();
-      },
-      onClear: (): void => {
-        stop();
-        stopAll();
-        clearAllSamples();
-      },
-      onSave: (): void => saveSequence(),
-      onDelete: (): void => saveAllSamplesToLocalStorage([], initialBpm),
-      onLoad: async (): Promise<void> => {
-        const audioContext = new AudioContext(); // or new AudioContext()
-        const restored = await getAllSamplesFromLocalStorage(audioContext);
-        setAllSamples(restored);
-        const stored = Number(localStorage.getItem("LoopiereBPM"));
-        if (!isNaN(stored)) setBpm(stored);
-      },
-      onBpmChange: (event: Event, value: number | number[]): void => {
-        if (typeof value === "number") {
-          setBpm(value);
-        } else {
-          setBpm(value[88]);
-        }
-      },
+      onSave: () => saveSequence(allSamples, bpm),
+      onDelete: () => deleteSequence(setAllSamples, setBpm, initialBpm),
+      onLoad: () => loadSequence(setAllSamples, setBpm),
+      onBpmChange: (event: Event, value: number | number[]) =>
+        changeBpm(setBpm, value),
     };
   }, [
+    allSamples,
+    bpm,
+    getPlacedSamples,
+    initialBpm,
+    playNow,
+    setAllSamples,
+    start,
     stop,
     stopAll,
-    allSamples,
     tracks,
-    getPlacedSamples,
-    start,
-    playNow,
-    bpm,
-    clearAllSamples,
-    saveSequence,
-    initialBpm,
-    setAllSamples,
   ]);
 
   // derived metrics
