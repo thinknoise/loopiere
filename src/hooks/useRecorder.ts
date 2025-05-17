@@ -1,6 +1,6 @@
 // src/hooks/useRecorder.ts
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, useEffect } from "react";
 
 // Shape of the hook’s return value
 export interface UseRecorderResult {
@@ -9,6 +9,7 @@ export interface UseRecorderResult {
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   getRecordedBlobURL: () => Promise<string | null>;
+  inputLevel: number;
 }
 
 export function useRecorder(audioContext: AudioContext): UseRecorderResult {
@@ -19,11 +20,19 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const [inputLevel, setInputLevel] = useState(0);
+
   // START RECORDING
   const startRecording = useCallback(async (): Promise<void> => {
     console.log("start recording");
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaStreamRef.current = stream;
+
+    // VU metter stuff
+    const source = audioContext.createMediaStreamSource(stream);
+    analyserRef.current = audioContext.createAnalyser();
+    source.connect(analyserRef.current);
 
     const recorder = new MediaRecorder(stream);
     chunksRef.current = [];
@@ -120,11 +129,47 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
     return new Blob([view], { type: "audio/wav" });
   }
 
+  useEffect(() => {
+    let rafId: number;
+    function updateLevel() {
+      if (analyserRef.current) {
+        const bufferLength = analyserRef.current.fftSize;
+        const dataArray = new Uint8Array(bufferLength);
+        analyserRef.current.getByteTimeDomainData(dataArray);
+        // RMS level calculation:
+        let sumSquares = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const val = (dataArray[i] - 128) / 128;
+          sumSquares += val * val;
+        }
+        const rms = Math.sqrt(sumSquares / bufferLength);
+        const minDb = -60;
+        const maxDb = 0;
+        let dB = 20 * Math.log10(rms);
+        // If the input is completely silent, rms can be 0, and log10(0) is -Infinity. Let's protect against that:
+        if (!isFinite(dB)) dB = minDb;
+        // Normalize dB to a 0–1 scale for your bar
+        let vu = (dB - minDb) / (maxDb - minDb);
+        vu = Math.max(0, Math.min(1, vu)); // Clamp between 0 and 1
+        setInputLevel(vu);
+      }
+      rafId = requestAnimationFrame(updateLevel);
+    }
+
+    if (isRecording) {
+      updateLevel();
+      return () => cancelAnimationFrame(rafId);
+    } else {
+      setInputLevel(0);
+    }
+  }, [isRecording]);
+
   return {
     isRecording,
     audioBuffer,
     startRecording,
     stopRecording,
     getRecordedBlobURL,
+    inputLevel,
   };
 }

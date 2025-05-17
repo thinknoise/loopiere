@@ -1,6 +1,6 @@
 // src/components/BankRecordingList.tsx
 
-import React, { useEffect, useState, FC } from "react";
+import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
@@ -8,6 +8,7 @@ import { BiSolidMicrophoneAlt } from "react-icons/bi";
 import { PiMicrophoneSlashDuotone } from "react-icons/pi";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
 import { SampleDescriptor } from "../utils/audioManager";
+import "../style/bankRecordingList.css";
 import "../style/bankTab.css";
 
 export interface Recording extends SampleDescriptor {
@@ -16,6 +17,7 @@ export interface Recording extends SampleDescriptor {
   url: string; // must have a blob URL
   filename: string; // must have a human label
   duration: number; // must have duration
+  inputLevel: number;
   // trackId/xPos/onTrack/startTime are still optional until placement
 }
 
@@ -27,18 +29,19 @@ const BankRecordingList: FC = () => {
     isRecording,
     audioBuffer,
     getRecordedBlobURL,
+    inputLevel,
   } = useRecorder(useAudioContext()) as any;
+  const lastHandledBuffer = useRef<AudioBuffer | null>(null);
 
   useEffect(() => {
     if (!audioBuffer) return;
+    if (audioBuffer === lastHandledBuffer.current) return; // Already handled!
+    lastHandledBuffer.current = audioBuffer;
 
     (async () => {
       const url = await getRecordedBlobURL();
-
       setRecordings((prevRecordings) => {
-        // compute the new filename from prevRecordings, not the outer `recordings`
         const filename = `Recording ${prevRecordings.length + 1}`;
-
         const newRecording: Recording = {
           id: Date.now(),
           buffer: audioBuffer,
@@ -49,12 +52,10 @@ const BankRecordingList: FC = () => {
           xPos: 0,
           onTrack: false,
           trackId: undefined,
+          inputLevel: 0,
         };
 
-        // register it after constructing (so registry never misses it)
         addSampleToRegistry(newRecording);
-
-        // return the new array
         return [...prevRecordings, newRecording];
       });
     })();
@@ -89,7 +90,8 @@ const BankRecordingList: FC = () => {
           }}
         />
       </button>
-      {isRecording && <p>Recording...</p>}
+      {/* let the vu meter always be there */}
+      {<VUMeter inputLevel={inputLevel} />}
       <div className="samples">
         {recordings.map((recording) => (
           <BankSample key={recording.id} sample={recording} />
@@ -98,5 +100,19 @@ const BankRecordingList: FC = () => {
     </div>
   );
 };
+
+const VUMeter: React.FC<{ inputLevel: number }> = ({ inputLevel }) => (
+  <div className="vu-meter">
+    <div
+      className="vu-meter-bar"
+      style={{
+        height: `${Math.min(100, inputLevel * 100)}%`,
+        background:
+          inputLevel > 0.85 ? "#f00" : inputLevel > 0.4 ? "#ffc800" : "#00ff8c",
+        transition: "height 0.12s cubic-bezier(.4,2.2,.8,1.0)",
+      }}
+    />
+  </div>
+);
 
 export default BankRecordingList;
