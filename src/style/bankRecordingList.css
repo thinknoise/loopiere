@@ -30,3 +30,7 @@
   overflow: hidden;
   /* height and background can still be set inline from React */
 }
+
+.mic-icon {
+  transition: fill 0.3s ease;
+}
