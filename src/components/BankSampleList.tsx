@@ -44,7 +44,9 @@ const BankSampleList: FC = () => {
   }, []);
 
   useEffect(() => {
-    spawnSamples(bankFilename);
+    if (bankFilename !== "recorded") {
+      spawnSamples(bankFilename);
+    }
   }, [bankFilename, spawnSamples]);
 
   const tabFilenames = banks.map((b) => b.filename);
