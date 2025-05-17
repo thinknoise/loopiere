@@ -140,9 +140,9 @@ const VUMeter: React.FC<{ inputLevel: number }> = ({ inputLevel }) => (
       strokeLinejoin="round"
       aria-label="Speaker with wave"
     >
-      <polygon points="5 9 9 9 13 5 13 19 9 15 5 15 5 9" fill="#bbb" />
-      <path d="M17.5 8.5a5 5 0 0 1 0 7" stroke="#ff1744" />
-      <path d="M20 5a9 9 0 0 1 0 14" stroke="#ff1744" />
+      <polygon points="5 9 9 9 13 5 13 19 9 15 5 15 5 9" fill="#53b4fdd3" />
+      <path d="M17.5 8.5a5 5 0 0 1 0 7" stroke="#53b4fdd3" />
+      <path d="M20 5a9 9 0 0 1 0 14" stroke="rgba(83, 180, 253, 0.83)" />
     </svg>
   </div>
 );
