@@ -1,10 +1,21 @@
+.vu-group {
+  position: absolute;
+  left: 0px;
+  top: 0px;
+  padding-top: 60px;
+  padding-left: 25px;
+}
+
+.vu-icon {
+  position: absolute;
+  margin: 121px 0 0 -7px;
+}
+
 .vu-meter {
   position: absolute;
-  left: 28px;
-  top: 80px;
   height: 118px;
   width: 11px;
-  background: #313030;
+  background: #a8a8a8;
   border-radius: 3px;
   overflow: hidden;
   margin: 0 auto;
@@ -16,5 +27,10 @@
   left: 0;
   bottom: 0;
   width: 100%;
+  overflow: hidden;
   /* height and background can still be set inline from React */
+}
+
+.mic-icon {
+  transition: fill 0.3s ease;
 }

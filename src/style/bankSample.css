@@ -10,6 +10,7 @@
 
 .bank-sample-btn {
   position: relative;
+  padding: 0;
   margin: 15px 10px;
   border-radius: 3px;
   background-color: rgba(83, 180, 253, 0.83);
