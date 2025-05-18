@@ -88,7 +88,13 @@ const BankRecordingList: FC = () => {
       {<VUMeter inputLevel={inputLevel} />}
       <div className="samples">
         {recordings.map((recording) => (
-          <BankSample key={recording.id} sample={recording} />
+          <BankSample
+            key={recording.id}
+            sample={recording}
+            onRemove={(id) => {
+              setRecordings((prev) => prev.filter((s) => s.id !== id));
+            }}
+          />
         ))}
       </div>
     </div>

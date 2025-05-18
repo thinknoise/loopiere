@@ -27,3 +27,42 @@
   font-size: x-small;
   background-color: rgba(1, 88, 118, 0.5);
 }
+
+/* .remove-sample-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  font-weight: bold;
+  color: white;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  padding: 2px 6px;
+  z-index: 10;
+  font-size: 14px;
+  line-height: 1;
+} */
+
+.remove-sample-btn {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 7px;
+  height: 11px;
+  background-color: #333;
+  /* Dark background for contrast */
+  z-index: 13;
+  cursor: pointer;
+
+}
+
+.remove-sample-btn:after {
+  position: absolute;
+  top: 0;
+  left: 4px;
+  /* Center the X */
+  content: "\2716";
+  /* Unicode for the "X" symbol */
+  font-size: 12px;
+  color: #bbb;
+  text-align: center;
+}
