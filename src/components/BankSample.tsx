@@ -21,13 +21,19 @@ export interface BankSampleProps {
   sample: Sample;
   offset?: number;
   btnClass?: string;
+  onRemove?: (id: string | number) => void;
 }
 
 const TOTAL_TRACK_WIDTH = 916;
 const DEFAULT_WAVEFORM_WIDTH = 120;
 const WAVEFORM_HEIGHT = 53;
 
-const BankSample: FC<BankSampleProps> = ({ sample, offset, btnClass = "" }) => {
+const BankSample: FC<BankSampleProps> = ({
+  sample,
+  offset,
+  btnClass = "",
+  onRemove,
+}) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -106,6 +112,19 @@ const BankSample: FC<BankSampleProps> = ({ sample, offset, btnClass = "" }) => {
           buffer={audioBuffer}
           width={waveformWidth}
           height={WAVEFORM_HEIGHT}
+        />
+      )}
+      {onRemove && (
+        <span
+          className="remove-sample-btn"
+          onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
+            e.stopPropagation(); // Prevent playback on parent button
+            if (sample.id !== undefined) {
+              onRemove(sample.id);
+            }
+          }}
+          role="button"
+          aria-label="Remove sample"
         />
       )}
     </button>
