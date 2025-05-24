@@ -1,43 +1,27 @@
 // src/utils/audioManager.ts
 
 import { getAudioContext } from "./audioContextSetup";
-
-/**
- * Build a fully-qualified URL for assets, respecting PUBLIC_URL.
- * @param path - e.g. "samples/foo.wav" or "/onehits/bar.wav"
- * @returns collapsed URL string
- */
-export function assetUrl(path: string): string {
-  const BASE = process.env.PUBLIC_URL || "";
-  return `${BASE}/${path}`.replace(/\/\/{2,}/g, "/");
-}
+import { resolveSamplePath } from "./resolveSamplePath";
 
 /**
  * Fetches & decodes an audio file.
  * @param filePath - "/foo.wav" or "samples/bar.wav"
  * @returns decoded AudioBuffer
  */
-export async function loadAudio(filePath: string): Promise<AudioBuffer> {
-  let resolvedPath = filePath;
-
-  // strip leading slash & prefix PUBLIC_URL
-  if (resolvedPath.startsWith("/")) {
-    resolvedPath = assetUrl(resolvedPath.replace(/^\/+/, ""));
-  }
-  // relative path (no protocol or blob:)
-  else if (
-    !/^[a-z]+:\/\//i.test(resolvedPath) &&
-    !resolvedPath.startsWith("blob:")
-  ) {
-    resolvedPath = assetUrl(resolvedPath);
-  }
-
+export async function loadAudio(resolvedPath: string): Promise<AudioBuffer> {
+  console.log("Loading audio from", resolvedPath);
   const resp = await fetch(resolvedPath);
   if (!resp.ok) {
     throw new Error(`HTTP ${resp.status} fetching audio from ${resolvedPath}`);
   }
-  const contentType = resp.headers.get("content-type");
-  if (!contentType || !contentType.startsWith("audio/")) {
+
+  const contentType = resp.headers.get("content-type") ?? "";
+  const isAcceptable =
+    contentType.startsWith("audio/") ||
+    contentType === "application/octet-stream" ||
+    contentType === "binary/octet-stream";
+
+  if (!isAcceptable) {
     throw new Error(
       `Invalid content-type "${contentType}" for ${resolvedPath}`
     );
@@ -101,19 +85,12 @@ export async function getSampleBuffer(
   }
 
   // build asset-relative path
-  let assetPath: string;
-  if (sample.url) {
-    assetPath = sample.url.replace(/^\/+/, "");
-  } else if (sample.path) {
-    // strip leading slashes so loadAudio can find it
-    const relative = sample.path.replace(/^\/+/, "");
-    assetPath = `samples/${relative}`;
-  } else {
+  if (!sample.url && !sample.path) {
     throw new Error("getSampleBuffer: sample missing both url and path");
   }
+
+  const assetPath = resolveSamplePath(sample.url || sample.path || "");
   const decoded = await loadAudio(assetPath);
-  sample.buffer = decoded;
-  if (cacheKey) bufferCache.set(cacheKey, decoded);
   return decoded;
 }
 

@@ -7,6 +7,7 @@ import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { timeToPixels } from "../utils/timingUtils";
 import "../style/bankSample.css";
+import { resolveSamplePath } from "../utils/resolveSamplePath";
 
 export interface Sample {
   id?: string | number;
@@ -47,7 +48,7 @@ const BankSample: FC<BankSampleProps> = ({
         setDuration(sample.buffer.duration);
       } else if (sample.url || sample.path) {
         try {
-          const src = sample.url ?? `/samples/${sample.path}`;
+          const src = resolveSamplePath(sample.url || sample.path || "");
           const buf = await loadAudio(src);
           if (!cancelled) {
             setAudioBuffer(buf);

@@ -10,7 +10,7 @@ export async function fetchAudioData<T = any>(
 
   // build the correct URL under your PUBLIC_URL
   const url = `${BASE}/${filename}`.replace(/\/{2,}/g, "/");
-  console.log("Fetching audio data from", url);
+  console.log(`[fetchAudioData] Fetching JSON from ${url}`);
 
   try {
     const response = await fetch(url, {
@@ -26,6 +26,7 @@ export async function fetchAudioData<T = any>(
     }
     // parse as JSON and assert it's an array of T
     const data = (await response.json()) as T[];
+    console.log(`[fetchAudioData] Fetched ${data} items from ${url}`);
     return data;
   } catch (error) {
     console.error("fetchAudioData: failed to load JSON", url, error);

@@ -4,8 +4,6 @@ import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import { BiSolidMicrophoneAlt } from "react-icons/bi";
-import { PiMicrophoneSlashDuotone } from "react-icons/pi";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
 import { SampleDescriptor } from "../utils/audioManager";
 import "../style/bankRecordingList.css";
