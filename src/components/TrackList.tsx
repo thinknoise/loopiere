@@ -68,13 +68,15 @@ const TrackList: FC<TrackListProps> = ({
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
   // Frequency filters stateq
-  const trackFiltersRef = useRef<Map<string, BiquadFilterNode>>(new Map());
+  const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
   const [trackFrequencies, setTrackFrequencies] = useState<
     Record<number, number>
   >({});
   const [trackHighpassFrequencies, setTrackHighpassFrequencies] = useState<
     Record<number, number>
   >({});
+  const [trackGains, setTrackGains] = useState<Record<number, number>>({});
+  const [trackPans, setTrackPans] = useState<Record<number, number>>({});
 
   // sequencing hook
   const {
@@ -108,8 +110,10 @@ const TrackList: FC<TrackListProps> = ({
       filters: trackFiltersRef,
       frequencies: trackFrequencies,
       highpassFrequencies: trackHighpassFrequencies,
+      gains: trackGains,
+      pans: trackPans,
     }),
-    [trackFrequencies, trackHighpassFrequencies]
+    [trackFrequencies, trackHighpassFrequencies, trackGains, trackPans]
   );
 
   // grouped callbacks passed to LoopControls
@@ -204,6 +208,8 @@ const TrackList: FC<TrackListProps> = ({
           onSelect={() =>
             setSelectedTrackId((prev) => (prev === track.id ? null : track.id))
           }
+          setTrackGains={setTrackGains}
+          setTrackPans={setTrackPans}
         />
       ))}
 

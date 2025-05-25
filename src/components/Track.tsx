@@ -27,6 +27,8 @@ export interface TrackProps {
   setTrackHighpassFrequencies: React.Dispatch<
     React.SetStateAction<Record<number, number>>
   >;
+  setTrackGains: React.Dispatch<React.SetStateAction<Record<number, number>>>;
+  setTrackPans: React.Dispatch<React.SetStateAction<Record<number, number>>>;
 }
 
 const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
@@ -48,10 +50,14 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       },
       setTrackFrequencies,
       setTrackHighpassFrequencies,
+      setTrackGains, // ← newly added
+      setTrackPans, // ← newly added
       trackAudioState: {
         filters: trackFiltersRef,
         frequencies: trackFrequencies,
         highpassFrequencies,
+        gains: trackGains = {}, // pull gains out
+        pans: trackPans = {}, // pull pans out
       },
     },
     ref
@@ -131,11 +137,56 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
 
         <div className={`track-control ${selected ? "expanded" : ""}`}>
           <div className="track-control-panel">
+            {/* Volume */}
             <div className="slider-strip">
-              <label htmlFor="filterFreq">low</label>
+              <label htmlFor={`gain-${trackInfo.id}`}>vol</label>
               <input
                 type="range"
-                id="filterFreq"
+                id={`gain-${trackInfo.id}`}
+                min="0"
+                max="1"
+                step="0.01"
+                value={trackGains[trackInfo.id] ?? 1}
+                className="vertical-slider"
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setTrackGains((prev) => ({ ...prev, [trackInfo.id]: val }));
+                  const gainNode = trackFiltersRef.current?.get(
+                    `${trackInfo.id}_gain`
+                  ) as GainNode | undefined;
+                  gainNode?.gain.setValueAtTime(val, audioContext.currentTime);
+                }}
+              />
+            </div>
+
+            {/* Panning */}
+            <div className="slider-strip">
+              <label htmlFor={`pan-${trackInfo.id}`}>pan</label>
+              <input
+                type="range"
+                id={`pan-${trackInfo.id}`}
+                min="-1"
+                max="1"
+                step="0.01"
+                value={trackPans[trackInfo.id] ?? 0}
+                className="vertical-slider"
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
+                  const panNode = trackFiltersRef.current?.get(
+                    `${trackInfo.id}_pan`
+                  ) as StereoPannerNode | undefined;
+                  panNode?.pan.setValueAtTime(val, audioContext.currentTime);
+                }}
+              />
+            </div>
+
+            {/* Low-pass filter */}
+            <div className="slider-strip">
+              <label htmlFor={`lowpass-${trackInfo.id}`}>low</label>
+              <input
+                type="range"
+                id={`lowpass-${trackInfo.id}`}
                 min="80"
                 max="5000"
                 step="10"
@@ -147,23 +198,23 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const filter = trackFiltersRef.current?.get(
+                  const lowF = trackFiltersRef.current?.get(
                     `${trackInfo.id}_lowpass`
+                  ) as BiquadFilterNode | undefined;
+                  lowF?.frequency.setValueAtTime(
+                    freq,
+                    audioContext.currentTime
                   );
-                  if (filter) {
-                    filter.frequency.setValueAtTime(
-                      freq,
-                      audioContext.currentTime
-                    );
-                  }
                 }}
               />
             </div>
+
+            {/* High-pass filter */}
             <div className="slider-strip">
-              <label htmlFor="highpassFreq">high</label>
+              <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
               <input
                 type="range"
-                id="highpassFreq"
+                id={`highpass-${trackInfo.id}`}
                 min="80"
                 max="5000"
                 step="10"
@@ -175,19 +226,16 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const filter = trackFiltersRef.current?.get(
+                  const highF = trackFiltersRef.current?.get(
                     `${trackInfo.id}_highpass`
+                  ) as BiquadFilterNode | undefined;
+                  highF?.frequency.setValueAtTime(
+                    freq,
+                    audioContext.currentTime
                   );
-                  if (filter) {
-                    filter.frequency.setValueAtTime(
-                      freq,
-                      audioContext.currentTime
-                    );
-                  }
                 }}
               />
             </div>
-            {/* You can add more sliders here later */}
           </div>
         </div>
       </div>

@@ -1,9 +1,11 @@
 // src/hooks/useAudioPlayback.ts
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { getSampleBuffer, SampleDescriptor } from "../utils/audioManager";
-import { getAudioContext } from "../utils/audioContextSetup";
-import { resumeAudioContext } from "../utils/audioContextSetup";
+import {
+  getAudioContext,
+  resumeAudioContext,
+} from "../utils/audioContextSetup";
 
 /**
  * Extended sample type with xPos for playback scheduling.
@@ -14,88 +16,165 @@ export interface PlaybackSample extends SampleDescriptor {
 }
 
 /**
- * Hook return type for audio playback controls.
+ * Shapes the shared audio-node state for each track,
+ * including volume, pan, filters.
+ */
+export interface TrackAudioState {
+  /** Ref to a map of all persistent AudioNodes by key ("{trackId}_gain", etc.) */
+  filters: React.RefObject<Map<string, AudioNode>>;
+  /** lowpass cutoff per track */
+  frequencies: Record<number, number>;
+  /** highpass cutoff per track */
+  highpassFrequencies: Record<number, number>;
+  /** user‐driven volume per track */
+  gains?: Record<number, number>;
+  /** user‐driven pan per track */
+  pans?: Record<number, number>;
+}
+
+/**
+ * What this hook gives you:
+ * - playNow: schedule & play your 4-beat loops through gain→pan→filters
+ * - stopAll: kill any ongoing sources
  */
 export interface UseAudioPlaybackResult {
-  /**
-   * Play the provided samples based on BPM-derived loop timing.
-   * @param samples Array of samples with xPos fraction
-   * @param bpm Beats per minute for timing calculations
-   */
   playNow(
     samples: PlaybackSample[],
     bpm: number,
     trackAudioState: TrackAudioState
   ): Promise<void>;
-  /**
-   * Immediately stop and clear all scheduled playback sources.
-   */
   stopAll(): void;
 }
 
-export interface TrackAudioState {
-  filters: React.RefObject<Map<string, BiquadFilterNode>>;
-  frequencies: Record<number, number>; // ← lowpass
-  highpassFrequencies: Record<number, number>;
-  gains?: Record<number, number>;
-  pans?: Record<number, number>;
-}
-
-/**
- * Custom hook for playing audio samples: use playNow to start playback; stopAll stops and resets.
- * Looping scheduling is handled externally (e.g., via transport controls).
- */
 export default function useAudioPlayback(): UseAudioPlaybackResult {
   const audioContext = getAudioContext();
   const [playingSources, setPlayingSources] = useState<AudioBufferSourceNode[]>(
     []
   );
 
+  // ─── persistent node maps ──────────────────────────────────────
+  const gainNodes = useRef<Map<number, GainNode>>(new Map());
+  const panNodes = useRef<Map<number, StereoPannerNode>>(new Map());
+  const highpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
+  const lowpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
+
+  /** get-or-create a node in the given map */
+  function getTrackNode<T extends AudioNode>(
+    map: Map<number, T>,
+    createNode: () => T,
+    key: string,
+    trackId: number,
+    refMap: React.RefObject<Map<string, AudioNode>>
+  ): T {
+    let node = map.get(trackId);
+    if (!node) {
+      node = createNode();
+      map.set(trackId, node);
+      // register it so your sliders can find it:
+      refMap.current?.set(key, node);
+    }
+    return node;
+  }
+
+  // ─── playNow: schedule a 4-beat loop ───────────────────────────
   const playNow = useCallback(
     async (
       samples: PlaybackSample[],
       bpm: number,
       trackAudioState: TrackAudioState
-    ): Promise<void> => {
-      const { filters: trackFiltersRef, frequencies: trackFrequencies } =
-        trackAudioState;
-      trackFiltersRef.current?.clear();
+    ) => {
+      // unlock context if needed
+      await resumeAudioContext();
 
       const startTime = audioContext.currentTime;
+      const loopLength = (60 / bpm) * 4;
 
+      // decode all samples
       const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
 
-      const sources = buffers.map((buffer, idx) => {
-        const sample = samples[idx];
+      // schedule each sample into the shared node graph
+      const sources = samples.map((sample, idx) => {
+        const buffer = buffers[idx];
         const trackId = sample.trackId!;
-        const offset = sample.xPos! * ((60 / bpm) * 4);
+        const offset = (sample.xPos ?? 0) * loopLength;
 
-        const source = audioContext.createBufferSource();
-        source.buffer = buffer;
+        // create the BufferSource
+        const src = audioContext.createBufferSource();
+        src.buffer = buffer;
 
-        // Create highpass filter
-        const highpass = audioContext.createBiquadFilter();
-        highpass.type = "highpass";
-        const highFreq = trackAudioState.highpassFrequencies?.[trackId] ?? 400;
-        highpass.frequency.setValueAtTime(highFreq, audioContext.currentTime);
-        trackAudioState.filters.current?.set(`${trackId}_highpass`, highpass);
+        // ─── persistent gain ────────────────────────
+        const gainNode = getTrackNode(
+          gainNodes.current,
+          () => audioContext.createGain(),
+          `${trackId}_gain`,
+          trackId,
+          trackAudioState.filters
+        );
+        gainNode.gain.setValueAtTime(
+          trackAudioState.gains?.[trackId] ?? 1,
+          startTime
+        );
 
-        // Create lowpass filter
-        const lowpass = audioContext.createBiquadFilter();
-        lowpass.type = "lowpass";
-        const lowFreq = trackAudioState.frequencies?.[trackId] ?? 800;
-        lowpass.frequency.setValueAtTime(lowFreq, audioContext.currentTime);
-        trackAudioState.filters?.current?.set(`${trackId}_lowpass`, lowpass);
+        // ─── persistent pan ─────────────────────────
+        const panNode = getTrackNode(
+          panNodes.current,
+          () => audioContext.createStereoPanner(),
+          `${trackId}_pan`,
+          trackId,
+          trackAudioState.filters
+        );
+        panNode.pan.setValueAtTime(
+          trackAudioState.pans?.[trackId] ?? 0,
+          startTime
+        );
 
-        // Chain: source → highpass → lowpass → destination
-        source.connect(highpass);
-        highpass.connect(lowpass);
-        lowpass.connect(audioContext.destination);
+        // ─── persistent highpass ────────────────────
+        const highFilter = getTrackNode(
+          highpassNodes.current,
+          () => {
+            const f = audioContext.createBiquadFilter();
+            f.type = "highpass";
+            return f;
+          },
+          `${trackId}_highpass`,
+          trackId,
+          trackAudioState.filters
+        );
+        highFilter.frequency.setValueAtTime(
+          trackAudioState.highpassFrequencies[trackId] ?? 0,
+          startTime
+        );
 
-        source.start(startTime + offset);
-        source.stop(startTime + (60 / bpm) * 4);
+        // ─── persistent lowpass ─────────────────────
+        const lowFilter = getTrackNode(
+          lowpassNodes.current,
+          () => {
+            const f = audioContext.createBiquadFilter();
+            f.type = "lowpass";
+            return f;
+          },
+          `${trackId}_lowpass`,
+          trackId,
+          trackAudioState.filters
+        );
+        lowFilter.frequency.setValueAtTime(
+          trackAudioState.frequencies[trackId] ?? audioContext.sampleRate / 2,
+          startTime
+        );
 
-        return source;
+        // ─── chain it all: source → gain → pan → hp → lp → out
+        src
+          .connect(gainNode)
+          .connect(panNode)
+          .connect(highFilter)
+          .connect(lowFilter)
+          .connect(audioContext.destination);
+
+        // schedule start/stop in the 4-beat loop
+        src.start(startTime + offset);
+        src.stop(startTime + offset + loopLength);
+
+        return src;
       });
 
       setPlayingSources(sources);
@@ -103,13 +182,12 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
     [audioContext]
   );
 
-  const stopAll = useCallback((): void => {
+  // ─── stopAll: kill any playing sources ────────────────────────
+  const stopAll = useCallback(() => {
     playingSources.forEach((src) => {
       try {
         src.stop();
-      } catch {
-        // ignore already stopped sources
-      }
+      } catch {}
     });
     setPlayingSources([]);
   }, [playingSources]);
