@@ -9,11 +9,12 @@ interface StartPlaybackArgs {
   tracks: TrackInfo[]; // replace with your actual TrackInfo[] type
   bpm: number;
   getPlacedSamples: () => PlaybackSample[];
-  playNow: (
+  playNow(
     samples: PlaybackSample[],
     bpm: number,
-    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>
-  ) => void;
+    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>,
+    trackFrequencies: Record<number, number>
+  ): Promise<void>;
   stop: () => void;
   stopAll: () => void;
   start: () => void;
@@ -37,8 +38,9 @@ export async function startPlayback({
   await prepareAllTracks(placed, tracks);
   start();
   const trackFiltersRef = { current: new Map<number, BiquadFilterNode>() };
+  const trackFrequencies: Record<number, number> = {};
 
-  playNow(placed, bpm, trackFiltersRef);
+  playNow(placed, bpm, trackFiltersRef, trackFrequencies);
 }
 
 interface StopPlaybackArgs {

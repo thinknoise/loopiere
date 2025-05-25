@@ -25,11 +25,12 @@ export interface UseAudioPlaybackResult {
   playNow(
     samples: PlaybackSample[],
     bpm: number,
-    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>
-  ): Promise<void>
+    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>,
+    trackFrequencies: Record<number, number>
+  ): Promise<void>;
   /**
    * Immediately stop and clear all scheduled playback sources.
-   */;
+   */
   stopAll(): void;
 }
 
@@ -47,7 +48,8 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
     async (
       samples: PlaybackSample[],
       bpm: number,
-      trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>
+      trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>,
+      trackFrequencies: Record<number, number>
     ): Promise<void> => {
       const secsPerLoop = (60 / bpm) * 4;
 
@@ -65,9 +67,17 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         if (trackId != null && !trackFiltersRef.current?.has(trackId)) {
           const filter = audioContext.createBiquadFilter();
           filter.type = "lowpass";
-          filter.frequency.value = 800;
+
+          const initialFreq = trackFrequencies[trackId] ?? 800;
+          filter.frequency.setValueAtTime(
+            initialFreq,
+            audioContext.currentTime
+          );
+
           trackFiltersRef.current?.set(trackId, filter);
-          console.log("trackId filter", trackId, filter);
+          console.log(
+            `Create filter on track ${trackId} w/freq ${initialFreq}`
+          );
         }
       });
 

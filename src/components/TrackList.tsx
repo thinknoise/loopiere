@@ -85,7 +85,7 @@ const TrackList: FC<TrackListProps> = ({
   );
 
   const { start, stop } = useTransport(bpm, () =>
-    playNow(getPlacedSamples(), bpm, trackFiltersRef)
+    playNow(getPlacedSamples(), bpm, trackFiltersRef, trackFrequencies)
   );
 
   // tracks to render & preload
@@ -137,6 +137,9 @@ const TrackList: FC<TrackListProps> = ({
   const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
   // shared reference to your filters
   const trackFiltersRef = useRef<Map<number, BiquadFilterNode>>(new Map());
+  const [trackFrequencies, setTrackFrequencies] = useState<
+    Record<number, number>
+  >({});
 
   // record hook
   const audioContext = useAudioContext();
@@ -173,6 +176,8 @@ const TrackList: FC<TrackListProps> = ({
           key={track.id}
           ref={trackRef}
           trackFiltersRef={trackFiltersRef}
+          trackFrequencies={trackFrequencies}
+          setTrackFrequencies={setTrackFrequencies}
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}

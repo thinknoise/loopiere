@@ -20,6 +20,10 @@ export interface TrackProps {
   selected: boolean;
   onSelect: () => void;
   trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>;
+  trackFrequencies: Record<number, number>;
+  setTrackFrequencies: React.Dispatch<
+    React.SetStateAction<Record<number, number>>
+  >;
 }
 
 const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
@@ -40,6 +44,8 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
       },
       trackFiltersRef,
+      trackFrequencies,
+      setTrackFrequencies,
     },
     ref
   ) => {
@@ -123,13 +129,17 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
               <input
                 type="range"
                 id="filterFreq"
-                min="100"
+                min="80"
                 max="5000"
                 step="10"
-                defaultValue="800"
+                value={trackFrequencies[trackInfo.id] ?? 400}
                 className="vertical-slider"
                 onChange={(e) => {
                   const freq = parseFloat(e.target.value);
+                  setTrackFrequencies((prev) => ({
+                    ...prev,
+                    [trackInfo.id]: freq,
+                  }));
                   const filter = trackFiltersRef.current?.get(trackInfo.id);
                   if (filter) {
                     filter.frequency.setValueAtTime(
