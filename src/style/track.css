@@ -8,11 +8,12 @@
   display: flex;
   align-items: center;
   height: 53px;
-  width: 100%;
+  width: 93vw;
+  margin: 0px auto;
 }
 
 .track-toggle-btn {
-  width: 36px;
+  width: 30px;
   height: 53px;
   background: none;
   border: none;
@@ -27,38 +28,6 @@
 
 .track-toggle-btn:hover {
   color: #fff;
-}
-
-.track {
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-  height: 0;
-  transition: height 0.8s ease;
-  background: rgba(255, 255, 255, 0.334);
-  padding: 0 12px;
-  width: 88vw;
-  margin: 0px auto;
-  font-size: 0.875rem;
-  color: #ffffff;
-
-}
-
-.track-control {
-  overflow: hidden;
-  height: 0;
-  transition: height 0.8s ease;
-  background: rgba(255, 255, 255, 0.334);
-  padding: 0 12px;
-  width: 88vw;
-  margin: 0px auto;
-  font-size: 0.875rem;
-  color: #ccc;
-}
-
-.track-control.expanded {
-  height: 280px;
-  padding-top: 8px;
 }
 
 .drop-zone {
@@ -124,21 +93,41 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-
 .track {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
   height: 53px;
-  position: relative;
-  transition: height 8s ease;
-  position: relative;
+  transition: height 0.8s ease;
+  padding: 0 12px;
+  width: 88vw;
+  margin: 0px auto;
+  font-size: 0.875rem;
+  color: #ffffff;
+
 }
+
+.track-control {
+  overflow: hidden;
+  height: 0;
+  transition: height 0.8s ease;
+  background: rgba(255, 255, 255, 0.334);
+  padding: 0 12px;
+  width: 81vw;
+  margin: 0px auto;
+  font-size: 0.875rem;
+  color: #ccc;
+  border-radius: 5px;
+}
+
+.track-control.expanded {
+  height: 210px;
+  padding-top: 8px;
+}
+
 
 .track-control p {
   transition: opacity 0.4s ease;
-}
-
-/* Expanded state */
-.track-control.expanded {
-  height: 280px;
 }
 
 .track-control-panel {

@@ -1,7 +1,7 @@
 // utils/audioPlaybackManager.ts
 import { prepareAllTracks, SampleDescriptor } from "./audioManager";
 import { resumeAudioContext } from "./audioContextSetup";
-import { PlaybackSample } from "../hooks/useAudioPlayback";
+import { PlaybackSample, TrackAudioState } from "../hooks/useAudioPlayback";
 import { TrackInfo } from "../components/TrackList";
 
 interface StartPlaybackArgs {
@@ -12,12 +12,12 @@ interface StartPlaybackArgs {
   playNow(
     samples: PlaybackSample[],
     bpm: number,
-    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>,
-    trackFrequencies: Record<number, number>
+    trackAudioState: TrackAudioState
   ): Promise<void>;
   stop: () => void;
   stopAll: () => void;
   start: () => void;
+  trackAudioState: TrackAudioState;
 }
 
 export async function startPlayback({
@@ -29,6 +29,7 @@ export async function startPlayback({
   stop,
   stopAll,
   start,
+  trackAudioState,
 }: StartPlaybackArgs) {
   stop();
   stopAll();
@@ -37,10 +38,8 @@ export async function startPlayback({
   const placed = getPlacedSamples();
   await prepareAllTracks(placed, tracks);
   start();
-  const trackFiltersRef = { current: new Map<number, BiquadFilterNode>() };
-  const trackFrequencies: Record<number, number> = {};
 
-  playNow(placed, bpm, trackFiltersRef, trackFrequencies);
+  playNow(placed, bpm, trackAudioState);
 }
 
 interface StopPlaybackArgs {

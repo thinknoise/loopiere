@@ -25,13 +25,20 @@ export interface UseAudioPlaybackResult {
   playNow(
     samples: PlaybackSample[],
     bpm: number,
-    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>,
-    trackFrequencies: Record<number, number>
+    trackAudioState: TrackAudioState
   ): Promise<void>;
   /**
    * Immediately stop and clear all scheduled playback sources.
    */
   stopAll(): void;
+}
+
+export interface TrackAudioState {
+  filters: React.RefObject<Map<number, BiquadFilterNode>>;
+  frequencies: Record<number, number>;
+  // Prepare for future expansion
+  gains?: Record<number, number>;
+  pans?: Record<number, number>;
 }
 
 /**
@@ -48,64 +55,38 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
     async (
       samples: PlaybackSample[],
       bpm: number,
-      trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>,
-      trackFrequencies: Record<number, number>
+      trackAudioState: TrackAudioState
     ): Promise<void> => {
-      const secsPerLoop = (60 / bpm) * 4;
-
-      // Preload all buffers
-      const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
-
-      resumeAudioContext();
-      const startTime = audioContext.currentTime;
-
-      // Create a filter node for each track you want to process (e.g., trackId 0)
+      const { filters: trackFiltersRef, frequencies: trackFrequencies } =
+        trackAudioState;
       trackFiltersRef.current?.clear();
 
-      samples.forEach((sample) => {
-        const trackId = sample.trackId;
-        if (trackId != null && !trackFiltersRef.current?.has(trackId)) {
-          const filter = audioContext.createBiquadFilter();
-          filter.type = "lowpass";
+      const startTime = audioContext.currentTime;
 
-          const initialFreq = trackFrequencies[trackId] ?? 800;
-          filter.frequency.setValueAtTime(
-            initialFreq,
-            audioContext.currentTime
-          );
+      const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
 
-          trackFiltersRef.current?.set(trackId, filter);
-          console.log(
-            `Create filter on track ${trackId} w/freq ${initialFreq}`
-          );
-        }
-      });
-
-      // Connect each sample through its track's filter (if any)
       const sources = buffers.map((buffer, idx) => {
         const sample = samples[idx];
-        const src = audioContext.createBufferSource();
-        src.buffer = buffer;
+        const trackId = sample.trackId!;
+        const offset = sample.xPos! * ((60 / bpm) * 4);
 
-        const filter =
-          sample.trackId != null
-            ? trackFiltersRef.current?.get(sample.trackId)
-            : null;
-        const outputNode = filter ?? audioContext.destination;
-        src.connect(outputNode);
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
 
-        src.connect(outputNode);
+        const filter = audioContext.createBiquadFilter();
+        filter.type = "lowpass";
+        const freq = trackFrequencies[trackId] ?? 800;
+        filter.frequency.setValueAtTime(freq, audioContext.currentTime);
+        trackFiltersRef.current?.set(trackId, filter);
 
-        const offset = sample.xPos! * secsPerLoop;
-        src.start(startTime + offset);
-        src.stop(startTime + secsPerLoop);
-        return src;
+        source.connect(filter);
+        filter.connect(audioContext.destination);
+
+        source.start(startTime + offset);
+        source.stop(startTime + (60 / bpm) * 4);
+
+        return source;
       });
-
-      // Connect all filters to the destination
-      for (const node of trackFiltersRef.current?.values() ?? []) {
-        node.connect(audioContext.destination);
-      }
 
       setPlayingSources(sources);
     },

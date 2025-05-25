@@ -85,7 +85,7 @@ const TrackList: FC<TrackListProps> = ({
   );
 
   const { start, stop } = useTransport(bpm, () =>
-    playNow(getPlacedSamples(), bpm, trackFiltersRef, trackFrequencies)
+    playNow(getPlacedSamples(), bpm, trackAudioState)
   );
 
   // tracks to render & preload
@@ -107,6 +107,7 @@ const TrackList: FC<TrackListProps> = ({
           stop,
           stopAll,
           start,
+          trackAudioState,
         }),
       onStop: () => stopPlayback({ stop, stopAll }),
       onClear: () => {
@@ -140,6 +141,10 @@ const TrackList: FC<TrackListProps> = ({
   const [trackFrequencies, setTrackFrequencies] = useState<
     Record<number, number>
   >({});
+  const trackAudioState = {
+    filters: trackFiltersRef,
+    frequencies: trackFrequencies,
+  };
 
   // record hook
   const audioContext = useAudioContext();
