@@ -65,6 +65,8 @@ const TrackList: FC<TrackListProps> = ({
   // BPM state
   const [bpm, setBpm] = useState<number>(initialBpm);
 
+  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
+
   // sequencing hook
   const {
     allSamples,
@@ -83,7 +85,7 @@ const TrackList: FC<TrackListProps> = ({
   );
 
   const { start, stop } = useTransport(bpm, () =>
-    playNow(getPlacedSamples(), bpm)
+    playNow(getPlacedSamples(), bpm, trackFiltersRef)
   );
 
   // tracks to render & preload
@@ -133,6 +135,8 @@ const TrackList: FC<TrackListProps> = ({
 
   // derived metrics
   const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
+  // shared reference to your filters
+  const trackFiltersRef = useRef<Map<number, BiquadFilterNode>>(new Map());
 
   // record hook
   const audioContext = useAudioContext();
@@ -168,6 +172,7 @@ const TrackList: FC<TrackListProps> = ({
         <Track
           key={track.id}
           ref={trackRef}
+          trackFiltersRef={trackFiltersRef}
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
@@ -175,6 +180,10 @@ const TrackList: FC<TrackListProps> = ({
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
           editSampleOfSamples={editSampleOfSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}
+          selected={track.id === selectedTrackId}
+          onSelect={() =>
+            setSelectedTrackId((prev) => (prev === track.id ? null : track.id))
+          }
         />
       ))}
 

@@ -22,10 +22,14 @@ export interface UseAudioPlaybackResult {
    * @param samples Array of samples with xPos fraction
    * @param bpm Beats per minute for timing calculations
    */
-  playNow(samples: PlaybackSample[], bpm: number): Promise<void>;
+  playNow(
+    samples: PlaybackSample[],
+    bpm: number,
+    trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>
+  ): Promise<void>
   /**
    * Immediately stop and clear all scheduled playback sources.
-   */
+   */;
   stopAll(): void;
 }
 
@@ -40,7 +44,11 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
   );
 
   const playNow = useCallback(
-    async (samples: PlaybackSample[], bpm: number): Promise<void> => {
+    async (
+      samples: PlaybackSample[],
+      bpm: number,
+      trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>
+    ): Promise<void> => {
       const secsPerLoop = (60 / bpm) * 4;
 
       // Preload all buffers
@@ -49,16 +57,45 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
       resumeAudioContext();
       const startTime = audioContext.currentTime;
 
-      // Schedule each buffer source
+      // Create a filter node for each track you want to process (e.g., trackId 0)
+      trackFiltersRef.current?.clear();
+
+      samples.forEach((sample) => {
+        const trackId = sample.trackId;
+        if (trackId != null && !trackFiltersRef.current?.has(trackId)) {
+          const filter = audioContext.createBiquadFilter();
+          filter.type = "lowpass";
+          filter.frequency.value = 800;
+          trackFiltersRef.current?.set(trackId, filter);
+          console.log("trackId filter", trackId, filter);
+        }
+      });
+
+      // Connect each sample through its track's filter (if any)
       const sources = buffers.map((buffer, idx) => {
+        const sample = samples[idx];
         const src = audioContext.createBufferSource();
         src.buffer = buffer;
-        src.connect(audioContext.destination);
-        const offset = samples[idx].xPos * secsPerLoop;
+
+        const filter =
+          sample.trackId != null
+            ? trackFiltersRef.current?.get(sample.trackId)
+            : null;
+        const outputNode = filter ?? audioContext.destination;
+        src.connect(outputNode);
+
+        src.connect(outputNode);
+
+        const offset = sample.xPos! * secsPerLoop;
         src.start(startTime + offset);
         src.stop(startTime + secsPerLoop);
         return src;
       });
+
+      // Connect all filters to the destination
+      for (const node of trackFiltersRef.current?.values() ?? []) {
+        node.connect(audioContext.destination);
+      }
 
       setPlayingSources(sources);
     },
