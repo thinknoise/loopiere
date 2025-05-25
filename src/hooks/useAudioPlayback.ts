@@ -34,9 +34,9 @@ export interface UseAudioPlaybackResult {
 }
 
 export interface TrackAudioState {
-  filters: React.RefObject<Map<number, BiquadFilterNode>>;
-  frequencies: Record<number, number>;
-  // Prepare for future expansion
+  filters: React.RefObject<Map<string, BiquadFilterNode>>;
+  frequencies: Record<number, number>; // ← lowpass
+  highpassFrequencies: Record<number, number>;
   gains?: Record<number, number>;
   pans?: Record<number, number>;
 }
@@ -73,14 +73,24 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         const source = audioContext.createBufferSource();
         source.buffer = buffer;
 
-        const filter = audioContext.createBiquadFilter();
-        filter.type = "lowpass";
-        const freq = trackFrequencies[trackId] ?? 800;
-        filter.frequency.setValueAtTime(freq, audioContext.currentTime);
-        trackFiltersRef.current?.set(trackId, filter);
+        // Create highpass filter
+        const highpass = audioContext.createBiquadFilter();
+        highpass.type = "highpass";
+        const highFreq = trackAudioState.highpassFrequencies?.[trackId] ?? 400;
+        highpass.frequency.setValueAtTime(highFreq, audioContext.currentTime);
+        trackAudioState.filters.current?.set(`${trackId}_highpass`, highpass);
 
-        source.connect(filter);
-        filter.connect(audioContext.destination);
+        // Create lowpass filter
+        const lowpass = audioContext.createBiquadFilter();
+        lowpass.type = "lowpass";
+        const lowFreq = trackAudioState.frequencies?.[trackId] ?? 800;
+        lowpass.frequency.setValueAtTime(lowFreq, audioContext.currentTime);
+        trackAudioState.filters?.current?.set(`${trackId}_lowpass`, lowpass);
+
+        // Chain: source → highpass → lowpass → destination
+        source.connect(highpass);
+        highpass.connect(lowpass);
+        lowpass.connect(audioContext.destination);
 
         source.start(startTime + offset);
         source.stop(startTime + (60 / bpm) * 4);

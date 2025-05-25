@@ -8,6 +8,7 @@ import { UpdateSamplePositionFn } from "../types/sample";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
+import { TrackAudioState } from "../hooks/useAudioPlayback";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -19,9 +20,11 @@ export interface TrackProps {
   bpm: number;
   selected: boolean;
   onSelect: () => void;
-  trackFiltersRef: React.RefObject<Map<number, BiquadFilterNode>>;
-  trackFrequencies: Record<number, number>;
+  trackAudioState: TrackAudioState;
   setTrackFrequencies: React.Dispatch<
+    React.SetStateAction<Record<number, number>>
+  >;
+  setTrackHighpassFrequencies: React.Dispatch<
     React.SetStateAction<Record<number, number>>
   >;
 }
@@ -43,9 +46,13 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
       },
-      trackFiltersRef,
-      trackFrequencies,
       setTrackFrequencies,
+      setTrackHighpassFrequencies,
+      trackAudioState: {
+        filters: trackFiltersRef,
+        frequencies: trackFrequencies,
+        highpassFrequencies,
+      },
     },
     ref
   ) => {
@@ -124,8 +131,8 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
 
         <div className={`track-control ${selected ? "expanded" : ""}`}>
           <div className="track-control-panel">
-            <div className="slider-group">
-              <label htmlFor="filterFreq">Freq</label>
+            <div className="slider-strip">
+              <label htmlFor="filterFreq">low</label>
               <input
                 type="range"
                 id="filterFreq"
@@ -140,7 +147,37 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const filter = trackFiltersRef.current?.get(trackInfo.id);
+                  const filter = trackFiltersRef.current?.get(
+                    `${trackInfo.id}_lowpass`
+                  );
+                  if (filter) {
+                    filter.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-strip">
+              <label htmlFor="highpassFreq">high</label>
+              <input
+                type="range"
+                id="highpassFreq"
+                min="80"
+                max="5000"
+                step="10"
+                value={highpassFrequencies[trackInfo.id] ?? 400}
+                className="vertical-slider"
+                onChange={(e) => {
+                  const freq = parseFloat(e.target.value);
+                  setTrackHighpassFrequencies((prev) => ({
+                    ...prev,
+                    [trackInfo.id]: freq,
+                  }));
+                  const filter = trackFiltersRef.current?.get(
+                    `${trackInfo.id}_highpass`
+                  );
                   if (filter) {
                     filter.frequency.setValueAtTime(
                       freq,

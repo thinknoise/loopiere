@@ -67,6 +67,15 @@ const TrackList: FC<TrackListProps> = ({
 
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
+  // Frequency filters stateq
+  const trackFiltersRef = useRef<Map<string, BiquadFilterNode>>(new Map());
+  const [trackFrequencies, setTrackFrequencies] = useState<
+    Record<number, number>
+  >({});
+  const [trackHighpassFrequencies, setTrackHighpassFrequencies] = useState<
+    Record<number, number>
+  >({});
+
   // sequencing hook
   const {
     allSamples,
@@ -92,6 +101,15 @@ const TrackList: FC<TrackListProps> = ({
   const tracks = useMemo<TrackInfo[]>(
     () => generateTracks(trackNumber),
     [trackNumber]
+  );
+
+  const trackAudioState = useMemo(
+    () => ({
+      filters: trackFiltersRef,
+      frequencies: trackFrequencies,
+      highpassFrequencies: trackHighpassFrequencies,
+    }),
+    [trackFrequencies, trackHighpassFrequencies]
   );
 
   // grouped callbacks passed to LoopControls
@@ -131,20 +149,12 @@ const TrackList: FC<TrackListProps> = ({
     start,
     stop,
     stopAll,
+    trackAudioState,
     tracks,
   ]);
 
   // derived metrics
   const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
-  // shared reference to your filters
-  const trackFiltersRef = useRef<Map<number, BiquadFilterNode>>(new Map());
-  const [trackFrequencies, setTrackFrequencies] = useState<
-    Record<number, number>
-  >({});
-  const trackAudioState = {
-    filters: trackFiltersRef,
-    frequencies: trackFrequencies,
-  };
 
   // record hook
   const audioContext = useAudioContext();
@@ -180,9 +190,9 @@ const TrackList: FC<TrackListProps> = ({
         <Track
           key={track.id}
           ref={trackRef}
-          trackFiltersRef={trackFiltersRef}
-          trackFrequencies={trackFrequencies}
+          trackAudioState={trackAudioState}
           setTrackFrequencies={setTrackFrequencies}
+          setTrackHighpassFrequencies={setTrackHighpassFrequencies}
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
