@@ -22,11 +22,23 @@ export interface UseAudioPlaybackResult {
    * @param samples Array of samples with xPos fraction
    * @param bpm Beats per minute for timing calculations
    */
-  playNow(samples: PlaybackSample[], bpm: number): Promise<void>;
+  playNow(
+    samples: PlaybackSample[],
+    bpm: number,
+    trackAudioState: TrackAudioState
+  ): Promise<void>;
   /**
    * Immediately stop and clear all scheduled playback sources.
    */
   stopAll(): void;
+}
+
+export interface TrackAudioState {
+  filters: React.RefObject<Map<string, BiquadFilterNode>>;
+  frequencies: Record<number, number>; // ← lowpass
+  highpassFrequencies: Record<number, number>;
+  gains?: Record<number, number>;
+  pans?: Record<number, number>;
 }
 
 /**
@@ -40,24 +52,50 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
   );
 
   const playNow = useCallback(
-    async (samples: PlaybackSample[], bpm: number): Promise<void> => {
-      const secsPerLoop = (60 / bpm) * 4;
+    async (
+      samples: PlaybackSample[],
+      bpm: number,
+      trackAudioState: TrackAudioState
+    ): Promise<void> => {
+      const { filters: trackFiltersRef, frequencies: trackFrequencies } =
+        trackAudioState;
+      trackFiltersRef.current?.clear();
 
-      // Preload all buffers
-      const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
-
-      resumeAudioContext();
       const startTime = audioContext.currentTime;
 
-      // Schedule each buffer source
+      const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
+
       const sources = buffers.map((buffer, idx) => {
-        const src = audioContext.createBufferSource();
-        src.buffer = buffer;
-        src.connect(audioContext.destination);
-        const offset = samples[idx].xPos * secsPerLoop;
-        src.start(startTime + offset);
-        src.stop(startTime + secsPerLoop);
-        return src;
+        const sample = samples[idx];
+        const trackId = sample.trackId!;
+        const offset = sample.xPos! * ((60 / bpm) * 4);
+
+        const source = audioContext.createBufferSource();
+        source.buffer = buffer;
+
+        // Create highpass filter
+        const highpass = audioContext.createBiquadFilter();
+        highpass.type = "highpass";
+        const highFreq = trackAudioState.highpassFrequencies?.[trackId] ?? 400;
+        highpass.frequency.setValueAtTime(highFreq, audioContext.currentTime);
+        trackAudioState.filters.current?.set(`${trackId}_highpass`, highpass);
+
+        // Create lowpass filter
+        const lowpass = audioContext.createBiquadFilter();
+        lowpass.type = "lowpass";
+        const lowFreq = trackAudioState.frequencies?.[trackId] ?? 800;
+        lowpass.frequency.setValueAtTime(lowFreq, audioContext.currentTime);
+        trackAudioState.filters?.current?.set(`${trackId}_lowpass`, lowpass);
+
+        // Chain: source → highpass → lowpass → destination
+        source.connect(highpass);
+        highpass.connect(lowpass);
+        lowpass.connect(audioContext.destination);
+
+        source.start(startTime + offset);
+        source.stop(startTime + (60 / bpm) * 4);
+
+        return source;
       });
 
       setPlayingSources(sources);

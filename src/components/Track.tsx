@@ -7,6 +7,8 @@ import type { SampleDescriptor } from "../utils/audioManager";
 import { UpdateSamplePositionFn } from "../types/sample";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
+import { useAudioContext } from "./AudioContextProvider";
+import { TrackAudioState } from "../hooks/useAudioPlayback";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -16,6 +18,15 @@ export interface TrackProps {
   editSampleOfSamples: (updated: SampleDescriptor) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
   bpm: number;
+  selected: boolean;
+  onSelect: () => void;
+  trackAudioState: TrackAudioState;
+  setTrackFrequencies: React.Dispatch<
+    React.SetStateAction<Record<number, number>>
+  >;
+  setTrackHighpassFrequencies: React.Dispatch<
+    React.SetStateAction<Record<number, number>>
+  >;
 }
 
 const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
@@ -31,9 +42,22 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       editSampleOfSamples,
       updateSamplesWithNewPosition,
       bpm,
+      selected,
+      onSelect = () => {
+        console.warn("Track onSelect not implemented"); // Placeholder for selection logic
+      },
+      setTrackFrequencies,
+      setTrackHighpassFrequencies,
+      trackAudioState: {
+        filters: trackFiltersRef,
+        frequencies: trackFrequencies,
+        highpassFrequencies,
+      },
     },
     ref
   ) => {
+    const audioContext = useAudioContext();
+
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
     };
@@ -70,25 +94,102 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
     };
 
     return (
-      <div
-        ref={ref}
-        className="track drop-zone"
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
-      >
-        <div className="middle-line" />
-        <span className="track-name">{trackInfo.name}</span>
-        {allSamples.map((sampleInfo) => (
-          <TrackSample
-            key={sampleInfo.id}
-            sample={sampleInfo}
-            trackWidth={trackWidth}
-            trackLeft={trackLeft}
-            bpm={bpm}
-            editSampleOfSamples={editSampleOfSamples}
-            updateSamplesWithNewPosition={updateSamplesWithNewPosition}
-          />
-        ))}
+      <div className="track-container">
+        <div className="track-row">
+          <button
+            className="track-toggle-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect();
+            }}
+          >
+            🎚️
+          </button>
+
+          <div
+            ref={ref}
+            className={`track drop-zone ${selected ? "track--selected" : ""}`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+          >
+            <div className="middle-line" />
+            <span className="track-name">{trackInfo.name}</span>
+
+            {allSamples.map((sampleInfo) => (
+              <TrackSample
+                key={sampleInfo.id}
+                sample={sampleInfo}
+                trackWidth={trackWidth}
+                trackLeft={trackLeft}
+                bpm={bpm}
+                editSampleOfSamples={editSampleOfSamples}
+                updateSamplesWithNewPosition={updateSamplesWithNewPosition}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className={`track-control ${selected ? "expanded" : ""}`}>
+          <div className="track-control-panel">
+            <div className="slider-strip">
+              <label htmlFor="filterFreq">low</label>
+              <input
+                type="range"
+                id="filterFreq"
+                min="80"
+                max="5000"
+                step="10"
+                value={trackFrequencies[trackInfo.id] ?? 400}
+                className="vertical-slider"
+                onChange={(e) => {
+                  const freq = parseFloat(e.target.value);
+                  setTrackFrequencies((prev) => ({
+                    ...prev,
+                    [trackInfo.id]: freq,
+                  }));
+                  const filter = trackFiltersRef.current?.get(
+                    `${trackInfo.id}_lowpass`
+                  );
+                  if (filter) {
+                    filter.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
+                }}
+              />
+            </div>
+            <div className="slider-strip">
+              <label htmlFor="highpassFreq">high</label>
+              <input
+                type="range"
+                id="highpassFreq"
+                min="80"
+                max="5000"
+                step="10"
+                value={highpassFrequencies[trackInfo.id] ?? 400}
+                className="vertical-slider"
+                onChange={(e) => {
+                  const freq = parseFloat(e.target.value);
+                  setTrackHighpassFrequencies((prev) => ({
+                    ...prev,
+                    [trackInfo.id]: freq,
+                  }));
+                  const filter = trackFiltersRef.current?.get(
+                    `${trackInfo.id}_highpass`
+                  );
+                  if (filter) {
+                    filter.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
+                }}
+              />
+            </div>
+            {/* You can add more sliders here later */}
+          </div>
+        </div>
       </div>
     );
   }

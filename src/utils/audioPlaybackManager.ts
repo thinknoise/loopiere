@@ -1,7 +1,7 @@
 // utils/audioPlaybackManager.ts
 import { prepareAllTracks, SampleDescriptor } from "./audioManager";
 import { resumeAudioContext } from "./audioContextSetup";
-import { PlaybackSample } from "../hooks/useAudioPlayback";
+import { PlaybackSample, TrackAudioState } from "../hooks/useAudioPlayback";
 import { TrackInfo } from "../components/TrackList";
 
 interface StartPlaybackArgs {
@@ -9,10 +9,15 @@ interface StartPlaybackArgs {
   tracks: TrackInfo[]; // replace with your actual TrackInfo[] type
   bpm: number;
   getPlacedSamples: () => PlaybackSample[];
-  playNow: (samples: PlaybackSample[], bpm: number) => void;
+  playNow(
+    samples: PlaybackSample[],
+    bpm: number,
+    trackAudioState: TrackAudioState
+  ): Promise<void>;
   stop: () => void;
   stopAll: () => void;
   start: () => void;
+  trackAudioState: TrackAudioState;
 }
 
 export async function startPlayback({
@@ -24,6 +29,7 @@ export async function startPlayback({
   stop,
   stopAll,
   start,
+  trackAudioState,
 }: StartPlaybackArgs) {
   stop();
   stopAll();
@@ -32,7 +38,8 @@ export async function startPlayback({
   const placed = getPlacedSamples();
   await prepareAllTracks(placed, tracks);
   start();
-  playNow(placed, bpm);
+
+  playNow(placed, bpm, trackAudioState);
 }
 
 interface StopPlaybackArgs {

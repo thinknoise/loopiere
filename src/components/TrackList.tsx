@@ -65,6 +65,17 @@ const TrackList: FC<TrackListProps> = ({
   // BPM state
   const [bpm, setBpm] = useState<number>(initialBpm);
 
+  const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
+
+  // Frequency filters stateq
+  const trackFiltersRef = useRef<Map<string, BiquadFilterNode>>(new Map());
+  const [trackFrequencies, setTrackFrequencies] = useState<
+    Record<number, number>
+  >({});
+  const [trackHighpassFrequencies, setTrackHighpassFrequencies] = useState<
+    Record<number, number>
+  >({});
+
   // sequencing hook
   const {
     allSamples,
@@ -83,13 +94,22 @@ const TrackList: FC<TrackListProps> = ({
   );
 
   const { start, stop } = useTransport(bpm, () =>
-    playNow(getPlacedSamples(), bpm)
+    playNow(getPlacedSamples(), bpm, trackAudioState)
   );
 
   // tracks to render & preload
   const tracks = useMemo<TrackInfo[]>(
     () => generateTracks(trackNumber),
     [trackNumber]
+  );
+
+  const trackAudioState = useMemo(
+    () => ({
+      filters: trackFiltersRef,
+      frequencies: trackFrequencies,
+      highpassFrequencies: trackHighpassFrequencies,
+    }),
+    [trackFrequencies, trackHighpassFrequencies]
   );
 
   // grouped callbacks passed to LoopControls
@@ -105,6 +125,7 @@ const TrackList: FC<TrackListProps> = ({
           stop,
           stopAll,
           start,
+          trackAudioState,
         }),
       onStop: () => stopPlayback({ stop, stopAll }),
       onClear: () => {
@@ -128,6 +149,7 @@ const TrackList: FC<TrackListProps> = ({
     start,
     stop,
     stopAll,
+    trackAudioState,
     tracks,
   ]);
 
@@ -168,6 +190,9 @@ const TrackList: FC<TrackListProps> = ({
         <Track
           key={track.id}
           ref={trackRef}
+          trackAudioState={trackAudioState}
+          setTrackFrequencies={setTrackFrequencies}
+          setTrackHighpassFrequencies={setTrackHighpassFrequencies}
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
@@ -175,6 +200,10 @@ const TrackList: FC<TrackListProps> = ({
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
           editSampleOfSamples={editSampleOfSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}
+          selected={track.id === selectedTrackId}
+          onSelect={() =>
+            setSelectedTrackId((prev) => (prev === track.id ? null : track.id))
+          }
         />
       ))}
 

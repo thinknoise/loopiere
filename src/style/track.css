@@ -1,3 +1,35 @@
+.track-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.track-row {
+  display: flex;
+  align-items: center;
+  height: 53px;
+  width: 93vw;
+  margin: 0px auto;
+}
+
+.track-toggle-btn {
+  width: 30px;
+  height: 53px;
+  background: none;
+  border: none;
+  color: #ccc;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.track-toggle-btn:hover {
+  color: #fff;
+}
+
 .drop-zone {
   width: 93vw;
   height: 53px;
@@ -43,16 +75,142 @@
   background-color: black;
 }
 
-.track {
-  position: relative;
-  display: flex;
-  flex-direction: row;
-  z-index: 0;
-  overflow: hidden;
-}
-
 .track-name {
   position: absolute;
   left: 8px;
   color: #838185;
+}
+
+.track.drop-zone.track--selected>span {
+  color: #fff;
+  font-weight: bold;
+}
+
+.track--selected {
+  height: 140px;
+  /* or whatever expanded height you want */
+  background-color: rgba(255, 182, 182, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.track {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  height: 53px;
+  transition: height 0.8s ease;
+  padding: 0 12px;
+  width: 88vw;
+  margin: 0px auto;
+  font-size: 0.875rem;
+  color: #ffffff;
+
+}
+
+.track-control {
+  overflow: hidden;
+  height: 0;
+  transition: height 0.8s ease;
+  background: rgba(255, 255, 255, 0.334);
+  padding: 0 12px;
+  width: 81vw;
+  margin: 0px auto;
+  font-size: 0.875rem;
+  color: #ccc;
+  border-radius: 5px;
+}
+
+.track-control.expanded {
+  height: 210px;
+  padding-top: 8px;
+}
+
+
+.track-control p {
+  transition: opacity 0.4s ease;
+}
+
+.track-control-panel {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  padding-top: 10px;
+}
+
+.slider-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #fff;
+  font-size: 0.75rem;
+}
+
+.vertical-slider {
+  writing-mode: vertical-lr;
+  transform: rotate(180deg);
+  height: 160px;
+  width: 24px;
+  cursor: pointer;
+  appearance: none;
+  background: transparent;
+}
+
+/* ---- Chrome, Safari, Edge ---- */
+
+/* Rail (track) */
+.vertical-slider::-webkit-slider-runnable-track {
+  width: 4px;
+  height: 100%;
+  background: rgba(255, 182, 182, 0.8);
+  border-radius: 2px;
+  margin: 0 auto;
+}
+
+/* Thumb (grip) */
+.vertical-slider::-webkit-slider-thumb {
+  appearance: none;
+  background: #3ea6ff;
+  border: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  margin-top: -7px;
+  /* adjust vertically if needed */
+  box-shadow: 0 0 4px #000;
+  transition: box-shadow 0.2s ease;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+}
+
+.vertical-slider:active::-webkit-slider-thumb {
+  box-shadow: 0 0 10px #000;
+  border: 1px solid #000;
+}
+
+/* ---- Firefox ---- */
+
+/* Rail (track) */
+.vertical-slider::-moz-range-track {
+  background: rgba(255, 182, 182, 0.8);
+  width: 4px;
+  height: 100%;
+  border-radius: 2px;
+}
+
+/* Thumb (grip) */
+.vertical-slider::-moz-range-thumb {
+  background: #3ea6ff;
+  border: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  box-shadow: 0 0 4px #000;
+  transition: box-shadow 0.2s ease;
+}
+
+.vertical-slider:active::-moz-range-thumb {
+  box-shadow: 0 0 10px #000;
 }
