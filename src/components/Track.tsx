@@ -10,6 +10,7 @@ import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
 import { TrackAudioState } from "../hooks/useAudioPlayback";
 import Knob from "./trackControls/knob";
+import faderIcon from "../assets/faderIcon.svg";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -110,7 +111,11 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
               onSelect();
             }}
           >
-            🎚️
+            <img
+              src={faderIcon}
+              alt="Toggle Track"
+              className={`track-toggle-icon ${selected ? "active" : ""}`}
+            />
           </button>
 
           <div
@@ -136,11 +141,26 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
           </div>
         </div>
 
+        {/* TRACK CONTROL */}
         <div className={`track-control ${selected ? "expanded" : ""}`}>
           <div className="track-control-panel">
-            {/* Volume */}
-            <div className="slider-strip">
-              <label htmlFor={`gain-${trackInfo.id}`}>vol</label>
+            <div className="control-item slider-strip">
+              {/* Pan knob above the volume slider */}
+              <div className="control-item knob-strip">
+                <Knob
+                  value={trackPans[trackInfo.id] ?? 0}
+                  onChange={(val) => {
+                    setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
+                    const panNode = trackFiltersRef.current?.get(
+                      `${trackInfo.id}_pan`
+                    ) as StereoPannerNode | undefined;
+                    panNode?.pan.setValueAtTime(val, audioContext.currentTime);
+                  }}
+                  size={20}
+                />
+              </div>
+
+              {/* Volume slider */}
               <input
                 type="range"
                 id={`gain-${trackInfo.id}`}
@@ -158,24 +178,11 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                   gainNode?.gain.setValueAtTime(val, audioContext.currentTime);
                 }}
               />
+              <label htmlFor={`gain-${trackInfo.id}`}>vol</label>
             </div>
 
-            {/* Panning */}
-            <Knob
-              value={trackPans[trackInfo.id] ?? 0}
-              onChange={(val) => {
-                setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
-                const panNode = trackFiltersRef.current?.get(
-                  `${trackInfo.id}_pan`
-                ) as StereoPannerNode | undefined;
-                panNode?.pan.setValueAtTime(val, audioContext.currentTime);
-              }}
-              size={20} // optional, you can adjust
-            />
-
             {/* Low-pass filter */}
-            <div className="slider-strip">
-              <label htmlFor={`lowpass-${trackInfo.id}`}>low</label>
+            <div className="control-item slider-strip">
               <input
                 type="range"
                 id={`lowpass-${trackInfo.id}`}
@@ -199,11 +206,11 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                   );
                 }}
               />
+              <label htmlFor={`lowpass-${trackInfo.id}`}>low</label>
             </div>
 
             {/* High-pass filter */}
-            <div className="slider-strip">
-              <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
+            <div className="control-item slider-strip">
               <input
                 type="range"
                 id={`highpass-${trackInfo.id}`}
@@ -227,6 +234,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                   );
                 }}
               />
+              <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
             </div>
           </div>
         </div>

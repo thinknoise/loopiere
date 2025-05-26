@@ -13,9 +13,8 @@
 }
 
 .track-toggle-btn {
-  width: 30px;
-  height: 53px;
   background: none;
+  width: 40px;
   border: none;
   color: #ccc;
   font-size: 1rem;
@@ -24,6 +23,8 @@
   align-items: center;
   justify-content: center;
   transition: color 0.2s ease;
+  filter: brightness(0) invert(.5);
+
 }
 
 .track-toggle-btn:hover {
@@ -132,9 +133,38 @@
 
 .track-control-panel {
   display: flex;
-  flex-direction: row;
-  gap: 24px;
-  padding-top: 10px;
+  gap: 12px;
+  /* space between controls */
+  justify-content: center;
+  align-items: flex-end;
+  /* baseline-align all labels */
+}
+
+/* shared wrapper for each knob or slider */
+.control-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+/* push label a few px below control if you’d like */
+.control-item label {
+  margin-top: 4px;
+  font-size: 0.5rem;
+  text-transform: uppercase;
+}
+
+/* if you need special sizing for knobs vs sliders */
+.knob-strip {
+  width: 20px;
+  /* match your knob size */
+  user-select: none;
+}
+
+.slider-strip {
+  width: 20px;
+  /* same width for consistency */
 }
 
 .slider-strip {
@@ -149,7 +179,6 @@
 .vertical-slider {
   writing-mode: vertical-lr;
   transform: rotate(180deg);
-  height: 160px;
   width: 24px;
   cursor: pointer;
   appearance: none;

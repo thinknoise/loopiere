@@ -17,7 +17,7 @@ export const Knob: React.FC<KnobProps> = ({
   value,
   onChange,
   size = 20,
-  sensitivityPx = 100,
+  sensitivityPx = 20,
 }) => {
   const knobRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +38,9 @@ export const Knob: React.FC<KnobProps> = ({
       const dx = e2.clientX - startX;
       let newVal = startValue + dx / sensitivityPx;
       newVal = Math.max(-1, Math.min(1, newVal));
+      if (Math.abs(newVal) < 0.01) {
+        newVal = 0; // snap to zero if close enough
+      }
       onChange(newVal);
     };
     const onMouseUp = () => {
@@ -49,18 +52,25 @@ export const Knob: React.FC<KnobProps> = ({
     window.addEventListener("mouseup", onMouseUp);
   };
 
+  const side = value < 0 ? "L" : "R"; // ensure consistent px string
+  const sideAmount = Math.abs(value * 10).toFixed(1);
   return (
-    <div
-      ref={knobRef}
-      className="knob draggable"
-      style={{ width: size, height: size }}
-      onMouseDown={handleMouseDown}
-    >
-      <div className="knob-outline" />
+    <div className="knob-container">
       <div
-        className="knob-indicator"
-        style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
-      />
+        ref={knobRef}
+        className="knob draggable"
+        style={{ width: size, height: size }}
+        onMouseDown={handleMouseDown}
+      >
+        <div className="knob-outline" />
+        <div
+          className="knob-indicator"
+          style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
+        />
+      </div>
+      <div className="knob-label">
+        {sideAmount} {side}
+      </div>
     </div>
   );
 };
