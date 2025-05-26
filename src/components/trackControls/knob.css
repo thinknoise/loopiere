@@ -1,0 +1,34 @@
+.knob {
+  position: relative;
+  display: inline-block;
+}
+
+.knob-outline {
+  box-sizing: border-box;
+  border: 2px solid black;
+  border-radius: 50%;
+  background-color: rgba(83, 180, 253, 0.83);
+  width: 100%;
+  height: 100%;
+}
+
+.knob-indicator {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 2px;
+  height: 50%;
+  background: black;
+  transform-origin: bottom center;
+}
+
+/* range covers the knob, but is invisible */
+.knob input[type="range"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}

@@ -9,6 +9,7 @@ import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
 import { TrackAudioState } from "../hooks/useAudioPlayback";
+import Knob from "./trackControls/knob";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -160,26 +161,17 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
             </div>
 
             {/* Panning */}
-            <div className="slider-strip">
-              <label htmlFor={`pan-${trackInfo.id}`}>pan</label>
-              <input
-                type="range"
-                id={`pan-${trackInfo.id}`}
-                min="-1"
-                max="1"
-                step="0.01"
-                value={trackPans[trackInfo.id] ?? 0}
-                className="vertical-slider"
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
-                  const panNode = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_pan`
-                  ) as StereoPannerNode | undefined;
-                  panNode?.pan.setValueAtTime(val, audioContext.currentTime);
-                }}
-              />
-            </div>
+            <Knob
+              value={trackPans[trackInfo.id] ?? 0}
+              onChange={(val) => {
+                setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
+                const panNode = trackFiltersRef.current?.get(
+                  `${trackInfo.id}_pan`
+                ) as StereoPannerNode | undefined;
+                panNode?.pan.setValueAtTime(val, audioContext.currentTime);
+              }}
+              size={20} // optional, you can adjust
+            />
 
             {/* Low-pass filter */}
             <div className="slider-strip">
