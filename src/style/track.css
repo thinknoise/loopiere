@@ -22,13 +22,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease;
-  filter: brightness(0) invert(.5);
-
+  transition: all 0.8s ease;
+  opacity: 0.5;
 }
 
 .track-toggle-btn:hover {
   color: #fff;
+}
+
+.track-toggle-btn.active {
+  opacity: 1;
+  transition: all 0.8s ease;
 }
 
 .drop-zone {
@@ -83,14 +87,14 @@
 }
 
 .track.drop-zone.track--selected>span {
-  color: #fff;
+  color: #000;
   font-weight: bold;
 }
 
 .track--selected {
   height: 140px;
   /* or whatever expanded height you want */
-  background-color: rgba(255, 182, 182, 0.8);
+  background-color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
