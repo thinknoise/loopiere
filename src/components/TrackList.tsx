@@ -86,8 +86,9 @@ const TrackList: FC<TrackListProps> = ({
     updateSamplesWithNewPosition,
   } = useTrackSequence(bpm);
 
+  const [beatsPerLoop, setBeatsPerLoop] = useState(4);
   // playback & transport
-  const { playNow, stopAll } = useAudioPlayback();
+  const { playNow, stopAll } = useAudioPlayback({ bpm, beatsPerLoop });
 
   const getPlacedSamples = useCallback(
     (): PlaybackSample[] =>
@@ -95,7 +96,7 @@ const TrackList: FC<TrackListProps> = ({
     [allSamples]
   );
 
-  const { start, stop } = useTransport(bpm, () =>
+  const { start, stop } = useTransport(bpm, beatsPerLoop, () =>
     playNow(getPlacedSamples(), bpm, trackAudioState)
   );
 
@@ -158,7 +159,10 @@ const TrackList: FC<TrackListProps> = ({
   ]);
 
   // derived metrics
-  const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
+  const secsPerLoop = useMemo<number>(
+    () => bpmToSecondsPerLoop(bpm, beatsPerLoop),
+    [bpm, beatsPerLoop]
+  );
 
   // record hook
   const audioContext = useAudioContext();
@@ -189,7 +193,16 @@ const TrackList: FC<TrackListProps> = ({
         secsPerLoop={secsPerLoop}
         emptyTracks={allSamples.length === 0}
       />
-
+      <select
+        value={beatsPerLoop}
+        onChange={(e) => setBeatsPerLoop(parseInt(e.target.value))}
+      >
+        {Array.from({ length: 13 }, (_, i) => i + 4).map((num) => (
+          <option key={num} value={num}>
+            {num} beats
+          </option>
+        ))}
+      </select>
       {tracks.map((track) => (
         <Track
           key={track.id}
@@ -201,6 +214,7 @@ const TrackList: FC<TrackListProps> = ({
           trackWidth={trackWidth}
           trackLeft={trackLeft}
           bpm={bpm}
+          beatsPerLoop={beatsPerLoop}
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
           editSampleOfSamples={editSampleOfSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}

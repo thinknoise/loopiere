@@ -46,7 +46,14 @@ export interface UseAudioPlaybackResult {
   stopAll(): void;
 }
 
-export default function useAudioPlayback(): UseAudioPlaybackResult {
+export default function useAudioPlayback({
+  bpm,
+  beatsPerLoop,
+}: {
+  bpm: number;
+  beatsPerLoop: number;
+}): UseAudioPlaybackResult {
+  // ─── shared audio context ──────────────────────────────────────
   const audioContext = getAudioContext();
   const [playingSources, setPlayingSources] = useState<AudioBufferSourceNode[]>(
     []
@@ -76,7 +83,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
     return node;
   }
 
-  // ─── playNow: schedule a 4-beat loop ───────────────────────────
+  // ─── playNow: schedule samples in the shared node graph ──────────
   const playNow = useCallback(
     async (
       samples: PlaybackSample[],
@@ -87,7 +94,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
       await resumeAudioContext();
 
       const startTime = audioContext.currentTime;
-      const loopLength = (60 / bpm) * 4;
+      const loopLength = (60 / bpm) * beatsPerLoop;
 
       // decode all samples
       const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
@@ -98,6 +105,11 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         const trackId = sample.trackId!;
         const offset = (sample.xPos ?? 0) * loopLength;
 
+        console.debug(
+          `track ${trackId} at offset ${offset.toFixed(
+            2
+          )}s loopLength: ${loopLength}`
+        );
         // create the BufferSource
         const src = audioContext.createBufferSource();
         src.buffer = buffer;
@@ -172,14 +184,15 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
 
         // schedule start/stop in the 4-beat loop
         src.start(startTime + offset);
-        src.stop(startTime + offset + loopLength);
+        // src.stop(startTime + loopLength);
 
+        console.debug((startTime + offset).toFixed(2), loopLength);
         return src;
       });
 
       setPlayingSources(sources);
     },
-    [audioContext]
+    [audioContext, beatsPerLoop]
   );
 
   // ─── stopAll: kill any playing sources ────────────────────────

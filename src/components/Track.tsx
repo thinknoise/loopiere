@@ -20,6 +20,7 @@ export interface TrackProps {
   editSampleOfSamples: (updated: SampleDescriptor) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
   bpm: number;
+  beatsPerLoop: number;
   selected: boolean;
   onSelect: () => void;
   trackAudioState: TrackAudioState;
@@ -46,6 +47,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       editSampleOfSamples,
       updateSamplesWithNewPosition,
       bpm,
+      beatsPerLoop,
       selected,
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
@@ -124,7 +126,15 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
             onDrop={handleDrop}
             onDragOver={handleDragOver}
           >
-            <div className="middle-line" />
+            {Array.from({ length: beatsPerLoop - 1 }).map((_, i) => (
+              <div
+                key={i}
+                className="beat-line"
+                style={{
+                  left: `${((i + 1) / beatsPerLoop) * 100}%`,
+                }}
+              />
+            ))}
             <span className="track-name">{trackInfo.name}</span>
 
             {allSamples.map((sampleInfo) => (

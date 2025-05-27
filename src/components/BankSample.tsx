@@ -23,6 +23,8 @@ export interface BankSampleProps {
   offset?: number;
   btnClass?: string;
   onRemove?: (id: string | number) => void;
+  bpm: number;
+  beatsPerLoop: number;
 }
 
 const TOTAL_TRACK_WIDTH = 916;
@@ -34,6 +36,8 @@ const BankSample: FC<BankSampleProps> = ({
   offset,
   btnClass = "",
   onRemove,
+  bpm,
+  beatsPerLoop,
 }) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
@@ -71,7 +75,12 @@ const BankSample: FC<BankSampleProps> = ({
       TOTAL_TRACK_WIDTH,
       offset != null
         ? Math.floor(
-            timeToPixels(duration, TOTAL_TRACK_WIDTH, DEFAULT_WAVEFORM_WIDTH)
+            timeToPixels(
+              duration,
+              TOTAL_TRACK_WIDTH,
+              DEFAULT_WAVEFORM_WIDTH,
+              beatsPerLoop
+            )
           )
         : DEFAULT_WAVEFORM_WIDTH
     )

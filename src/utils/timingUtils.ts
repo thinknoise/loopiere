@@ -1,18 +1,14 @@
 // src/utils/timingUtils.ts
 
 /**
- * Number of beats in one measure (e.g., 4/4 time).
- */
-export const BEATS_PER_MEASURE: number = 4;
-
-/**
  * Convert BPM to total loop length in seconds.
  *
  * @param bpm - Beats per minute.
+ * @param beatsPerLoop - Number of beats in one loop.
  * @returns Loop length in seconds.
  */
-export function bpmToSecondsPerLoop(bpm: number): number {
-  return (60 / bpm) * BEATS_PER_MEASURE;
+export function bpmToSecondsPerLoop(bpm: number, beatsPerLoop: number): number {
+  return (60 / bpm) * beatsPerLoop;
 }
 
 /**
@@ -20,10 +16,15 @@ export function bpmToSecondsPerLoop(bpm: number): number {
  *
  * @param trackWidth - Width of the track (in pixels).
  * @param bpm - Beats per minute.
+ * @param beatsPerLoop - Number of beats in one loop.
  * @returns Pixels per second.
  */
-export function getPixelsPerSecond(trackWidth: number, bpm: number): number {
-  const secs = bpmToSecondsPerLoop(bpm);
+export function getPixelsPerSecond(
+  trackWidth: number,
+  bpm: number,
+  beatsPerLoop: number
+): number {
+  const secs = bpmToSecondsPerLoop(bpm, beatsPerLoop);
   return trackWidth / secs;
 }
 
@@ -33,28 +34,34 @@ export function getPixelsPerSecond(trackWidth: number, bpm: number): number {
  * @param seconds - Time in seconds.
  * @param trackWidth - Width of the track (in pixels).
  * @param bpm - Beats per minute.
+ * @param beatsPerLoop - Number of beats in one loop.
  * @returns Length in pixels.
  */
 export function timeToPixels(
   seconds: number,
   trackWidth: number,
-  bpm: number
+  bpm: number,
+  beatsPerLoop: number
 ): number {
-  return seconds * getPixelsPerSecond(trackWidth, bpm);
+  return seconds * getPixelsPerSecond(trackWidth, bpm, beatsPerLoop);
 }
-
 /**
  * Convert a fractional x-position (0–1) of the track to time in seconds.
  *
  * @param xPosFraction - Fractional position across the track (0 = start, 1 = end).
  * @param trackWidth - Width of the track (in pixels).
  * @param bpm - Beats per minute.
+ * @param beatsPerLoop - Number of beats in one loop.
  * @returns Time in seconds.
  */
 export function xPosToTime(
   xPosFraction: number,
   trackWidth: number,
-  bpm: number
+  bpm: number,
+  beatsPerLoop: number
 ): number {
-  return (xPosFraction * trackWidth) / getPixelsPerSecond(trackWidth, bpm);
+  return (
+    (xPosFraction * trackWidth) /
+    getPixelsPerSecond(trackWidth, bpm, beatsPerLoop)
+  );
 }
