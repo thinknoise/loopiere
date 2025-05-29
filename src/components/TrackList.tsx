@@ -60,11 +60,11 @@ const TrackList: FC<TrackListProps> = ({
   // ref to a track container (passed into each <Track />)
   const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
 
-  // measure width & left offset
-  const [trackWidth, trackLeft] = useTrackWidth(trackRef);
-
   // BPM state
   const { bpm, setBpm, beatsPerLoop, setBeatsPerLoop } = useLoopSettings();
+
+  // measure width & left offset
+  const [trackWidth, trackLeft] = useTrackWidth(trackRef, beatsPerLoop);
 
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
@@ -212,6 +212,7 @@ const TrackList: FC<TrackListProps> = ({
           trackWidth={trackWidth}
           trackLeft={trackLeft}
           bpm={bpm}
+          beatsPerLoop={beatsPerLoop}
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
           editSampleOfSamples={editSampleOfSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}

@@ -8,7 +8,8 @@ import { useState, useEffect, RefObject } from "react";
  * @returns A tuple [width, leftOffset] in pixels
  */
 export default function useTrackWidth(
-  trackRef: RefObject<HTMLElement>
+  trackRef: RefObject<HTMLElement>,
+  beatsPerLoop: number
 ): [number, number] {
   const [trackWidth, setTrackWidth] = useState<number>(0);
   const [trackLeft, setTrackLeft] = useState<number>(0);
@@ -30,7 +31,7 @@ export default function useTrackWidth(
     return () => {
       window.removeEventListener("resize", updateTrackMeasurements);
     };
-  }, [trackRef]);
+  }, [trackRef, beatsPerLoop]);
 
   return [trackWidth, trackLeft];
 }

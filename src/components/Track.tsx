@@ -20,6 +20,7 @@ export interface TrackProps {
   editSampleOfSamples: (updated: SampleDescriptor) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
   bpm: number;
+  beatsPerLoop: number;
   selected: boolean;
   onSelect: () => void;
   trackAudioState: TrackAudioState;
@@ -46,6 +47,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       editSampleOfSamples,
       updateSamplesWithNewPosition,
       bpm,
+      beatsPerLoop,
       selected,
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
@@ -134,6 +136,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                 trackWidth={trackWidth}
                 trackLeft={trackLeft}
                 bpm={bpm}
+                beatsPerLoop={beatsPerLoop}
                 editSampleOfSamples={editSampleOfSamples}
                 updateSamplesWithNewPosition={updateSamplesWithNewPosition}
               />
