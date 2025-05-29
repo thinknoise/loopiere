@@ -49,37 +49,6 @@
   border-radius: 5px;
 }
 
-/* Vertical lines within the drop-zone */
-.drop-zone::before,
-.drop-zone::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  /* Line width */
-  background-color: black;
-}
-
-.drop-zone::before {
-  left: 25%;
-  /* First line */
-}
-
-.drop-zone::after {
-  left: 75%;
-  /* Second line */
-}
-
-.drop-zone .middle-line {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  width: 2px;
-  background-color: black;
-}
-
 .track-name {
   position: absolute;
   left: 8px;
@@ -96,6 +65,15 @@
   /* or whatever expanded height you want */
   background-color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.beat-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
 }
 
 .track {
