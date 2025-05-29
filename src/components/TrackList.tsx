@@ -18,6 +18,7 @@ import useTransport from "../hooks/useTransport";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { startPlayback, stopPlayback } from "../utils/audioPlaybackManager";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 import { type SampleDescriptor } from "../utils/audioManager";
 import { type UpdateSamplePositionFn } from "../types/sample";
@@ -63,7 +64,7 @@ const TrackList: FC<TrackListProps> = ({
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
   // BPM state
-  const [bpm, setBpm] = useState<number>(initialBpm);
+  const { bpm, setBpm, beatsPerLoop, setBeatsPerLoop } = useLoopSettings();
 
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
@@ -87,16 +88,15 @@ const TrackList: FC<TrackListProps> = ({
   } = useTrackSequence(bpm);
 
   // playback & transport
-  const { playNow, stopAll } = useAudioPlayback();
+  const { playNow, stopAll } = useAudioPlayback({ bpm, beatsPerLoop });
+  const { start, stop } = useTransport(bpm, beatsPerLoop, () =>
+    playNow(getPlacedSamples(), bpm, trackAudioState)
+  );
 
   const getPlacedSamples = useCallback(
     (): PlaybackSample[] =>
       allSamples.filter((s): s is PlaybackSample => typeof s.xPos === "number"),
     [allSamples]
-  );
-
-  const { start, stop } = useTransport(bpm, () =>
-    playNow(getPlacedSamples(), bpm, trackAudioState)
   );
 
   // tracks to render & preload
@@ -150,6 +150,7 @@ const TrackList: FC<TrackListProps> = ({
     initialBpm,
     playNow,
     setAllSamples,
+    setBpm,
     start,
     stop,
     stopAll,
@@ -158,7 +159,10 @@ const TrackList: FC<TrackListProps> = ({
   ]);
 
   // derived metrics
-  const secsPerLoop = useMemo<number>(() => bpmToSecondsPerLoop(bpm), [bpm]);
+  const secsPerLoop = useMemo<number>(
+    () => bpmToSecondsPerLoop(bpm, beatsPerLoop),
+    [bpm, beatsPerLoop]
+  );
 
   // record hook
   const audioContext = useAudioContext();
@@ -178,6 +182,11 @@ const TrackList: FC<TrackListProps> = ({
     };
     setAllSamples((prev) => [...prev, newSample]);
   }, [audioBuffer, setAllSamples]);
+  // stop playback when beatsPerLoop changes
+  useEffect(() => {
+    stop();
+    stopAll();
+  }, [beatsPerLoop]);
 
   return (
     <div>
@@ -185,6 +194,8 @@ const TrackList: FC<TrackListProps> = ({
         sliderRef={null}
         {...actions}
         bpm={bpm}
+        beatsPerLoop={beatsPerLoop}
+        onBeatsPerLoopChange={(val) => setBeatsPerLoop(val)}
         trackWidth={trackWidth}
         secsPerLoop={secsPerLoop}
         emptyTracks={allSamples.length === 0}

@@ -5,7 +5,6 @@ import CompactWaveform from "./CompactWaveform";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
-import { timeToPixels } from "../utils/timingUtils";
 import "../style/bankSample.css";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
 
@@ -65,14 +64,14 @@ const BankSample: FC<BankSampleProps> = ({
     };
   }, [sample]);
 
+  const PIXELS_PER_SECOND = 80; // or whatever looks right visually
+
   const waveformWidth = Math.max(
     1,
     Math.min(
       TOTAL_TRACK_WIDTH,
       offset != null
-        ? Math.floor(
-            timeToPixels(duration, TOTAL_TRACK_WIDTH, DEFAULT_WAVEFORM_WIDTH)
-          )
+        ? Math.floor(duration * PIXELS_PER_SECOND)
         : DEFAULT_WAVEFORM_WIDTH
     )
   );

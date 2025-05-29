@@ -30,6 +30,7 @@ export interface UseTransportResult {
  */
 export default function useTransport(
   bpm: number,
+  beatsPerLoop: number,
   onLoopCallback: OnLoopCallback
 ): UseTransportResult {
   const audioContext = useAudioContext();
@@ -38,7 +39,9 @@ export default function useTransport(
   const isRunningRef = useRef<boolean>(false);
   const rafIdRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
-  const loopDurationRef = useRef<number>(bpmToSecondsPerLoop(bpm));
+  const loopDurationRef = useRef<number>(
+    bpmToSecondsPerLoop(bpm, beatsPerLoop)
+  );
   const callbackRef = useRef<OnLoopCallback>(onLoopCallback);
 
   // Keep latest callback ref in sync
@@ -48,8 +51,8 @@ export default function useTransport(
 
   // Update loop duration when BPM changes
   useEffect(() => {
-    loopDurationRef.current = bpmToSecondsPerLoop(bpm);
-  }, [bpm]);
+    loopDurationRef.current = bpmToSecondsPerLoop(bpm, beatsPerLoop);
+  }, [beatsPerLoop, bpm]);
 
   // Main loop function
   const loop = useCallback((): void => {

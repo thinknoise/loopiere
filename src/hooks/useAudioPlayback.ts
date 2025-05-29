@@ -46,7 +46,13 @@ export interface UseAudioPlaybackResult {
   stopAll(): void;
 }
 
-export default function useAudioPlayback(): UseAudioPlaybackResult {
+export default function useAudioPlayback({
+  bpm,
+  beatsPerLoop,
+}: {
+  bpm: number;
+  beatsPerLoop: number;
+}): UseAudioPlaybackResult {
   const audioContext = getAudioContext();
   const [playingSources, setPlayingSources] = useState<AudioBufferSourceNode[]>(
     []
@@ -87,7 +93,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
       await resumeAudioContext();
 
       const startTime = audioContext.currentTime;
-      const loopLength = (60 / bpm) * 4;
+      const loopLength = (60 / bpm) * beatsPerLoop;
 
       // decode all samples
       const buffers = await Promise.all(samples.map((s) => getSampleBuffer(s)));
@@ -98,6 +104,12 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         const trackId = sample.trackId!;
         const offset = (sample.xPos ?? 0) * loopLength;
 
+        console.debug(
+          `xPos ${(sample.xPos * 100).toFixed(
+            2
+          )} on track ${trackId} at offset ${offset}s`,
+          loopLength.toFixed(2)
+        );
         // create the BufferSource
         const src = audioContext.createBufferSource();
         src.buffer = buffer;
@@ -179,7 +191,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
 
       setPlayingSources(sources);
     },
-    [audioContext]
+    [audioContext, beatsPerLoop]
   );
 
   // ─── stopAll: kill any playing sources ────────────────────────

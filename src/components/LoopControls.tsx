@@ -21,7 +21,8 @@ export interface LoopControlsProps {
   emptyTracks: boolean;
   bpm: number;
   onBpmChange: (event: Event, value: number | number[]) => void;
-  /** A ref to the underlying Slider element (renders as a <span>) */
+  beatsPerLoop: number;
+  onBeatsPerLoopChange: (value: number) => void;
   sliderRef: Ref<HTMLSpanElement>;
   trackWidth: number;
   secsPerLoop: number;
@@ -38,6 +39,8 @@ const LoopControls: FC<LoopControlsProps> = memo(
     emptyTracks,
     bpm,
     onBpmChange,
+    beatsPerLoop,
+    onBeatsPerLoopChange,
     sliderRef,
     trackWidth,
     secsPerLoop,
@@ -139,6 +142,36 @@ const LoopControls: FC<LoopControlsProps> = memo(
           <PiCloudSlashDuotone fontSize={32} />
         </IconButton>
       </Box>
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 2,
+          color: "common.white",
+        }}
+      >
+        <label htmlFor="beats-select">Beats per Loop:</label>
+        <select
+          id="beats-select"
+          value={beatsPerLoop}
+          onChange={(e) => onBeatsPerLoopChange(Number(e.target.value))}
+          style={{
+            padding: "6px 12px",
+            fontSize: "1rem",
+            borderRadius: "4px",
+            backgroundColor: "#1e1e1e",
+            color: "white",
+            border: "1px solid #444",
+          }}
+        >
+          {Array.from({ length: 13 }, (_, i) => i + 4).map((n) => (
+            <option key={n} value={n}>
+              {n} beats
+            </option>
+          ))}
+        </select>
+      </Box>
 
       <Slider
         ref={sliderRef}
@@ -176,3 +209,6 @@ const LoopControls: FC<LoopControlsProps> = memo(
 );
 
 export default LoopControls;
+function onBeatsPerLoopChange(arg0: number): void {
+  throw new Error("Function not implemented.");
+}
