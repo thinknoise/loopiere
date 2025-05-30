@@ -6,13 +6,14 @@
 export const BEATS_PER_MEASURE: number = 4;
 
 /**
- * Convert BPM to total loop length in seconds.
+ * Convert BPM and beatsPerLoop to total loop length in seconds.
  *
  * @param bpm - Beats per minute.
+ * @param beatsPerLoop - Number of beats per loop (e.g. 4 to 16).
  * @returns Loop length in seconds.
  */
-export function bpmToSecondsPerLoop(bpm: number): number {
-  return (60 / bpm) * BEATS_PER_MEASURE;
+export function bpmToSecondsPerLoop(bpm: number, beatsPerLoop: number): number {
+  return (60 / bpm) * beatsPerLoop;
 }
 
 /**
@@ -22,8 +23,12 @@ export function bpmToSecondsPerLoop(bpm: number): number {
  * @param bpm - Beats per minute.
  * @returns Pixels per second.
  */
-export function getPixelsPerSecond(trackWidth: number, bpm: number): number {
-  const secs = bpmToSecondsPerLoop(bpm);
+export function getPixelsPerSecond(
+  trackWidth: number,
+  bpm: number,
+  beatsPerLoop: number
+): number {
+  const secs = bpmToSecondsPerLoop(bpm, beatsPerLoop);
   return trackWidth / secs;
 }
 
@@ -38,9 +43,10 @@ export function getPixelsPerSecond(trackWidth: number, bpm: number): number {
 export function timeToPixels(
   seconds: number,
   trackWidth: number,
-  bpm: number
+  bpm: number,
+  beatsPerLoop: number
 ): number {
-  return seconds * getPixelsPerSecond(trackWidth, bpm);
+  return seconds * getPixelsPerSecond(trackWidth, bpm, beatsPerLoop);
 }
 
 /**
@@ -54,7 +60,11 @@ export function timeToPixels(
 export function xPosToTime(
   xPosFraction: number,
   trackWidth: number,
-  bpm: number
+  bpm: number,
+  beatsPerLoop: number
 ): number {
-  return (xPosFraction * trackWidth) / getPixelsPerSecond(trackWidth, bpm);
+  return (
+    (xPosFraction * trackWidth) /
+    getPixelsPerSecond(trackWidth, bpm, beatsPerLoop)
+  );
 }

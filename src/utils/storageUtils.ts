@@ -1,6 +1,5 @@
 // src/utils/storageUtils.ts
 
-import { getAudioContext } from "./audioContextSetup";
 import { getSampleBuffer } from "./audioManager";
 import type { SampleDescriptor } from "./audioManager";
 
@@ -43,9 +42,10 @@ type SerializedSample = SerializedFileSample | SerializedPCMSample;
  */
 export function saveAllSamplesToLocalStorage(
   allSamples: SampleDescriptor[],
-  bpm: number
+  bpm: number,
+  beatsPerLoop: number
 ): void {
-  const serialized = allSamples
+  const serializedSamples = allSamples
     .map<SerializedSample | null>((sample) => {
       const isStatic =
         (!!sample.path && !sample.path.startsWith("blob:")) ||
@@ -85,8 +85,14 @@ export function saveAllSamplesToLocalStorage(
     })
     .filter((s): s is SerializedSample => s !== null);
 
-  localStorage.setItem("LoopiereSequences", JSON.stringify(serialized));
-  localStorage.setItem("LoopiereBPM", bpm.toString());
+  const loopData = {
+    bpm,
+    beatsPerLoop,
+    serializedSamples,
+  };
+
+  console.log("Saving:", loopData);
+  localStorage.setItem("LoopiereSavedLoopV2", JSON.stringify(loopData));
 }
 
 /**
@@ -97,13 +103,26 @@ export function saveAllSamplesToLocalStorage(
  */
 export async function getAllSamplesFromLocalStorage(
   audioContext: AudioContext
-): Promise<SampleDescriptor[]> {
-  const serialized = localStorage.getItem("LoopiereSequences");
-  if (!serialized) return [];
+): Promise<{
+  bpm: number;
+  beatsPerLoop: number;
+  samples: SampleDescriptor[];
+}> {
+  const raw = localStorage.getItem("LoopiereSavedLoopV2");
+  if (!raw) {
+    return {
+      bpm: 120,
+      beatsPerLoop: 4,
+      samples: [],
+    };
+  }
 
-  const arr: Record<string, any>[] = JSON.parse(serialized);
-  const results = await Promise.all(
-    arr.map(async (data) => {
+  const loopData = JSON.parse(raw);
+  console.log("Loading:", loopData);
+  const { bpm, beatsPerLoop, serializedSamples } = loopData;
+
+  const samples = await Promise.all(
+    serializedSamples.map(async (data: Record<string, any>) => {
       if (data.__fileBased) {
         const { __fileBased, ...meta } = data;
         const buffer = await getSampleBuffer(meta as SampleDescriptor);
@@ -119,17 +138,24 @@ export async function getAllSamplesFromLocalStorage(
         __numChannels,
         ...rest
       } = data;
-      const audioCtx = getAudioContext();
-      const buffer = audioCtx.createBuffer(
+
+      const buffer = audioContext.createBuffer(
         __numChannels,
         __length,
         __sampleRate
       );
+
       __pcm.forEach((chanArr: number[], ch: number) => {
         buffer.copyToChannel(new Float32Array(chanArr), ch);
       });
+
       return { ...(rest as SampleDescriptor), buffer };
     })
   );
-  return results;
+
+  return {
+    bpm,
+    beatsPerLoop,
+    samples,
+  };
 }

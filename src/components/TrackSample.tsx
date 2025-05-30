@@ -1,11 +1,12 @@
 // src/components/TrackSample.tsx
 
 import React, { useRef, useState, useCallback, FC, MouseEvent } from "react";
+import type { SampleDescriptor } from "../utils/audioManager";
+import type { UpdateSamplePositionFn } from "../types/sample";
 import useAudioBuffer from "../hooks/useAudioBuffer";
 import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
-import type { SampleDescriptor } from "../utils/audioManager";
-import type { UpdateSamplePositionFn } from "../types/sample";
+import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import "../style/trackSample.css";
 
 export interface TrackSampleProps {
@@ -13,6 +14,7 @@ export interface TrackSampleProps {
   trackWidth: number;
   trackLeft: number;
   bpm: number;
+  beatsPerLoop: number;
   /**
    * Edit or remove a sample.
    * @param sample Sample descriptor to update or remove.
@@ -32,6 +34,7 @@ const TrackSample: FC<TrackSampleProps> = ({
   trackWidth,
   trackLeft,
   bpm,
+  beatsPerLoop,
   editSampleOfSamples,
   updateSamplesWithNewPosition,
 }) => {
@@ -52,7 +55,7 @@ const TrackSample: FC<TrackSampleProps> = ({
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  const secsPerMeasure = (60 / bpm) * 4;
+  const secsPerMeasure = bpmToSecondsPerLoop(bpm, beatsPerLoop);
 
   // raw pixel width based on duration & trackWidth
   const rawWidth = audioDuration

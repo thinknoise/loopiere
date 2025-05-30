@@ -20,6 +20,7 @@ export interface TrackProps {
   editSampleOfSamples: (updated: SampleDescriptor) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
   bpm: number;
+  beatsPerLoop: number;
   selected: boolean;
   onSelect: () => void;
   trackAudioState: TrackAudioState;
@@ -46,6 +47,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       editSampleOfSamples,
       updateSamplesWithNewPosition,
       bpm,
+      beatsPerLoop,
       selected,
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
@@ -124,8 +126,18 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
             onDrop={handleDrop}
             onDragOver={handleDragOver}
           >
-            <div className="middle-line" />
             <span className="track-name">{trackInfo.name}</span>
+            {Array.from({ length: beatsPerLoop - 1 }).map((_, i) => (
+              <div
+                key={i}
+                className="beat-line"
+                style={{
+                  left: `${((i + 1) / beatsPerLoop) * 100}%`,
+                }}
+              />
+            ))}
+
+            {/* TRACK CONTROL */}
 
             {allSamples.map((sampleInfo) => (
               <TrackSample
@@ -134,6 +146,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                 trackWidth={trackWidth}
                 trackLeft={trackLeft}
                 bpm={bpm}
+                beatsPerLoop={beatsPerLoop}
                 editSampleOfSamples={editSampleOfSamples}
                 updateSamplesWithNewPosition={updateSamplesWithNewPosition}
               />
@@ -141,7 +154,6 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
           </div>
         </div>
 
-        {/* TRACK CONTROL */}
         <div className={`track-control ${selected ? "expanded" : ""}`}>
           <div className="track-control-panel">
             <div className="control-item slider-strip">

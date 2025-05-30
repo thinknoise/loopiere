@@ -8,6 +8,7 @@ import React, {
   FC,
 } from "react";
 import { getAudioContext } from "../utils/audioContextSetup";
+import { LoopSettingsProvider } from "../context/LoopSettingsContext";
 
 type AudioCtxType = AudioContext;
 
@@ -25,7 +26,10 @@ export const AudioContextProvider: FC<AudioContextProviderProps> = ({
 
   return (
     <AudioContextCtx.Provider value={audioCtx}>
-      {children}
+      <LoopSettingsProvider>
+        {/* Wrap children with LoopSettingsProvider */}
+        {children}
+      </LoopSettingsProvider>
     </AudioContextCtx.Provider>
   );
 };
