@@ -189,7 +189,7 @@ const TrackList: FC<TrackListProps> = ({
   useEffect(() => {
     stop();
     stopAll();
-  }, [beatsPerLoop, stop, stopAll]);
+  }, [beatsPerLoop]);
 
   return (
     <div>

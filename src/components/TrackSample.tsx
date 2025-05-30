@@ -117,11 +117,6 @@ const TrackSample: FC<TrackSampleProps> = ({
     e.preventDefault();
     editSampleOfSamples(sample, true);
   };
-  console.log("Rendering sample", sample.filename, {
-    bpm,
-    beatsPerLoop,
-    sampleWidth,
-  });
 
   return (
     <div

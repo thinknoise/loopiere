@@ -27,7 +27,7 @@ export async function loadSequence(
   setBeatsPerLoop(beatsPerLoop);
   setAllSamples(samples);
 
-  const stored = Number(localStorage.getItem("LoopiereBPM"));
+  const stored = Number(localStorage.getItem("LoopiereSavedLoopV2"));
   if (!isNaN(stored)) setBpm(stored);
 }
 

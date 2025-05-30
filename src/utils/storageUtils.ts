@@ -1,6 +1,5 @@
 // src/utils/storageUtils.ts
 
-import { getAudioContext } from "./audioContextSetup";
 import { getSampleBuffer } from "./audioManager";
 import type { SampleDescriptor } from "./audioManager";
 
@@ -92,6 +91,7 @@ export function saveAllSamplesToLocalStorage(
     serializedSamples,
   };
 
+  console.log("Saving:", loopData);
   localStorage.setItem("LoopiereSavedLoopV2", JSON.stringify(loopData));
 }
 
@@ -118,6 +118,7 @@ export async function getAllSamplesFromLocalStorage(
   }
 
   const loopData = JSON.parse(raw);
+  console.log("Loading:", loopData);
   const { bpm, beatsPerLoop, serializedSamples } = loopData;
 
   const samples = await Promise.all(
