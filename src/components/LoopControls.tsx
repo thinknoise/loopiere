@@ -209,6 +209,3 @@ const LoopControls: FC<LoopControlsProps> = memo(
 );
 
 export default LoopControls;
-function onBeatsPerLoopChange(arg0: number): void {
-  throw new Error("Function not implemented.");
-}

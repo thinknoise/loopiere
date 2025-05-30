@@ -137,19 +137,22 @@ const TrackList: FC<TrackListProps> = ({
         stopAll();
         clearSamples(setAllSamples);
       },
-      onSave: () => saveSequence(allSamples, bpm),
-      onDelete: () => deleteSequence(setAllSamples, setBpm, initialBpm),
-      onLoad: () => loadSequence(setAllSamples, setBpm),
+      onSave: () => saveSequence(allSamples, bpm, beatsPerLoop),
+      onDelete: () =>
+        deleteSequence(setAllSamples, setBpm, initialBpm, beatsPerLoop),
+      onLoad: () => loadSequence(setAllSamples, setBpm, setBeatsPerLoop),
       onBpmChange: (event: Event, value: number | number[]) =>
         changeBpm(setBpm, value),
     };
   }, [
     allSamples,
+    beatsPerLoop,
     bpm,
     getPlacedSamples,
     initialBpm,
     playNow,
     setAllSamples,
+    setBeatsPerLoop,
     setBpm,
     start,
     stop,
@@ -186,7 +189,7 @@ const TrackList: FC<TrackListProps> = ({
   useEffect(() => {
     stop();
     stopAll();
-  }, [beatsPerLoop]);
+  }, [beatsPerLoop, stop, stopAll]);
 
   return (
     <div>

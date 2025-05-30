@@ -5,6 +5,7 @@ import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { addParamsToUrl, SequenceParam } from "../utils/urlUtils";
 import type { SampleDescriptor } from "../utils/audioManager";
 import { UpdateSamplePositionFn } from "../types/sample";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Edit or remove a sample in the sequence.
@@ -25,7 +26,6 @@ export interface UseTrackSequenceResult {
   bpm: number;
   latestSamplesRef: React.MutableRefObject<SampleDescriptor[]>;
   latestBpm: React.MutableRefObject<number>;
-  setBPM: React.Dispatch<React.SetStateAction<number>>;
   saveSequence: () => void;
   shareSequence: () => void;
   setAllSamples: React.Dispatch<React.SetStateAction<SampleDescriptor[]>>;
@@ -44,7 +44,8 @@ export default function useTrackSequence(
   initialBpm: number = 90
 ): UseTrackSequenceResult {
   const [allSamples, setAllSamples] = useState<SampleDescriptor[]>([]);
-  const [bpm, setBPM] = useState<number>(initialBpm);
+
+  const { bpm, beatsPerLoop } = useLoopSettings();
 
   // Refs to always read latest values inside callbacks
   const latestSamplesRef = useRef<SampleDescriptor[]>(allSamples);
@@ -80,7 +81,7 @@ export default function useTrackSequence(
   );
 
   const saveSequence = (): void => {
-    saveAllSamplesToLocalStorage(allSamples, bpm);
+    saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop);
   };
 
   const shareSequence = (): void => {
@@ -106,7 +107,6 @@ export default function useTrackSequence(
     bpm,
     latestSamplesRef,
     latestBpm,
-    setBPM,
     saveSequence,
     shareSequence,
     setAllSamples,

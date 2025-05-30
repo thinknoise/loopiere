@@ -6,17 +6,26 @@ import {
   getAllSamplesFromLocalStorage,
 } from "./storageUtils";
 
-export function saveSequence(samples: SampleDescriptor[], bpm: number) {
-  saveAllSamplesToLocalStorage(samples, bpm);
+export function saveSequence(
+  samples: SampleDescriptor[],
+  bpm: number,
+  beatsPerLoop: number
+) {
+  saveAllSamplesToLocalStorage(samples, bpm, beatsPerLoop);
 }
 
 export async function loadSequence(
   setAllSamples: (samples: SampleDescriptor[]) => void,
-  setBpm: (bpm: number) => void
+  setBpm: (bpm: number) => void,
+  setBeatsPerLoop: (beatsPerLoop: number) => void
 ) {
   const audioContext = new AudioContext();
-  const restored = await getAllSamplesFromLocalStorage(audioContext);
-  setAllSamples(restored);
+  const { bpm, beatsPerLoop, samples } = await getAllSamplesFromLocalStorage(
+    audioContext
+  );
+  setBpm(bpm);
+  setBeatsPerLoop(beatsPerLoop);
+  setAllSamples(samples);
 
   const stored = Number(localStorage.getItem("LoopiereBPM"));
   if (!isNaN(stored)) setBpm(stored);
@@ -25,9 +34,10 @@ export async function loadSequence(
 export function deleteSequence(
   setAllSamples: (samples: SampleDescriptor[]) => void,
   setBpm: (bpm: number) => void,
-  initialBpm: number
+  initialBpm: number,
+  beatsPerLoop: number
 ) {
-  saveAllSamplesToLocalStorage([], initialBpm);
+  saveAllSamplesToLocalStorage([], initialBpm, beatsPerLoop);
   setAllSamples([]);
   setBpm(initialBpm);
 }
