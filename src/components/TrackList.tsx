@@ -183,24 +183,32 @@ const TrackList: FC<TrackListProps> = ({
       const tid = track.id;
       if (!trackFiltersRef.current.has(`${tid}_gain`)) {
         const gainNode = audioContext.createGain();
+        gainNode.gain.value = 1;
         trackFiltersRef.current.set(`${tid}_gain`, gainNode);
       }
       if (!trackFiltersRef.current.has(`${tid}_pan`)) {
         const panNode = audioContext.createStereoPanner();
+        panNode.pan.value = 0;
         trackFiltersRef.current.set(`${tid}_pan`, panNode);
       }
+      // Low‐pass filter:
       if (!trackFiltersRef.current.has(`${tid}_lowpass`)) {
-        const lowFilter = audioContext.createBiquadFilter();
-        lowFilter.type = "lowpass";
-        trackFiltersRef.current.set(`${tid}_lowpass`, lowFilter);
+        const lowF = audioContext.createBiquadFilter();
+        lowF.type = "lowpass";
+        // default: open fully
+        lowF.frequency.value = audioContext.sampleRate / 2;
+        trackFiltersRef.current.set(`${tid}_lowpass`, lowF);
       }
+      // High‐pass filter:
       if (!trackFiltersRef.current.has(`${tid}_highpass`)) {
-        const highFilter = audioContext.createBiquadFilter();
-        highFilter.type = "highpass";
-        trackFiltersRef.current.set(`${tid}_highpass`, highFilter);
+        const highF = audioContext.createBiquadFilter();
+        highF.type = "highpass";
+        // default: open fully
+        highF.frequency.value = 0;
+        trackFiltersRef.current.set(`${tid}_highpass`, highF);
       }
     });
-  }, [tracks, audioContext]);
+  }, []);
 
   // // stop playback when beatsPerLoop changes
   // useEffect(() => {
