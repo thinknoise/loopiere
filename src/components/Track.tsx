@@ -8,9 +8,10 @@ import { UpdateSamplePositionFn } from "../types/sample";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
-import { TrackAudioState } from "../hooks/useAudioPlayback";
 import Knob from "./trackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
+
+import { type TrackAudioState } from "../types/audio";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -182,12 +183,18 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                 value={trackGains[trackInfo.id] ?? 1}
                 className="vertical-slider"
                 onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setTrackGains((prev) => ({ ...prev, [trackInfo.id]: val }));
+                  const newGain = parseFloat(e.target.value);
+                  setTrackGains((prev) => ({
+                    ...prev,
+                    [trackInfo.id]: newGain,
+                  }));
                   const gainNode = trackFiltersRef.current?.get(
                     `${trackInfo.id}_gain`
                   ) as GainNode | undefined;
-                  gainNode?.gain.setValueAtTime(val, audioContext.currentTime);
+                  gainNode?.gain.setValueAtTime(
+                    newGain,
+                    audioContext.currentTime
+                  );
                 }}
               />
               <label htmlFor={`gain-${trackInfo.id}`}>vol</label>

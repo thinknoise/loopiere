@@ -6,7 +6,7 @@ import type { UpdateSamplePositionFn } from "../types/sample";
 import useAudioBuffer from "../hooks/useAudioBuffer";
 import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
-import { bpmToSecondsPerLoop } from "../utils/timingHelpers";
+import { bpmToSecondsPerLoop } from "../utils/timeHelpers";
 import "../style/trackSample.css";
 
 export interface TrackSampleProps {

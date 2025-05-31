@@ -26,6 +26,7 @@ export interface LoopControlsProps {
   sliderRef: Ref<HTMLSpanElement>;
   trackWidth: number;
   secsPerLoop: number;
+  isPlaying?: boolean;
 }
 
 const LoopControls: FC<LoopControlsProps> = memo(
@@ -44,6 +45,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
     sliderRef,
     trackWidth,
     secsPerLoop,
+    isPlaying = false,
   }) => (
     <Box
       sx={{
@@ -73,8 +75,8 @@ const LoopControls: FC<LoopControlsProps> = memo(
           sx={{
             color: "common.white",
             width: 50,
-            bgcolor: "success.main",
-            "&:hover": { bgcolor: "success.dark" },
+            bgcolor: isPlaying ? "error.main" : "success.main",
+            "&:hover": { bgcolor: isPlaying ? "error.main" : "#3b3b3b" },
             transform: "rotate(180deg)",
           }}
         >
@@ -85,8 +87,8 @@ const LoopControls: FC<LoopControlsProps> = memo(
           aria-label="Stop"
           sx={{
             color: "common.white",
-            bgcolor: "error.main",
-            "&:hover": { bgcolor: "error.dark" },
+            bgcolor: isPlaying ? "success.main" : "error.main",
+            "&:hover": { bgcolor: "#3b3b3b" },
           }}
         >
           <IoStopCircleOutline fontSize={32} />
@@ -178,7 +180,17 @@ const LoopControls: FC<LoopControlsProps> = memo(
         min={40}
         max={200}
         value={bpm}
-        onChange={onBpmChange}
+        onMouseDown={(e) => {
+          console.log("slider mousedown", isPlaying);
+          e.stopPropagation();
+        }}
+        onMouseUp={(e) => {
+          console.log("slider mouseUp", isPlaying);
+          e.stopPropagation();
+        }}
+        onChangeCommitted={(_e, val) => {
+          onBpmChange(_e as any, val as number);
+        }}
         valueLabelDisplay="on"
         valueLabelFormat={(value) => `${value} BPM`}
         sx={{
