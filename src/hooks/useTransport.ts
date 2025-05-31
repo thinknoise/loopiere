@@ -1,7 +1,7 @@
 // src/hooks/useTransport.ts
 
 import { useEffect, useRef, useCallback } from "react";
-import { bpmToSecondsPerLoop } from "../utils/timingUtils";
+import { bpmToSecondsPerLoop } from "../utils/timingHelpers";
 import { useAudioContext } from "../components/AudioContextProvider";
 
 /**

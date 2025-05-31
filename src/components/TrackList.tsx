@@ -22,7 +22,7 @@ import { useLoopSettings } from "../context/LoopSettingsContext";
 
 import { type SampleDescriptor } from "../utils/audioManager";
 import { type UpdateSamplePositionFn } from "../types/sample";
-import { bpmToSecondsPerLoop } from "../utils/timingUtils";
+import { bpmToSecondsPerLoop } from "../utils/timingHelpers";
 import {
   saveSequence,
   loadSequence,
