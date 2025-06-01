@@ -2,6 +2,7 @@
 
 import { getSampleBuffer } from "./audioManager";
 import type { SampleDescriptor } from "./audioManager";
+import { resolveSamplePath } from "./resolveSamplePath";
 
 /**
  * Strip out the live AudioBuffer before serializing,
@@ -51,13 +52,17 @@ export function saveAllSamplesToLocalStorage(
         (!!sample.path && !sample.path.startsWith("blob:")) ||
         (!!sample.url && !sample.url.startsWith("blob:"));
 
+      // Always ensure .url is present for static samples
       if (isStatic) {
-        // meta only
         const { buffer, ...rest } = sample;
-        return { ...rest, __fileBased: true };
-      }
+        const url =
+          sample.url ??
+          (sample.path && !sample.path.startsWith("blob:")
+            ? resolveSamplePath(sample.path)
+            : undefined);
 
-      // PCM branch
+        return { ...rest, url, __fileBased: true };
+      } // PCM branch
       const buf = sample.buffer;
       if (!buf) return null;
       const channelData = Array.from(

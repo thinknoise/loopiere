@@ -60,37 +60,31 @@ export interface SampleDescriptor {
 export async function getSampleBuffer(
   sample: SampleDescriptor
 ): Promise<AudioBuffer> {
-  // return existing buffer
+  // Reuse existing decoded buffer if present
   if (sample.buffer) return sample.buffer;
 
-  // handle blob URLs
-  const blobUrl = sample.url?.startsWith("blob:")
-    ? sample.url
-    : sample.path?.startsWith("blob:")
-    ? sample.path
-    : null;
+  if (!sample.url) {
+    throw new Error("getSampleBuffer: sample is missing a URL");
+  }
 
-  if (blobUrl) {
-    const arrayBuffer = await fetch(blobUrl).then((r) => r.arrayBuffer());
+  // Use blob: URL (recorded sample)
+  if (sample.url.startsWith("blob:")) {
+    const arrayBuffer = await fetch(sample.url).then((r) => r.arrayBuffer());
     const audioCtx = getAudioContext();
     sample.buffer = await audioCtx.decodeAudioData(arrayBuffer);
     return sample.buffer;
   }
 
-  // compute cache key & check
-  const cacheKey = sample.path || sample.url;
-  if (cacheKey && bufferCache.has(cacheKey)) {
-    sample.buffer = bufferCache.get(cacheKey)!;
+  // Check in-memory cache
+  if (bufferCache.has(sample.url)) {
+    sample.buffer = bufferCache.get(sample.url)!;
     return sample.buffer;
   }
 
-  // build asset-relative path
-  if (!sample.url && !sample.path) {
-    throw new Error("getSampleBuffer: sample missing both url and path");
-  }
-
-  const assetPath = resolveSamplePath(sample.url || sample.path || "");
-  const decoded = await loadAudio(assetPath);
+  // Fetch and decode
+  const decoded = await loadAudio(sample.url);
+  bufferCache.set(sample.url, decoded);
+  sample.buffer = decoded;
   return decoded;
 }
 

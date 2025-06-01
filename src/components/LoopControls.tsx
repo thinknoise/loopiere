@@ -75,8 +75,8 @@ const LoopControls: FC<LoopControlsProps> = memo(
           sx={{
             color: "common.white",
             width: 50,
-            bgcolor: isPlaying ? "error.main" : "success.main",
-            "&:hover": { bgcolor: isPlaying ? "error.main" : "#3b3b3b" },
+            bgcolor: isPlaying ? "#3b3b3b" : "success.main",
+            "&:hover": { bgcolor: "#3bee3b" },
             transform: "rotate(180deg)",
           }}
         >
@@ -87,8 +87,8 @@ const LoopControls: FC<LoopControlsProps> = memo(
           aria-label="Stop"
           sx={{
             color: "common.white",
-            bgcolor: isPlaying ? "success.main" : "error.main",
-            "&:hover": { bgcolor: "#3b3b3b" },
+            bgcolor: isPlaying ? "warning.main" : "error.main",
+            "&:hover": { bgcolor: "error.dark" },
           }}
         >
           <IoStopCircleOutline fontSize={32} />
