@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getSampleBuffer } from "../utils/audioManager";
-import { type SampleDescriptor } from "../utils/audioManager";
+import type { BaseSample } from "../types/audio";
 
 export interface UseAudioBufferResult {
   /** Decoded AudioBuffer, or null if not yet loaded */
@@ -14,11 +14,11 @@ export interface UseAudioBufferResult {
 /**
  * Custom hook to load an AudioBuffer from a sample descriptor.
  * Supports pre-buffered samples, static files, and blob URLs uniformly.
- * @param sample - SampleDescriptor object, may include an existing buffer
+ * @param sample - BaseSample object, may include an existing buffer
  * @returns buffer and duration (seconds) of the loaded AudioBuffer
  */
 export default function useAudioBuffer(
-  sample: SampleDescriptor
+  sample: BaseSample
 ): UseAudioBufferResult {
   const [buffer, setBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number | null>(null);

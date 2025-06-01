@@ -2,6 +2,7 @@
 
 import { getAudioContext } from "./audioContextSetup";
 import { resolveSamplePath } from "./resolveSamplePath";
+import type { BaseSample, TrackSample } from "../types/audio";
 
 /**
  * Fetches & decodes an audio file.
@@ -23,7 +24,7 @@ export async function loadAudio(resolvedPath: string): Promise<AudioBuffer> {
 
   if (!isAcceptable) {
     throw new Error(
-      `Invalid content-type "${contentType}" for ${resolvedPath}`
+      `Invalid content-type \"${contentType}\" for ${resolvedPath}`
     );
   }
 
@@ -36,39 +37,15 @@ export async function loadAudio(resolvedPath: string): Promise<AudioBuffer> {
 const bufferCache: Map<string, AudioBuffer> = new Map();
 
 /**
- * A sample descriptor for loading.
- */
-export interface SampleDescriptor {
-  id: number;
-  filename: string;
-  path?: string | null;
-  url?: string | null;
-  buffer?: AudioBuffer | null;
-  duration?: number;
-
-  // Placed‐on‐track metadata:
-  trackId?: number;
-  xPos?: number;
-  onTrack?: boolean;
-  startTime?: number;
-}
-
-/**
  * Decode & cache a sample’s AudioBuffer.
  * @param sample - must have at least `path` or `url`, or an existing `buffer`
  */
 export async function getSampleBuffer(
-  sample: SampleDescriptor
+  sample: BaseSample
 ): Promise<AudioBuffer> {
-  // return existing buffer
   if (sample.buffer) return sample.buffer;
 
-  // handle blob URLs
-  const blobUrl = sample.url?.startsWith("blob:")
-    ? sample.url
-    : sample.path?.startsWith("blob:")
-    ? sample.path
-    : null;
+  const blobUrl = sample.type === "recording" ? sample.blobUrl : null;
 
   if (blobUrl) {
     const arrayBuffer = await fetch(blobUrl).then((r) => r.arrayBuffer());
@@ -77,30 +54,42 @@ export async function getSampleBuffer(
     return sample.buffer;
   }
 
-  // compute cache key & check
-  const cacheKey = sample.path || sample.url;
+  const cacheKey =
+    sample.type === "remote"
+      ? sample.url
+      : sample.type === "local"
+      ? sample.path
+      : null;
+
   if (cacheKey && bufferCache.has(cacheKey)) {
     sample.buffer = bufferCache.get(cacheKey)!;
     return sample.buffer;
   }
 
-  // build asset-relative path
-  if (!sample.url && !sample.path) {
+  const rawPath =
+    sample.type === "remote"
+      ? sample.url
+      : sample.type === "local"
+      ? sample.path
+      : null;
+
+  if (!rawPath) {
     throw new Error("getSampleBuffer: sample missing both url and path");
   }
 
-  const assetPath = resolveSamplePath(sample.url || sample.path || "");
+  const assetPath = resolveSamplePath(rawPath);
   const decoded = await loadAudio(assetPath);
+  sample.buffer = decoded;
   return decoded;
 }
 
 /**
  * Preload & decode all buffers for a set of samples grouped by track.
- * @param allSamples - flat array of SampleDescriptor (with `trackId`)
+ * @param allSamples - flat array of TrackSample (with `trackId`)
  * @param tracks - array of track objects with numeric `id` fields
  */
 export async function prepareAllTracks(
-  allSamples: SampleDescriptor[],
+  allSamples: TrackSample[],
   tracks: { id?: number }[]
 ): Promise<void> {
   if (!Array.isArray(allSamples) || !Array.isArray(tracks)) {
@@ -108,8 +97,7 @@ export async function prepareAllTracks(
     return;
   }
 
-  // group samples by trackId
-  const samplesByTrack = allSamples.reduce<Record<number, SampleDescriptor[]>>(
+  const samplesByTrack = allSamples.reduce<Record<number, TrackSample[]>>(
     (acc, s) => {
       const tid = s.trackId;
       if (tid == null) return acc;

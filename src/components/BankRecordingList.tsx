@@ -5,22 +5,12 @@ import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
-import { SampleDescriptor } from "../utils/audioManager";
+import type { RecordingSample, TrackSample } from "../types/audio";
 import "../style/bankRecordingList.css";
 import "../style/bankTab.css";
 
-export interface Recording extends SampleDescriptor {
-  id: number; // numeric
-  buffer: AudioBuffer; // must be present
-  url: string; // must have a blob URL
-  filename: string; // must have a human label
-  duration: number; // must have duration
-  inputLevel: number;
-  // trackId/xPos/onTrack/startTime are still optional until placement
-}
-
 const BankRecordingList: FC = () => {
-  const [recordings, setRecordings] = useState<Recording[]>([]);
+  const [recordings, setRecordings] = useState<RecordingSample[]>([]);
   const {
     startRecording,
     stopRecording,
@@ -40,17 +30,22 @@ const BankRecordingList: FC = () => {
       const url = await getRecordedBlobURL();
       setRecordings((prevRecordings) => {
         const filename = `Recording ${prevRecordings.length + 1}`;
-        const newRecording: Recording = {
+        const date = new Date().toISOString().split("T")[0];
+        const newRecording: RecordingSample & TrackSample = {
           id: Date.now(),
-          buffer: audioBuffer,
-          url,
+          type: "recording",
+          blobUrl: url,
+          blob: new Blob(),
           filename,
+          title: `${filename} ${date}`,
           duration: audioBuffer.duration,
-          path: url,
+          trimStart: 0,
+          trimEnd: audioBuffer.duration,
+          buffer: audioBuffer,
+          recordedAt: new Date(),
           xPos: 0,
           onTrack: false,
-          trackId: undefined,
-          inputLevel: 0,
+          trackId: 0,
         };
 
         addSampleToRegistry(newRecording);

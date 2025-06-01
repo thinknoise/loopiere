@@ -3,8 +3,8 @@
 import React, { forwardRef, Ref, DragEvent, FC } from "react";
 import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
-import type { SampleDescriptor } from "../utils/audioManager";
-import { UpdateSamplePositionFn } from "../types/sample";
+import type { TrackSample as Sample } from "../types/audio";
+import type { UpdateSamplePositionFn } from "../types/audio";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
@@ -16,8 +16,8 @@ export interface TrackProps {
   trackInfo: TrackInfo;
   trackWidth: number;
   trackLeft: number;
-  allSamples: SampleDescriptor[];
-  editSampleOfSamples: (updated: SampleDescriptor) => void;
+  allSamples: Sample[];
+  editSampleOfSamples: (updated: Sample) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
   bpm: number;
   beatsPerLoop: number;
@@ -91,7 +91,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       if (!original) return;
 
       // 4) Create a fresh trackSample
-      const trackSample: SampleDescriptor = {
+      const trackSample: Sample = {
         ...original,
         trackId: trackInfo.id,
         xPos,

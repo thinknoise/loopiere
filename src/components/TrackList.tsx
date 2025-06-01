@@ -20,8 +20,8 @@ import { useAudioContext } from "./AudioContextProvider";
 import { startPlayback, stopPlayback } from "../utils/audioPlaybackManager";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 
-import { type SampleDescriptor } from "../utils/audioManager";
-import { type UpdateSamplePositionFn } from "../types/sample";
+import type { TrackSample } from "../types/audio";
+import { type UpdateSamplePositionFn } from "../types/audio";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import {
   saveSequence,
@@ -54,21 +54,12 @@ const TrackList: FC<TrackListProps> = ({
   trackNumber = 4,
   initialBpm = 80,
 }) => {
-  // listing toggle
   const [isListingSelected, setListingSelected] = useState<boolean>(false);
-
-  // ref to a track container (passed into each <Track />)
   const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
-
-  // BPM state
   const { bpm, setBpm, beatsPerLoop, setBeatsPerLoop } = useLoopSettings();
-
-  // measure width & left offset
   const [trackWidth, trackLeft] = useTrackWidth(trackRef, beatsPerLoop);
-
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
-  // Frequency filters stateq
   const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
   const [trackFrequencies, setTrackFrequencies] = useState<
     Record<number, number>
@@ -79,7 +70,6 @@ const TrackList: FC<TrackListProps> = ({
   const [trackGains, setTrackGains] = useState<Record<number, number>>({});
   const [trackPans, setTrackPans] = useState<Record<number, number>>({});
 
-  // sequencing hook
   const {
     allSamples,
     setAllSamples,
@@ -87,7 +77,6 @@ const TrackList: FC<TrackListProps> = ({
     updateSamplesWithNewPosition,
   } = useTrackSequence(bpm);
 
-  // playback & transport
   const { playNow, stopAll } = useAudioPlayback({ bpm, beatsPerLoop });
   const { start, stop } = useTransport(bpm, beatsPerLoop, () =>
     playNow(getPlacedSamples(), bpm, trackAudioState)
@@ -99,7 +88,6 @@ const TrackList: FC<TrackListProps> = ({
     [allSamples]
   );
 
-  // tracks to render & preload
   const tracks = useMemo<TrackInfo[]>(
     () => generateTracks(trackNumber),
     [trackNumber]
@@ -116,7 +104,6 @@ const TrackList: FC<TrackListProps> = ({
     [trackFrequencies, trackHighpassFrequencies, trackGains, trackPans]
   );
 
-  // grouped callbacks passed to LoopControls
   const actions = useMemo(() => {
     return {
       onStart: async () =>
@@ -161,34 +148,40 @@ const TrackList: FC<TrackListProps> = ({
     tracks,
   ]);
 
-  // derived metrics
   const secsPerLoop = useMemo<number>(
     () => bpmToSecondsPerLoop(bpm, beatsPerLoop),
     [bpm, beatsPerLoop]
   );
 
-  // record hook
   const audioContext = useAudioContext();
   const { audioBuffer }: UseRecorderResult = useRecorder(audioContext);
   useEffect(() => {
     if (!audioBuffer) return;
-    const newSample: SampleDescriptor = {
+    const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const newSample: TrackSample = {
       id: Date.now(),
-      trackId: 1,
-      buffer: audioBuffer,
-      url: null,
-      path: null,
-      startTime: 0,
-      duration: audioBuffer.duration,
+      type: "recording",
+      blobUrl: "",
       filename: "Live Recording",
+      title: `Live Recording ${date}`,
+      duration: audioBuffer.duration,
+      trimStart: 0,
+      trimEnd: audioBuffer.duration,
+      buffer: audioBuffer,
+      blob: new Blob(),
+      recordedAt: new Date(),
+      trackId: 1,
       xPos: 0,
+      onTrack: true,
     };
     setAllSamples((prev) => [...prev, newSample]);
   }, [audioBuffer, setAllSamples]);
-  // stop playback when beatsPerLoop changes
+
   useEffect(() => {
     stop();
     stopAll();
+    // only stop when beatsPerLoop changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [beatsPerLoop]);
 
   return (

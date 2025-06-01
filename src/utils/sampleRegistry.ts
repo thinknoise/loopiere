@@ -1,14 +1,12 @@
 // src/utils/sampleRegistry.ts
-import type { SampleDescriptor } from "./audioManager";
+import type { BaseSample } from "../types/audio";
 
-const registry = new Map<number, SampleDescriptor>();
+const registry = new Map<number, BaseSample>();
 
-export function addSampleToRegistry(sample: SampleDescriptor) {
+export function addSampleToRegistry(sample: BaseSample) {
   registry.set(sample.id, sample);
 }
 
-export function getSampleFromRegistry(
-  id: number
-): SampleDescriptor | undefined {
+export function getSampleFromRegistry(id: number): BaseSample | undefined {
   return registry.get(id);
 }

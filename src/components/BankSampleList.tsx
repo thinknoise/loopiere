@@ -1,16 +1,16 @@
 // src/components/BankSampleList.tsx
 
+import banks from "../data/banks.json";
 import React, { useEffect, useState, useCallback, FC } from "react";
-import BankSample, { Sample } from "./BankSample";
+import type { LocalSample } from "../types/audio";
+import BankSample from "./BankSample";
 import BankRecordingList from "./BankRecordingList";
 import { fetchAudioData as fetchAudio } from "../utils/fetchAudioData";
-import banks from "../data/banks.json";
-import "../style/bankTab.css";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
-import { SampleDescriptor } from "../utils/audioManager";
+import "../style/bankTab.css";
 
 const BankSampleList: FC = () => {
-  const [bankSamples, setBankSamples] = useState<Sample[]>([]);
+  const [bankSamples, setBankSamples] = useState<LocalSample[]>([]);
   const [bankFilename, setBankFilename] = useState<string>("recorded");
 
   const spawnSamples = useCallback((filename: string): void => {
@@ -20,24 +20,22 @@ const BankSampleList: FC = () => {
           setBankSamples([]);
           return;
         }
-        // Augment each raw sample with your metadata, then register it
-        const augmented: SampleDescriptor[] = data.map((raw, idx) => {
-          const sample: SampleDescriptor = {
-            // pull in whatever the fetch gave you
+
+        const augmented: LocalSample[] = data.map((raw, idx) => {
+          const name = raw.filename?.replace(/\.[^/.]+$/, "") ?? "Untitled";
+          const sample: LocalSample = {
             ...raw,
-            // give it a unique numeric ID (bank-specific namespace)
             id: Date.now() + idx,
-            // not yet placed on a track
+            title: name,
+            type: "local",
             xPos: 0,
             onTrack: false,
             trackId: undefined,
-            // filename, path/url, buffer, duration should already be on raw
           };
           addSampleToRegistry(sample);
           return sample;
         });
 
-        // Now store your fully-typed samples for rendering
         setBankSamples(augmented);
       })
       .catch((err) => console.error("Error fetching audio data:", err));
@@ -50,11 +48,10 @@ const BankSampleList: FC = () => {
   }, [bankFilename, spawnSamples]);
 
   const tabFilenames = banks.map((b) => b.filename);
-  tabFilenames.unshift("recorded"); // Adds to the start
+  tabFilenames.unshift("recorded");
 
   return (
     <div className="bank-tabs">
-      {/* Tabs */}
       {tabFilenames.map((filename, i) => (
         <button
           key={i}
@@ -67,7 +64,6 @@ const BankSampleList: FC = () => {
         </button>
       ))}
 
-      {/* Sample buttons */}
       <div className="button-container">
         {bankFilename === "recorded" ? (
           <BankRecordingList />

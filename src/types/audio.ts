@@ -56,7 +56,7 @@ export type BaseSample = LocalSample | RecordingSample | RemoteSample;
 export type TrackSample = BaseSample & {
   trackId: number;
   xPos: number;
-  onTrack: true;
+  onTrack: boolean;
   startTime?: number;
 };
 

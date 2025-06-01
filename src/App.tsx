@@ -1,10 +1,11 @@
 // Rename App.js → App.tsx
 
 import React, { useState } from "react";
+import type { TrackSample } from "./types/audio";
 import { AudioContextProvider } from "./components/AudioContextProvider";
 import BankSampleList from "./components/BankSampleList";
 import TrackList from "./components/TrackList";
-import { SampleDescriptor } from "./utils/audioManager";
+
 import "./style/App.css";
 
 const App: React.FC = () => {
@@ -16,7 +17,7 @@ const App: React.FC = () => {
         <TrackList
           trackNumber={trackNumber}
           updateSamplesWithNewPosition={function (
-            sample: SampleDescriptor,
+            sample: TrackSample,
             xPosFraction: number
           ): void {
             throw new Error("Function not implemented.");
