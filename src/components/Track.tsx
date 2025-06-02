@@ -64,7 +64,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
     ref
   ) => {
     const audioContext = useAudioContext();
-    const { bpm, beatsPerLoop } = useLoopSettings();
+    const { beatsPerLoop } = useLoopSettings();
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();

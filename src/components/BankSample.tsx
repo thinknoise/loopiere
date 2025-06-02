@@ -25,7 +25,7 @@ export interface BankSampleProps {
 }
 
 const TOTAL_TRACK_WIDTH = 916;
-const DEFAULT_WAVEFORM_WIDTH = 120;
+const DEFAULT_WAVEFORM_WIDTH = 220;
 const WAVEFORM_HEIGHT = 53;
 
 const BankSample: FC<BankSampleProps> = ({
