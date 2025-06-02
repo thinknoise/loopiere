@@ -1,19 +1,18 @@
 // src/hooks/useAudioPlayback.ts
 
 import { useState, useCallback, useRef } from "react";
-import { getSampleBuffer, SampleDescriptor } from "../utils/audioManager";
+import type { TrackSample } from "../types/audio";
+import { getSampleBuffer } from "../utils/audioManager";
 import {
   getAudioContext,
   resumeAudioContext,
 } from "../utils/audioContextSetup";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
- * Extended sample type with xPos for playback scheduling.
+ * Alias for playback sample — identical to TrackSample since xPos is core.
  */
-export interface PlaybackSample extends SampleDescriptor {
-  /** Fractional position (0–1) representing start point in loop */
-  xPos: number;
-}
+export type PlaybackSample = TrackSample;
 
 /**
  * Shapes the shared audio-node state for each track,
@@ -46,14 +45,9 @@ export interface UseAudioPlaybackResult {
   stopAll(): void;
 }
 
-export default function useAudioPlayback({
-  bpm,
-  beatsPerLoop,
-}: {
-  bpm: number;
-  beatsPerLoop: number;
-}): UseAudioPlaybackResult {
+export default function useAudioPlayback(): UseAudioPlaybackResult {
   const audioContext = getAudioContext();
+  const { beatsPerLoop } = useLoopSettings();
   const [playingSources, setPlayingSources] = useState<AudioBufferSourceNode[]>(
     []
   );

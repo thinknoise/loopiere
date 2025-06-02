@@ -3,15 +3,15 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { addParamsToUrl, SequenceParam } from "../utils/urlUtils";
-import type { SampleDescriptor } from "../utils/audioManager";
-import { UpdateSamplePositionFn } from "../types/sample";
+import type { TrackSample } from "../types/audio";
+import type { UpdateSamplePositionFn } from "../types/audio";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Edit or remove a sample in the sequence.
  */
 export type EditSampleFn = (
-  newSample: SampleDescriptor,
+  newSample: TrackSample,
   removeSample?: boolean
 ) => void;
 
@@ -22,13 +22,12 @@ export type EditSampleFn = (
  */
 
 export interface UseTrackSequenceResult {
-  allSamples: SampleDescriptor[];
+  allSamples: TrackSample[];
   bpm: number;
-  latestSamplesRef: React.MutableRefObject<SampleDescriptor[]>;
+  latestSamplesRef: React.MutableRefObject<TrackSample[]>;
   latestBpm: React.MutableRefObject<number>;
-  saveSequence: () => void;
   shareSequence: () => void;
-  setAllSamples: React.Dispatch<React.SetStateAction<SampleDescriptor[]>>;
+  setAllSamples: React.Dispatch<React.SetStateAction<TrackSample[]>>;
   clearAllSamples: () => void;
   editSampleOfSamples: EditSampleFn;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
@@ -43,12 +42,12 @@ export interface UseTrackSequenceResult {
 export default function useTrackSequence(
   initialBpm: number = 90
 ): UseTrackSequenceResult {
-  const [allSamples, setAllSamples] = useState<SampleDescriptor[]>([]);
+  const [allSamples, setAllSamples] = useState<TrackSample[]>([]);
 
-  const { bpm, beatsPerLoop } = useLoopSettings();
+  const { bpm } = useLoopSettings();
 
   // Refs to always read latest values inside callbacks
-  const latestSamplesRef = useRef<SampleDescriptor[]>(allSamples);
+  const latestSamplesRef = useRef<TrackSample[]>(allSamples);
   const latestBpm = useRef<number>(bpm);
 
   useEffect(() => {
@@ -80,16 +79,9 @@ export default function useTrackSequence(
     []
   );
 
-  const saveSequence = (): void => {
-    saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop);
-  };
-
   const shareSequence = (): void => {
     const placedParams: SequenceParam[] = allSamples
-      .filter(
-        (s): s is SampleDescriptor & { xPos: number } =>
-          typeof s.xPos === "number"
-      )
+      .filter((s): s is TrackSample => typeof s.xPos === "number")
       .map((s) => ({
         trackSampleId: s.id,
         xPos: s.xPos, // now guaranteed to be a number
@@ -107,7 +99,6 @@ export default function useTrackSequence(
     bpm,
     latestSamplesRef,
     latestBpm,
-    saveSequence,
     shareSequence,
     setAllSamples,
     clearAllSamples,

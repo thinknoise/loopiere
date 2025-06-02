@@ -1,26 +1,25 @@
 // src/components/TrackSample.tsx
 
 import React, { useRef, useState, useCallback, FC, MouseEvent } from "react";
-import type { SampleDescriptor } from "../utils/audioManager";
-import type { UpdateSamplePositionFn } from "../types/sample";
+import type { TrackSample as Sample } from "../types/audio";
+import type { UpdateSamplePositionFn } from "../types/audio";
 import useAudioBuffer from "../hooks/useAudioBuffer";
 import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import "../style/trackSample.css";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 export interface TrackSampleProps {
-  sample: SampleDescriptor;
+  sample: Sample;
   trackWidth: number;
   trackLeft: number;
-  bpm: number;
-  beatsPerLoop: number;
   /**
    * Edit or remove a sample.
    * @param sample Sample descriptor to update or remove.
    * @param remove If true, remove the sample; otherwise update it.
    */
-  editSampleOfSamples: (sample: SampleDescriptor, remove?: boolean) => void;
+  editSampleOfSamples: (sample: Sample, remove?: boolean) => void;
   /**
    * Move a sample to a new fractional position.
    * @param sampleId The numeric ID of the sample.
@@ -33,13 +32,13 @@ const TrackSample: FC<TrackSampleProps> = ({
   sample,
   trackWidth,
   trackLeft,
-  bpm,
-  beatsPerLoop,
   editSampleOfSamples,
   updateSamplesWithNewPosition,
 }) => {
   const { buffer: audioBuffer, duration: audioDuration } =
     useAudioBuffer(sample);
+
+  const { bpm, beatsPerLoop } = useLoopSettings();
 
   const xPos = sample.xPos ?? 0;
 

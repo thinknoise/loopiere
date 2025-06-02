@@ -1,13 +1,14 @@
 // src/utils/storageUtils.ts
 
 import { getSampleBuffer } from "./audioManager";
-import type { SampleDescriptor } from "./audioManager";
+import type { TrackSample, LocalSample } from "../types/audio";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Strip out the live AudioBuffer before serializing,
- * but keep all other SampleDescriptor fields.
+ * but keep all other TrackSample fields.
  */
-type BaseSerializedSample = Omit<SampleDescriptor, "buffer"> & {
+type BaseSerializedSample = Omit<TrackSample, "buffer"> & {
   __fileBased: boolean;
 };
 
@@ -37,19 +38,24 @@ type SerializedSample = SerializedFileSample | SerializedPCMSample;
 /**
  * Serialize sample metadata (and recorded PCM) to localStorage.
  * For file-based samples (with path or url), only metadata is saved.
- * @param allSamples - array of SampleDescriptor (may include recorded or file-based samples)
+ * @param allSamples - array of TrackSample (may include recorded or file-based samples)
  * @param bpm - beats per minute to persist alongside samples
  */
 export function saveAllSamplesToLocalStorage(
-  allSamples: SampleDescriptor[],
+  allSamples: TrackSample[],
   bpm: number,
   beatsPerLoop: number
 ): void {
   const serializedSamples = allSamples
     .map<SerializedSample | null>((sample) => {
       const isStatic =
-        (!!sample.path && !sample.path.startsWith("blob:")) ||
-        (!!sample.url && !sample.url.startsWith("blob:"));
+        sample.type === "local" &&
+        (("path" in sample &&
+          typeof sample.path === "string" &&
+          !sample.path.startsWith("blob:")) ||
+          ("url" in sample &&
+            typeof sample.url === "string" &&
+            !sample.url.startsWith("blob:")));
 
       if (isStatic) {
         // meta only
@@ -65,16 +71,24 @@ export function saveAllSamplesToLocalStorage(
         (_, ch) => Array.from(buf.getChannelData(ch))
       );
       return {
-        // spread everything *but* buffer
         id: sample.id,
         filename: sample.filename,
-        path: sample.path,
-        url: sample.url,
+        title: sample.title,
+        type: sample.type,
         duration: sample.duration,
+        trimStart: sample.trimStart,
+        trimEnd: sample.trimEnd,
         trackId: sample.trackId,
         xPos: sample.xPos,
         onTrack: sample.onTrack,
         startTime: sample.startTime,
+        ...(sample.type === "recording"
+          ? {
+              blobUrl: sample.blobUrl,
+              blob: sample.blob,
+              recordedAt: sample.recordedAt,
+            }
+          : {}),
 
         __fileBased: false,
         __pcm: channelData,
@@ -99,14 +113,14 @@ export function saveAllSamplesToLocalStorage(
  * Rebuild sample buffers from localStorage data.
  * File-based samples are reloaded via getSampleBuffer;
  * recorded samples are reconstructed from saved PCM.
- * @returns Promise resolving to an array of SampleDescriptor with buffers
+ * @returns Promise resolving to an array of TrackSample with buffers
  */
 export async function getAllSamplesFromLocalStorage(
   audioContext: AudioContext
 ): Promise<{
   bpm: number;
   beatsPerLoop: number;
-  samples: SampleDescriptor[];
+  samples: TrackSample[];
 }> {
   const raw = localStorage.getItem("LoopiereSavedLoopV2");
   if (!raw) {
@@ -125,8 +139,8 @@ export async function getAllSamplesFromLocalStorage(
     serializedSamples.map(async (data: Record<string, any>) => {
       if (data.__fileBased) {
         const { __fileBased, ...meta } = data;
-        const buffer = await getSampleBuffer(meta as SampleDescriptor);
-        return { ...(meta as SampleDescriptor), buffer };
+        const buffer = await getSampleBuffer(meta as TrackSample);
+        return { ...(meta as TrackSample), buffer };
       }
 
       // reconstruct recorded sample from PCM
@@ -149,7 +163,7 @@ export async function getAllSamplesFromLocalStorage(
         buffer.copyToChannel(new Float32Array(chanArr), ch);
       });
 
-      return { ...(rest as SampleDescriptor), buffer };
+      return { ...(rest as TrackSample), buffer };
     })
   );
 

@@ -3,24 +3,23 @@
 import React, { forwardRef, Ref, DragEvent, FC } from "react";
 import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
-import type { SampleDescriptor } from "../utils/audioManager";
-import { UpdateSamplePositionFn } from "../types/sample";
+import type { TrackSample as Sample } from "../types/audio";
+import type { UpdateSamplePositionFn } from "../types/audio";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
 import { TrackAudioState } from "../hooks/useAudioPlayback";
 import Knob from "./trackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
   trackWidth: number;
   trackLeft: number;
-  allSamples: SampleDescriptor[];
-  editSampleOfSamples: (updated: SampleDescriptor) => void;
+  allSamples: Sample[];
+  editSampleOfSamples: (updated: Sample) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
-  bpm: number;
-  beatsPerLoop: number;
   selected: boolean;
   onSelect: () => void;
   trackAudioState: TrackAudioState;
@@ -46,8 +45,6 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       allSamples,
       editSampleOfSamples,
       updateSamplesWithNewPosition,
-      bpm,
-      beatsPerLoop,
       selected,
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
@@ -67,6 +64,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
     ref
   ) => {
     const audioContext = useAudioContext();
+    const { beatsPerLoop } = useLoopSettings();
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
@@ -91,7 +89,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       if (!original) return;
 
       // 4) Create a fresh trackSample
-      const trackSample: SampleDescriptor = {
+      const trackSample: Sample = {
         ...original,
         trackId: trackInfo.id,
         xPos,
@@ -145,8 +143,6 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                 sample={sampleInfo}
                 trackWidth={trackWidth}
                 trackLeft={trackLeft}
-                bpm={bpm}
-                beatsPerLoop={beatsPerLoop}
                 editSampleOfSamples={editSampleOfSamples}
                 updateSamplesWithNewPosition={updateSamplesWithNewPosition}
               />

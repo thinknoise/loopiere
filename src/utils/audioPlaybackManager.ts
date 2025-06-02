@@ -1,11 +1,12 @@
 // utils/audioPlaybackManager.ts
-import { prepareAllTracks, SampleDescriptor } from "./audioManager";
+import { prepareAllTracks } from "./audioManager";
 import { resumeAudioContext } from "./audioContextSetup";
 import { PlaybackSample, TrackAudioState } from "../hooks/useAudioPlayback";
 import { TrackInfo } from "../components/TrackList";
+import type { TrackSample } from "../types/audio";
 
 interface StartPlaybackArgs {
-  allSamples: SampleDescriptor[];
+  allSamples: TrackSample[];
   tracks: TrackInfo[]; // replace with your actual TrackInfo[] type
   bpm: number;
   getPlacedSamples: () => PlaybackSample[];
