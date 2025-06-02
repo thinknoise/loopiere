@@ -32,6 +32,7 @@ import {
 } from "../utils/loopStateManager";
 
 import "../style/tracklist.css";
+import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 
 // --- Types ---
 export interface TrackInfo {
@@ -57,7 +58,7 @@ const TrackList: FC<TrackListProps> = ({
   const [isListingSelected, setListingSelected] = useState<boolean>(false);
   const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
   const { bpm, setBpm, beatsPerLoop, setBeatsPerLoop } = useLoopSettings();
-  const [trackWidth, trackLeft] = useTrackWidth(trackRef, beatsPerLoop);
+  const [trackWidth, trackLeft] = useTrackWidth(trackRef);
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
   const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
@@ -77,8 +78,8 @@ const TrackList: FC<TrackListProps> = ({
     updateSamplesWithNewPosition,
   } = useTrackSequence(bpm);
 
-  const { playNow, stopAll } = useAudioPlayback({ bpm, beatsPerLoop });
-  const { start, stop } = useTransport(bpm, beatsPerLoop, () =>
+  const { playNow, stopAll } = useAudioPlayback();
+  const { start, stop } = useTransport(() =>
     playNow(getPlacedSamples(), bpm, trackAudioState)
   );
 
@@ -124,7 +125,7 @@ const TrackList: FC<TrackListProps> = ({
         stopAll();
         clearSamples(setAllSamples);
       },
-      onSave: () => saveSequence(allSamples, bpm, beatsPerLoop),
+      onSave: () => saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop),
       onDelete: () =>
         deleteSequence(setAllSamples, setBpm, initialBpm, beatsPerLoop),
       onLoad: () => loadSequence(setAllSamples, setBpm, setBeatsPerLoop),
@@ -147,11 +148,6 @@ const TrackList: FC<TrackListProps> = ({
     trackAudioState,
     tracks,
   ]);
-
-  const secsPerLoop = useMemo<number>(
-    () => bpmToSecondsPerLoop(bpm, beatsPerLoop),
-    [bpm, beatsPerLoop]
-  );
 
   const audioContext = useAudioContext();
   const { audioBuffer }: UseRecorderResult = useRecorder(audioContext);
@@ -189,11 +185,8 @@ const TrackList: FC<TrackListProps> = ({
       <LoopControls
         sliderRef={null}
         {...actions}
-        bpm={bpm}
-        beatsPerLoop={beatsPerLoop}
         onBeatsPerLoopChange={(val) => setBeatsPerLoop(val)}
         trackWidth={trackWidth}
-        secsPerLoop={secsPerLoop}
         emptyTracks={allSamples.length === 0}
       />
 
@@ -207,8 +200,6 @@ const TrackList: FC<TrackListProps> = ({
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
-          bpm={bpm}
-          beatsPerLoop={beatsPerLoop}
           allSamples={allSamples.filter((s) => s.trackId === track.id)}
           editSampleOfSamples={editSampleOfSamples}
           updateSamplesWithNewPosition={updateSamplesWithNewPosition}

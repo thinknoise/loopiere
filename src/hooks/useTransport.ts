@@ -1,8 +1,9 @@
 // src/hooks/useTransport.ts
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, use } from "react";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import { useAudioContext } from "../components/AudioContextProvider";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Callback invoked at each loop boundary.
@@ -25,15 +26,13 @@ export interface UseTransportResult {
 
 /**
  * Custom hook: schedules loop iterations via requestAnimationFrame.
- * @param bpm Beats per minute to calculate loop duration
  * @param onLoopCallback Called each time a loop boundary is reached
  */
 export default function useTransport(
-  bpm: number,
-  beatsPerLoop: number,
   onLoopCallback: OnLoopCallback
 ): UseTransportResult {
   const audioContext = useAudioContext();
+  const { bpm, beatsPerLoop } = useLoopSettings();
 
   // Mutable refs to track state across frames
   const isRunningRef = useRef<boolean>(false);

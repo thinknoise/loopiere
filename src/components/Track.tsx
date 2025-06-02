@@ -11,6 +11,7 @@ import { useAudioContext } from "./AudioContextProvider";
 import { TrackAudioState } from "../hooks/useAudioPlayback";
 import Knob from "./trackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -19,8 +20,6 @@ export interface TrackProps {
   allSamples: Sample[];
   editSampleOfSamples: (updated: Sample) => void;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
-  bpm: number;
-  beatsPerLoop: number;
   selected: boolean;
   onSelect: () => void;
   trackAudioState: TrackAudioState;
@@ -46,8 +45,6 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       allSamples,
       editSampleOfSamples,
       updateSamplesWithNewPosition,
-      bpm,
-      beatsPerLoop,
       selected,
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
@@ -67,6 +64,7 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
     ref
   ) => {
     const audioContext = useAudioContext();
+    const { bpm, beatsPerLoop } = useLoopSettings();
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
@@ -145,8 +143,6 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
                 sample={sampleInfo}
                 trackWidth={trackWidth}
                 trackLeft={trackLeft}
-                bpm={bpm}
-                beatsPerLoop={beatsPerLoop}
                 editSampleOfSamples={editSampleOfSamples}
                 updateSamplesWithNewPosition={updateSamplesWithNewPosition}
               />

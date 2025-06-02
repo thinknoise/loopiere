@@ -8,13 +8,12 @@ import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import "../style/trackSample.css";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 export interface TrackSampleProps {
   sample: Sample;
   trackWidth: number;
   trackLeft: number;
-  bpm: number;
-  beatsPerLoop: number;
   /**
    * Edit or remove a sample.
    * @param sample Sample descriptor to update or remove.
@@ -33,13 +32,13 @@ const TrackSample: FC<TrackSampleProps> = ({
   sample,
   trackWidth,
   trackLeft,
-  bpm,
-  beatsPerLoop,
   editSampleOfSamples,
   updateSamplesWithNewPosition,
 }) => {
   const { buffer: audioBuffer, duration: audioDuration } =
     useAudioBuffer(sample);
+
+  const { bpm, beatsPerLoop } = useLoopSettings();
 
   const xPos = sample.xPos ?? 0;
 

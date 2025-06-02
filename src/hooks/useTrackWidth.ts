@@ -1,6 +1,7 @@
 // src/hooks/useTrackWidth.ts
 
 import { useState, useEffect, RefObject } from "react";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Custom hook that measures the width and left offset of a referenced element.
@@ -8,11 +9,11 @@ import { useState, useEffect, RefObject } from "react";
  * @returns A tuple [width, leftOffset] in pixels
  */
 export default function useTrackWidth(
-  trackRef: RefObject<HTMLElement>,
-  beatsPerLoop: number
+  trackRef: RefObject<HTMLElement>
 ): [number, number] {
   const [trackWidth, setTrackWidth] = useState<number>(0);
   const [trackLeft, setTrackLeft] = useState<number>(0);
+  const { beatsPerLoop } = useLoopSettings();
 
   useEffect(() => {
     const updateTrackMeasurements = (): void => {

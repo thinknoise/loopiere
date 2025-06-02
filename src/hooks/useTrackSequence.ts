@@ -26,7 +26,6 @@ export interface UseTrackSequenceResult {
   bpm: number;
   latestSamplesRef: React.MutableRefObject<TrackSample[]>;
   latestBpm: React.MutableRefObject<number>;
-  saveSequence: () => void;
   shareSequence: () => void;
   setAllSamples: React.Dispatch<React.SetStateAction<TrackSample[]>>;
   clearAllSamples: () => void;
@@ -45,7 +44,7 @@ export default function useTrackSequence(
 ): UseTrackSequenceResult {
   const [allSamples, setAllSamples] = useState<TrackSample[]>([]);
 
-  const { bpm, beatsPerLoop } = useLoopSettings();
+  const { bpm } = useLoopSettings();
 
   // Refs to always read latest values inside callbacks
   const latestSamplesRef = useRef<TrackSample[]>(allSamples);
@@ -80,10 +79,6 @@ export default function useTrackSequence(
     []
   );
 
-  const saveSequence = (): void => {
-    saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop);
-  };
-
   const shareSequence = (): void => {
     const placedParams: SequenceParam[] = allSamples
       .filter((s): s is TrackSample => typeof s.xPos === "number")
@@ -104,7 +99,6 @@ export default function useTrackSequence(
     bpm,
     latestSamplesRef,
     latestBpm,
-    saveSequence,
     shareSequence,
     setAllSamples,
     clearAllSamples,

@@ -7,6 +7,7 @@ import {
   getAudioContext,
   resumeAudioContext,
 } from "../utils/audioContextSetup";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Alias for playback sample — identical to TrackSample since xPos is core.
@@ -44,14 +45,9 @@ export interface UseAudioPlaybackResult {
   stopAll(): void;
 }
 
-export default function useAudioPlayback({
-  bpm,
-  beatsPerLoop,
-}: {
-  bpm: number;
-  beatsPerLoop: number;
-}): UseAudioPlaybackResult {
+export default function useAudioPlayback(): UseAudioPlaybackResult {
   const audioContext = getAudioContext();
+  const { beatsPerLoop } = useLoopSettings();
   const [playingSources, setPlayingSources] = useState<AudioBufferSourceNode[]>(
     []
   );

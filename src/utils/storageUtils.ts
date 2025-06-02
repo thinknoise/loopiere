@@ -2,6 +2,7 @@
 
 import { getSampleBuffer } from "./audioManager";
 import type { TrackSample, LocalSample } from "../types/audio";
+import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
  * Strip out the live AudioBuffer before serializing,
