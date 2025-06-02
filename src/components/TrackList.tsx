@@ -22,9 +22,7 @@ import { useLoopSettings } from "../context/LoopSettingsContext";
 
 import type { TrackSample } from "../types/audio";
 import { type UpdateSamplePositionFn } from "../types/audio";
-import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import {
-  saveSequence,
   loadSequence,
   deleteSequence,
   clearSamples,
