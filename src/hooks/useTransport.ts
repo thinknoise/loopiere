@@ -58,7 +58,6 @@ export default function useTransport(
     if (elapsed >= loopDurationRef.current) {
       startTimeRef.current += loopDurationRef.current;
       if (isRunningRef.current) {
-        console.log("callbackRef in loop", callbackRef.current);
         callbackRef.current();
       }
     }
@@ -68,7 +67,6 @@ export default function useTransport(
   }, [audioContext]);
 
   const start = useCallback((): void => {
-    console.log("start");
     if (!isRunningRef.current) {
       isRunningRef.current = true;
       setIsRunning(true);
@@ -79,7 +77,6 @@ export default function useTransport(
   }, [audioContext, loop]);
 
   const stop = useCallback((): void => {
-    console.log("stop", isRunningRef.current);
     isRunningRef.current = false;
     setIsRunning(false);
     if (rafIdRef.current !== null) {

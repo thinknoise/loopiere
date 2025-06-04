@@ -188,7 +188,6 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
 
   // ─── stopAll: kill any playing sources ────────────────────────
   const stopAll = useCallback(() => {
-    console.log("stopAll", playingSources.current);
     playingSources.current.forEach((src) => {
       try {
         src.stop();
