@@ -28,10 +28,12 @@ export interface LoopControlsProps {
   sliderRef: Ref<HTMLSpanElement>;
   trackWidth: number;
   trackAudioState: TrackAudioState;
+  trackNumber: number;
+  setTrackNumber: (trackNumber: number) => void;
 }
 
 const LoopControls: FC<LoopControlsProps> = memo(
-  ({ sliderRef, trackWidth, trackAudioState }) => {
+  ({ sliderRef, trackWidth, trackAudioState, trackNumber, setTrackNumber }) => {
     // Beats Per Minute
     const { bpm, beatsPerLoop, setBpm, setBeatsPerLoop } = useLoopSettings();
     const { playNow, stopAll } = useAudioPlayback();
@@ -66,11 +68,12 @@ const LoopControls: FC<LoopControlsProps> = memo(
     const clearSamples = useTrackSampleStore((s) => s.clearSamples);
 
     const onSave = () =>
-      saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop);
+      saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop, trackNumber);
 
     const onDelete = () => deleteSequence(setAllSamples, setBpm, beatsPerLoop);
 
-    const onLoad = () => loadSequence(setAllSamples, setBpm, setBeatsPerLoop);
+    const onLoad = () =>
+      loadSequence(setAllSamples, setBpm, setBeatsPerLoop, setTrackNumber);
 
     useEffect(() => {
       stop();
