@@ -1,11 +1,11 @@
-
 .track-btn-wrapper {
   position: absolute;
 }
 
 .track-sample-btn {
   position: absolute;
-  white-space: nowrap; /* Ensure text doesn't wrap */
+  white-space: nowrap;
+  /* Ensure text doesn't wrap */
   border-radius: 5px;
   border: 1px solid #000;
   margin: 0px;
@@ -23,16 +23,20 @@
   position: absolute;
   left: 0px;
   top: 0px;
-  width: 15px; /* Make it a square */
+  width: 15px;
+  /* Make it a square */
   height: 15px;
-  background-color: #333; /* Dark background for contrast */
+  background-color: #333;
+  /* Dark background for contrast */
   z-index: 13;
 }
 
 .remove-track-btn:after {
   position: absolute;
-  transform: translate(-6px, -8px); /* Center the X */
-  content: "\2716"; /* Unicode for the "X" symbol */
+  transform: translate(-6px, -8px);
+  /* Center the X */
+  content: "\2716";
+  /* Unicode for the "X" symbol */
   font-size: 14px;
   color: #bbb;
   text-align: center;

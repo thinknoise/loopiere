@@ -1,6 +1,6 @@
 // src/components/LoopControls.tsx
 
-import React, { memo, FC, Ref, useMemo } from "react";
+import React, { memo, FC, Ref, useMemo, useCallback, useEffect } from "react";
 import { TiArrowLoop } from "react-icons/ti";
 import { IoStopCircleOutline } from "react-icons/io5";
 import {
@@ -13,37 +13,69 @@ import { Box, IconButton, Slider, Typography } from "@mui/material";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 
+import useAudioPlayback, {
+  PlaybackSample,
+  TrackAudioState,
+} from "../hooks/useAudioPlayback";
+import useTransport from "../hooks/useTransport";
+
+import { useTrackSampleStore } from "../stores/trackSampleStore";
+import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
+import { deleteSequence, loadSequence } from "../utils/loopStateManager";
+
 export interface LoopControlsProps {
-  onStart: () => void | Promise<void>;
-  onStop: () => void | Promise<void>;
-  onClear: () => void | Promise<void>;
-  onSave: () => void | Promise<void>;
-  onDelete: () => void | Promise<void>;
-  onLoad: () => void | Promise<void>;
   emptyTracks: boolean;
   onBpmChange?: (event: Event, value: number | number[]) => void;
-  onBeatsPerLoopChange?: (value: number) => void;
   sliderRef: Ref<HTMLSpanElement>;
   trackWidth: number;
+  trackAudioState: TrackAudioState;
 }
 
 const LoopControls: FC<LoopControlsProps> = memo(
-  ({
-    onStart,
-    onStop,
-    onClear,
-    onSave,
-    onDelete,
-    onLoad,
-    emptyTracks,
-    sliderRef,
-    trackWidth,
-  }) => {
+  ({ emptyTracks, sliderRef, trackWidth, trackAudioState }) => {
+    // Beats Per Minute
     const { bpm, beatsPerLoop, setBpm, setBeatsPerLoop } = useLoopSettings();
+    const { playNow, stopAll } = useAudioPlayback();
+
+    // fer show
     const secsPerLoop = useMemo<number>(
       () => bpmToSecondsPerLoop(bpm, beatsPerLoop),
       [bpm, beatsPerLoop]
     );
+
+    // All Samples from Zustand store
+    const allSamples = useTrackSampleStore((s) => s.allSamples);
+    const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
+
+    const getPlacedSamples = useCallback(
+      (): PlaybackSample[] =>
+        allSamples.filter(
+          (s): s is PlaybackSample => typeof s.xPos === "number"
+        ),
+      [allSamples]
+    );
+
+    // Play Mechanics
+    const transportCallback = useCallback(() => {
+      playNow(getPlacedSamples(), bpm, trackAudioState);
+    }, [getPlacedSamples, bpm, trackAudioState]);
+
+    const { start, stop } = useTransport(transportCallback);
+
+    const clearSamples = useTrackSampleStore((s) => s.clearSamples);
+
+    const onSave = () =>
+      saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop);
+
+    const onDelete = () => deleteSequence(setAllSamples, setBpm, beatsPerLoop);
+
+    const onLoad = () => loadSequence(setAllSamples, setBpm, setBeatsPerLoop);
+
+    useEffect(() => {
+      stop();
+      stopAll();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [beatsPerLoop]);
 
     return (
       <Box
@@ -69,7 +101,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
           }}
         >
           <IconButton
-            onClick={onStart}
+            onClick={start}
             aria-label="Play Loop"
             sx={{
               color: "common.white",
@@ -82,7 +114,10 @@ const LoopControls: FC<LoopControlsProps> = memo(
             <TiArrowLoop fontSize={35} />
           </IconButton>
           <IconButton
-            onClick={onStop}
+            onClick={() => {
+              stop();
+              stopAll();
+            }}
             aria-label="Stop"
             sx={{
               color: "common.white",
@@ -93,7 +128,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
             <IoStopCircleOutline fontSize={32} />
           </IconButton>
           <IconButton
-            onClick={onClear}
+            onClick={clearSamples}
             aria-label="Clear Loop"
             sx={{
               color: "common.white",

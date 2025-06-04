@@ -7,30 +7,17 @@ import React, {
   useMemo,
   FC,
   RefObject,
-  useCallback,
 } from "react";
 import LoopControls from "./LoopControls";
 import Track from "./Track";
 import useTrackWidth from "../hooks/useTrackWidth";
-import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
-import useTrackSequence from "../hooks/useTrackSequence";
-import useTransport from "../hooks/useTransport";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import { startPlayback, stopPlayback } from "../utils/audioPlaybackManager";
-import { useLoopSettings } from "../context/LoopSettingsContext";
+import { useTrackSampleStore } from "../stores/trackSampleStore";
 
 import type { TrackSample } from "../types/audio";
-import { type UpdateSamplePositionFn } from "../types/audio";
-import {
-  loadSequence,
-  deleteSequence,
-  clearSamples,
-  changeBpm,
-} from "../utils/loopStateManager";
 
 import "../style/tracklist.css";
-import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 
 // --- Types ---
 export interface TrackInfo {
@@ -38,26 +25,20 @@ export interface TrackInfo {
   name: string;
 }
 
-export interface TrackListProps {
-  trackNumber?: number;
-  initialBpm?: number;
-  updateSamplesWithNewPosition: UpdateSamplePositionFn;
-}
-
-// --- Helpers ---
+// --- # of Tracks Helpers ---
 const generateTracks = (n: number): TrackInfo[] =>
   Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Track ${i + 1}` }));
 
 // --- Component ---
-const TrackList: FC<TrackListProps> = ({
-  trackNumber = 4,
-  initialBpm = 80,
-}) => {
-  const [isListingSelected, setListingSelected] = useState<boolean>(false);
+const TrackList: FC = () => {
   const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
-  const { bpm, setBpm, beatsPerLoop, setBeatsPerLoop } = useLoopSettings();
-  const [trackWidth, trackLeft] = useTrackWidth(trackRef);
+
+  const [trackNumber, setTrackNumber] = useState(4);
+
+  const [isListingSelected, setListingSelected] = useState<boolean>(false);
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
+
+  const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
   const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
   const [trackFrequencies, setTrackFrequencies] = useState<
@@ -69,23 +50,8 @@ const TrackList: FC<TrackListProps> = ({
   const [trackGains, setTrackGains] = useState<Record<number, number>>({});
   const [trackPans, setTrackPans] = useState<Record<number, number>>({});
 
-  const {
-    allSamples,
-    setAllSamples,
-    editSampleOfSamples,
-    updateSamplesWithNewPosition,
-  } = useTrackSequence(bpm);
-
-  const { playNow, stopAll } = useAudioPlayback();
-  const { start, stop } = useTransport(() =>
-    playNow(getPlacedSamples(), bpm, trackAudioState)
-  );
-
-  const getPlacedSamples = useCallback(
-    (): PlaybackSample[] =>
-      allSamples.filter((s): s is PlaybackSample => typeof s.xPos === "number"),
-    [allSamples]
-  );
+  const allSamples = useTrackSampleStore((s) => s.allSamples);
+  const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
 
   const tracks = useMemo<TrackInfo[]>(
     () => generateTracks(trackNumber),
@@ -103,55 +69,13 @@ const TrackList: FC<TrackListProps> = ({
     [trackFrequencies, trackHighpassFrequencies, trackGains, trackPans]
   );
 
-  const actions = useMemo(() => {
-    return {
-      onStart: async () =>
-        startPlayback({
-          allSamples,
-          tracks,
-          bpm,
-          getPlacedSamples,
-          playNow,
-          stop,
-          stopAll,
-          start,
-          trackAudioState,
-        }),
-      onStop: () => stopPlayback({ stop, stopAll }),
-      onClear: () => {
-        stop();
-        stopAll();
-        clearSamples(setAllSamples);
-      },
-      onSave: () => saveAllSamplesToLocalStorage(allSamples, bpm, beatsPerLoop),
-      onDelete: () =>
-        deleteSequence(setAllSamples, setBpm, initialBpm, beatsPerLoop),
-      onLoad: () => loadSequence(setAllSamples, setBpm, setBeatsPerLoop),
-      onBpmChange: (event: Event, value: number | number[]) =>
-        changeBpm(setBpm, value),
-    };
-  }, [
-    allSamples,
-    beatsPerLoop,
-    bpm,
-    getPlacedSamples,
-    initialBpm,
-    playNow,
-    setAllSamples,
-    setBeatsPerLoop,
-    setBpm,
-    start,
-    stop,
-    stopAll,
-    trackAudioState,
-    tracks,
-  ]);
-
   const audioContext = useAudioContext();
   const { audioBuffer }: UseRecorderResult = useRecorder(audioContext);
+
+  // maybe this goes in record component
   useEffect(() => {
     if (!audioBuffer) return;
-    const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const date = new Date().toISOString().slice(0, 10);
     const newSample: TrackSample = {
       id: Date.now(),
       type: "recording",
@@ -168,24 +92,17 @@ const TrackList: FC<TrackListProps> = ({
       xPos: 0,
       onTrack: true,
     };
-    setAllSamples((prev) => [...prev, newSample]);
+    const prev = useTrackSampleStore.getState().allSamples;
+    setAllSamples([...prev, newSample]);
   }, [audioBuffer, setAllSamples]);
-
-  useEffect(() => {
-    stop();
-    stopAll();
-    // only stop when beatsPerLoop changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [beatsPerLoop]);
 
   return (
     <div>
       <LoopControls
         sliderRef={null}
-        {...actions}
-        onBeatsPerLoopChange={(val) => setBeatsPerLoop(val)}
         trackWidth={trackWidth}
         emptyTracks={allSamples.length === 0}
+        trackAudioState={trackAudioState}
       />
 
       {tracks.map((track) => (
@@ -198,9 +115,6 @@ const TrackList: FC<TrackListProps> = ({
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
-          allSamples={allSamples.filter((s) => s.trackId === track.id)}
-          editSampleOfSamples={editSampleOfSamples}
-          updateSamplesWithNewPosition={updateSamplesWithNewPosition}
           selected={track.id === selectedTrackId}
           onSelect={() =>
             setSelectedTrackId((prev) => (prev === track.id ? null : track.id))
@@ -220,6 +134,11 @@ const TrackList: FC<TrackListProps> = ({
         {allSamples.map((sample) => (
           <pre key={sample.id}>{sample.filename}</pre>
         ))}
+      </div>
+
+      <div className="track-add-remove">
+        <button onClick={() => setTrackNumber((n: number) => n + 1)}>+</button>
+        <button onClick={() => setTrackNumber((n: number) => n - 1)}>-</button>
       </div>
     </div>
   );

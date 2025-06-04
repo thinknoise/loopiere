@@ -10,7 +10,7 @@ import type { BaseSample, TrackSample } from "../types/audio";
  * @returns decoded AudioBuffer
  */
 export async function loadAudio(resolvedPath: string): Promise<AudioBuffer> {
-  console.log("Loading audio from", resolvedPath);
+  // console.log("Loading audio from", resolvedPath);
   const resp = await fetch(resolvedPath);
   if (!resp.ok) {
     throw new Error(`HTTP ${resp.status} fetching audio from ${resolvedPath}`);

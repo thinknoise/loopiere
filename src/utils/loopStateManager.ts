@@ -34,9 +34,9 @@ export async function loadSequence(
 export function deleteSequence(
   setAllSamples: (samples: TrackSample[]) => void,
   setBpm: (bpm: number) => void,
-  initialBpm: number,
   beatsPerLoop: number
 ) {
+  const initialBpm = 80; // just to have a number
   saveAllSamplesToLocalStorage([], initialBpm, beatsPerLoop);
   setAllSamples([]);
   setBpm(initialBpm);
