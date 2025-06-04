@@ -102,6 +102,8 @@ const TrackList: FC = () => {
         sliderRef={null}
         trackWidth={trackWidth}
         trackAudioState={trackAudioState}
+        trackNumber={trackNumber}
+        setTrackNumber={setTrackNumber}
       />
 
       {tracks.map((track) => (

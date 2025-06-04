@@ -1,8 +1,7 @@
 // src/utils/storageUtils.ts
 
 import { getSampleBuffer } from "./audioManager";
-import type { TrackSample, LocalSample } from "../types/audio";
-import { useLoopSettings } from "../context/LoopSettingsContext";
+import type { TrackSample } from "../types/audio";
 
 /**
  * Strip out the live AudioBuffer before serializing,
@@ -40,11 +39,13 @@ type SerializedSample = SerializedFileSample | SerializedPCMSample;
  * For file-based samples (with path or url), only metadata is saved.
  * @param allSamples - array of TrackSample (may include recorded or file-based samples)
  * @param bpm - beats per minute to persist alongside samples
+ * @param trackNumber
  */
 export function saveAllSamplesToLocalStorage(
   allSamples: TrackSample[],
   bpm: number,
-  beatsPerLoop: number
+  beatsPerLoop: number,
+  trackNumber: number
 ): void {
   const serializedSamples = allSamples
     .map<SerializedSample | null>((sample) => {
@@ -103,9 +104,10 @@ export function saveAllSamplesToLocalStorage(
     bpm,
     beatsPerLoop,
     serializedSamples,
+    trackNumber,
   };
 
-  console.log("Saving:", loopData);
+  console.log("Saving 'LoopiereSavedLoopV2':", loopData);
   localStorage.setItem("LoopiereSavedLoopV2", JSON.stringify(loopData));
 }
 
@@ -121,6 +123,7 @@ export async function getAllSamplesFromLocalStorage(
   bpm: number;
   beatsPerLoop: number;
   samples: TrackSample[];
+  trackNumber: number;
 }> {
   const raw = localStorage.getItem("LoopiereSavedLoopV2");
   if (!raw) {
@@ -128,12 +131,13 @@ export async function getAllSamplesFromLocalStorage(
       bpm: 120,
       beatsPerLoop: 4,
       samples: [],
+      trackNumber: 4,
     };
   }
 
   const loopData = JSON.parse(raw);
   console.log("Loading:", loopData);
-  const { bpm, beatsPerLoop, serializedSamples } = loopData;
+  const { bpm, beatsPerLoop, serializedSamples, trackNumber } = loopData;
 
   const samples = await Promise.all(
     serializedSamples.map(async (data: Record<string, any>) => {
@@ -171,5 +175,6 @@ export async function getAllSamplesFromLocalStorage(
     bpm,
     beatsPerLoop,
     samples,
+    trackNumber,
   };
 }
