@@ -24,7 +24,6 @@ import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { deleteSequence, loadSequence } from "../utils/loopStateManager";
 
 export interface LoopControlsProps {
-  emptyTracks: boolean;
   onBpmChange?: (event: Event, value: number | number[]) => void;
   sliderRef: Ref<HTMLSpanElement>;
   trackWidth: number;
@@ -32,7 +31,7 @@ export interface LoopControlsProps {
 }
 
 const LoopControls: FC<LoopControlsProps> = memo(
-  ({ emptyTracks, sliderRef, trackWidth, trackAudioState }) => {
+  ({ sliderRef, trackWidth, trackAudioState }) => {
     // Beats Per Minute
     const { bpm, beatsPerLoop, setBpm, setBeatsPerLoop } = useLoopSettings();
     const { playNow, stopAll } = useAudioPlayback();
@@ -46,6 +45,8 @@ const LoopControls: FC<LoopControlsProps> = memo(
     // All Samples from Zustand store
     const allSamples = useTrackSampleStore((s) => s.allSamples);
     const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
+
+    const emptyTracks: boolean = allSamples.length === 0;
 
     const getPlacedSamples = useCallback(
       (): PlaybackSample[] =>

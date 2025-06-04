@@ -101,7 +101,6 @@ const TrackList: FC = () => {
       <LoopControls
         sliderRef={null}
         trackWidth={trackWidth}
-        emptyTracks={allSamples.length === 0}
         trackAudioState={trackAudioState}
       />
 
