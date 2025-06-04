@@ -1,25 +1,17 @@
 // src/hooks/useTrackSequence.ts
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { addParamsToUrl, SequenceParam } from "../utils/urlUtils";
 import type { TrackSample } from "../types/audio";
 import type { UpdateSamplePositionFn } from "../types/audio";
 import { useLoopSettings } from "../context/LoopSettingsContext";
+import { useTrackSampleStore } from "../stores/trackSampleStore";
 
-/**
- * Edit or remove a sample in the sequence.
- */
 export type EditSampleFn = (
   newSample: TrackSample,
   removeSample?: boolean
 ) => void;
-
-/**
- * Move a sample to a new fractional position.
- * @param trackSampleId - The numeric ID of the sample.
- * @param newPosition - New position as a fraction of track width (0–1).
- */
 
 export interface UseTrackSequenceResult {
   allSamples: TrackSample[];
@@ -27,26 +19,19 @@ export interface UseTrackSequenceResult {
   latestSamplesRef: React.MutableRefObject<TrackSample[]>;
   latestBpm: React.MutableRefObject<number>;
   shareSequence: () => void;
-  setAllSamples: React.Dispatch<React.SetStateAction<TrackSample[]>>;
+  setAllSamples: (samples: TrackSample[]) => void;
   clearAllSamples: () => void;
   editSampleOfSamples: EditSampleFn;
   updateSamplesWithNewPosition: UpdateSamplePositionFn;
 }
 
-/**
- * Custom hook for managing track sequencing state.
- * Handles adding/removing samples, moving samples, and persistence.
- *
- * @param initialBpm - Starting BPM for the sequence
- */
-export default function useTrackSequence(
-  initialBpm: number = 90
-): UseTrackSequenceResult {
-  const [allSamples, setAllSamples] = useState<TrackSample[]>([]);
-
+export default function useTrackSequence(): UseTrackSequenceResult {
   const { bpm } = useLoopSettings();
 
-  // Refs to always read latest values inside callbacks
+  const allSamples = useTrackSampleStore((s) => s.allSamples);
+  const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
+  const clearAllSamples = useTrackSampleStore((s) => s.clearSamples);
+
   const latestSamplesRef = useRef<TrackSample[]>(allSamples);
   const latestBpm = useRef<number>(bpm);
 
@@ -57,26 +42,26 @@ export default function useTrackSequence(
 
   const editSampleOfSamples: EditSampleFn = useCallback(
     (newSample, removeSample = false) => {
-      setAllSamples((prev) =>
-        removeSample
-          ? prev.filter((sample) => sample.id !== newSample.id)
-          : [...prev, newSample]
-      );
+      const prev = useTrackSampleStore.getState().allSamples;
+      const next = removeSample
+        ? prev.filter((sample) => sample.id !== newSample.id)
+        : [...prev, newSample];
+      setAllSamples(next);
     },
-    []
+    [setAllSamples]
   );
 
   const updateSamplesWithNewPosition: UpdateSamplePositionFn = useCallback(
     (trackSampleId, newPosition) => {
-      setAllSamples((prev) =>
-        prev.map((sample) =>
-          sample.id === trackSampleId.id
-            ? { ...sample, xPos: newPosition }
-            : sample
-        )
+      const prev = useTrackSampleStore.getState().allSamples;
+      const updated = prev.map((sample) =>
+        sample.id === trackSampleId.id
+          ? { ...sample, xPos: newPosition }
+          : sample
       );
+      setAllSamples(updated);
     },
-    []
+    [setAllSamples]
   );
 
   const shareSequence = (): void => {
@@ -84,14 +69,10 @@ export default function useTrackSequence(
       .filter((s): s is TrackSample => typeof s.xPos === "number")
       .map((s) => ({
         trackSampleId: s.id,
-        xPos: s.xPos, // now guaranteed to be a number
+        xPos: s.xPos,
       }));
 
     addParamsToUrl(placedParams, bpm);
-  };
-
-  const clearAllSamples = (): void => {
-    setAllSamples([]);
   };
 
   return {

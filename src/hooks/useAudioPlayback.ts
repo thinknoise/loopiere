@@ -1,6 +1,6 @@
 // src/hooks/useAudioPlayback.ts
 
-import { useState, useCallback, useRef } from "react";
+import { useCallback, useRef } from "react";
 import type { TrackSample } from "../types/audio";
 import { getSampleBuffer } from "../utils/audioManager";
 import {
@@ -48,9 +48,7 @@ export interface UseAudioPlaybackResult {
 export default function useAudioPlayback(): UseAudioPlaybackResult {
   const audioContext = getAudioContext();
   const { beatsPerLoop } = useLoopSettings();
-  const [playingSources, setPlayingSources] = useState<AudioBufferSourceNode[]>(
-    []
-  );
+  const playingSources = useRef<AudioBufferSourceNode[]>([]);
 
   // ─── persistent node maps ──────────────────────────────────────
   const gainNodes = useRef<Map<number, GainNode>>(new Map());
@@ -76,7 +74,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
     return node;
   }
 
-  // ─── playNow: schedule a 4-beat loop ───────────────────────────
+  // ─── playNow: schedule n-Beats Per Loop ───────────────────────────
   const playNow = useCallback(
     async (
       samples: PlaybackSample[],
@@ -183,19 +181,22 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         return src;
       });
 
-      setPlayingSources(sources);
+      playingSources.current = sources;
     },
     [audioContext, beatsPerLoop]
   );
 
   // ─── stopAll: kill any playing sources ────────────────────────
   const stopAll = useCallback(() => {
-    playingSources.forEach((src) => {
+    console.log("stopAll", playingSources.current);
+    playingSources.current.forEach((src) => {
       try {
         src.stop();
-      } catch {}
+      } catch (e) {
+        console.warn("failed to stop source", e);
+      }
     });
-    setPlayingSources([]);
+    playingSources.current = [];
   }, [playingSources]);
 
   return { playNow, stopAll };

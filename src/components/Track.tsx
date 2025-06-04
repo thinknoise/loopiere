@@ -4,6 +4,7 @@ import React, { forwardRef, Ref, DragEvent, FC } from "react";
 import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
 import type { TrackSample as Sample } from "../types/audio";
+import { useTrackSampleStore } from "../stores/trackSampleStore";
 import type { UpdateSamplePositionFn } from "../types/audio";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
@@ -17,9 +18,6 @@ export interface TrackProps {
   trackInfo: TrackInfo;
   trackWidth: number;
   trackLeft: number;
-  allSamples: Sample[];
-  editSampleOfSamples: (updated: Sample) => void;
-  updateSamplesWithNewPosition: UpdateSamplePositionFn;
   selected: boolean;
   onSelect: () => void;
   trackAudioState: TrackAudioState;
@@ -33,18 +31,14 @@ export interface TrackProps {
   setTrackPans: React.Dispatch<React.SetStateAction<Record<number, number>>>;
 }
 
-const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
-  HTMLDivElement,
-  TrackProps
->(
+const Track: FC<
+  Omit<TrackProps, "allSamples"> & { ref?: Ref<HTMLDivElement> }
+> = forwardRef<HTMLDivElement, TrackProps>(
   (
     {
       trackInfo,
       trackWidth,
       trackLeft,
-      allSamples,
-      editSampleOfSamples,
-      updateSamplesWithNewPosition,
       selected,
       onSelect = () => {
         console.warn("Track onSelect not implemented"); // Placeholder for selection logic
@@ -65,6 +59,8 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
   ) => {
     const audioContext = useAudioContext();
     const { beatsPerLoop } = useLoopSettings();
+    const allSamples = useTrackSampleStore((s) => s.allSamples);
+    const trackSamples = allSamples.filter((s) => s.trackId === trackInfo.id);
 
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
@@ -88,17 +84,46 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
       console.log("Dropped ID:", sampleId, "Original:", original);
       if (!original) return;
 
-      // 4) Create a fresh trackSample
-      const trackSample: Sample = {
-        ...original,
+      let trackSample: Sample;
+
+      const common = {
+        id: Date.now(),
         trackId: trackInfo.id,
         xPos,
         onTrack: true,
-        id: Date.now(),
+        title: original.title ?? "Untitled Sample",
+        filename: original.filename ?? "sample.wav",
+        buffer: original.buffer,
+        duration: original.duration ?? original.buffer?.duration ?? 0,
+        trimStart: 0,
+        trimEnd: original.duration ?? original.buffer?.duration ?? 0,
       };
 
-      // 5) Insert into your hook state
-      editSampleOfSamples(trackSample);
+      if (original.type === "recording") {
+        trackSample = {
+          ...common,
+          type: "recording",
+          blob: original.blob,
+          blobUrl: original.blobUrl,
+          recordedAt: original.recordedAt,
+        };
+      } else if (original.type === "local") {
+        trackSample = {
+          ...common,
+          type: "local",
+          path: original.path,
+        };
+      } else {
+        // original.type === "remote"
+        trackSample = {
+          ...common,
+          type: "remote",
+          url: original.url,
+        };
+      }
+
+      const prev = useTrackSampleStore.getState().allSamples;
+      useTrackSampleStore.getState().setAllSamples([...prev, trackSample]);
     };
 
     return (
@@ -137,14 +162,12 @@ const Track: FC<TrackProps & { ref?: Ref<HTMLDivElement> }> = forwardRef<
 
             {/* TRACK CONTROL */}
 
-            {allSamples.map((sampleInfo) => (
+            {trackSamples.map((sampleInfo: Sample) => (
               <TrackSample
                 key={sampleInfo.id}
                 sample={sampleInfo}
                 trackWidth={trackWidth}
                 trackLeft={trackLeft}
-                editSampleOfSamples={editSampleOfSamples}
-                updateSamplesWithNewPosition={updateSamplesWithNewPosition}
               />
             ))}
           </div>

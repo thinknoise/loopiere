@@ -2,38 +2,24 @@
 
 import React, { useRef, useState, useCallback, FC, MouseEvent } from "react";
 import type { TrackSample as Sample } from "../types/audio";
-import type { UpdateSamplePositionFn } from "../types/audio";
 import useAudioBuffer from "../hooks/useAudioBuffer";
 import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import "../style/trackSample.css";
+import { useTrackSampleStore } from "../stores/trackSampleStore";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 
 export interface TrackSampleProps {
   sample: Sample;
   trackWidth: number;
   trackLeft: number;
-  /**
-   * Edit or remove a sample.
-   * @param sample Sample descriptor to update or remove.
-   * @param remove If true, remove the sample; otherwise update it.
-   */
-  editSampleOfSamples: (sample: Sample, remove?: boolean) => void;
-  /**
-   * Move a sample to a new fractional position.
-   * @param sampleId The numeric ID of the sample.
-   * @param xPosFraction New position as a fraction of track width (0–1).
-   */
-  updateSamplesWithNewPosition: UpdateSamplePositionFn;
 }
 
 const TrackSample: FC<TrackSampleProps> = ({
   sample,
   trackWidth,
   trackLeft,
-  editSampleOfSamples,
-  updateSamplesWithNewPosition,
 }) => {
   const { buffer: audioBuffer, duration: audioDuration } =
     useAudioBuffer(sample);
@@ -94,27 +80,28 @@ const TrackSample: FC<TrackSampleProps> = ({
     (e: globalThis.MouseEvent) => {
       if (!dragState.isDragging) return;
       const newX = Math.max(0, e.clientX - trackLeft - dragState.offset);
-      const newPosFraction = newX / trackWidth;
-      setDragState((prev) => ({ ...prev, isDragging: false, position: 0 }));
-      updateSamplesWithNewPosition(sample, newPosFraction);
-    },
-    [
-      dragState.isDragging,
-      dragState.offset,
-      trackLeft,
-      trackWidth,
-      updateSamplesWithNewPosition,
-      sample,
-    ]
-  );
+      const fraction = newX / trackWidth;
 
+      useTrackSampleStore.setState((state) => ({
+        allSamples: state.allSamples.map((s) =>
+          s.id === sample.id ? { ...s, xPos: fraction } : s
+        ),
+      }));
+
+      setDragState((prev) => ({ ...prev, isDragging: false, position: 0 }));
+    },
+    [dragState.isDragging, dragState.offset, sample.id, trackLeft, trackWidth]
+  );
   useEventListener("mousemove", handleMouseMove);
   useEventListener("mouseup", handleMouseUp);
 
   const handleRemoveSample = (e: MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
     e.preventDefault();
-    editSampleOfSamples(sample, true);
+    const prev = useTrackSampleStore.getState().allSamples;
+    useTrackSampleStore
+      .getState()
+      .setAllSamples(prev.filter((s) => s.id !== sample.id));
   };
 
   return (

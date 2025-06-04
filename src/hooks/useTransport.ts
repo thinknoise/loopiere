@@ -1,6 +1,6 @@
 // src/hooks/useTransport.ts
 
-import { useEffect, useRef, useCallback, use } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 import { useAudioContext } from "../components/AudioContextProvider";
 import { useLoopSettings } from "../context/LoopSettingsContext";
@@ -34,7 +34,6 @@ export default function useTransport(
   const audioContext = useAudioContext();
   const { bpm, beatsPerLoop } = useLoopSettings();
 
-  // Mutable refs to track state across frames
   const isRunningRef = useRef<boolean>(false);
   const rafIdRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -43,47 +42,51 @@ export default function useTransport(
   );
   const callbackRef = useRef<OnLoopCallback>(onLoopCallback);
 
-  // Keep latest callback ref in sync
+  const [isRunning, setIsRunning] = useState(false);
+
   useEffect(() => {
     callbackRef.current = onLoopCallback;
   }, [onLoopCallback]);
 
-  // Update loop duration when BPM changes
   useEffect(() => {
     loopDurationRef.current = bpmToSecondsPerLoop(bpm, beatsPerLoop);
   }, [beatsPerLoop, bpm]);
 
-  // Main loop function
   const loop = useCallback((): void => {
     if (!isRunningRef.current) return;
     const elapsed = audioContext.currentTime - startTimeRef.current;
     if (elapsed >= loopDurationRef.current) {
-      // Advance startTime by one loop
       startTimeRef.current += loopDurationRef.current;
-      callbackRef.current();
+      if (isRunningRef.current) {
+        console.log("callbackRef in loop", callbackRef.current);
+        callbackRef.current();
+      }
     }
-    rafIdRef.current = requestAnimationFrame(loop);
+    if (isRunningRef.current) {
+      rafIdRef.current = requestAnimationFrame(loop);
+    }
   }, [audioContext]);
 
-  // Start transport
   const start = useCallback((): void => {
+    console.log("start");
     if (!isRunningRef.current) {
       isRunningRef.current = true;
+      setIsRunning(true);
       startTimeRef.current = audioContext.currentTime;
-      rafIdRef.current = requestAnimationFrame(loop);
+      loop(); // kick off immediately
     }
   }, [audioContext, loop]);
 
-  // Stop transport
   const stop = useCallback((): void => {
+    console.log("stop", isRunningRef.current);
     isRunningRef.current = false;
+    setIsRunning(false);
     if (rafIdRef.current !== null) {
       cancelAnimationFrame(rafIdRef.current);
       rafIdRef.current = null;
     }
   }, []);
 
-  // Clean up on unmount
   useEffect(() => {
     return () => {
       stop();
@@ -93,7 +96,7 @@ export default function useTransport(
   return {
     start,
     stop,
-    isRunning: isRunningRef.current,
+    isRunning,
     loopDuration: loopDurationRef.current,
   };
 }

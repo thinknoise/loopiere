@@ -37,6 +37,12 @@ export async function startPlayback({
   await prepareAllTracks(allSamples, tracks);
   resumeAudioContext();
   const placed = getPlacedSamples();
+  console.log("Placed samples:", placed);
+  if (placed.length === 0) {
+    console.warn("No samples to play — aborting startPlayback.");
+    return;
+  }
+
   await prepareAllTracks(placed, tracks);
   start();
 
@@ -49,6 +55,7 @@ interface StopPlaybackArgs {
 }
 
 export function stopPlayback({ stop, stopAll }: StopPlaybackArgs) {
+  console.log("bing stoperoni");
   stop();
   stopAll();
 }
