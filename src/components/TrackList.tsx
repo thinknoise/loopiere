@@ -7,19 +7,15 @@ import React, {
   useMemo,
   FC,
   RefObject,
-  useCallback,
 } from "react";
 import LoopControls from "./LoopControls";
 import Track from "./Track";
 import useTrackWidth from "../hooks/useTrackWidth";
-import { PlaybackSample } from "../hooks/useAudioPlayback";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import { useLoopSettings } from "../context/LoopSettingsContext";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
 
 import type { TrackSample } from "../types/audio";
-import { type UpdateSamplePositionFn } from "../types/audio";
 
 import "../style/tracklist.css";
 
@@ -29,23 +25,19 @@ export interface TrackInfo {
   name: string;
 }
 
-export interface TrackListProps {
-  trackNumber?: number;
-  updateSamplesWithNewPosition: UpdateSamplePositionFn;
-}
-
 // --- # of Tracks Helpers ---
 const generateTracks = (n: number): TrackInfo[] =>
   Array.from({ length: n }, (_, i) => ({ id: i + 1, name: `Track ${i + 1}` }));
 
 // --- Component ---
-const TrackList: FC<TrackListProps> = ({ trackNumber = 4 }) => {
+const TrackList: FC = () => {
   const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
+
+  const [trackNumber, setTrackNumber] = useState(4);
 
   const [isListingSelected, setListingSelected] = useState<boolean>(false);
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
-  const { setBeatsPerLoop } = useLoopSettings();
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
   const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
@@ -79,6 +71,8 @@ const TrackList: FC<TrackListProps> = ({ trackNumber = 4 }) => {
 
   const audioContext = useAudioContext();
   const { audioBuffer }: UseRecorderResult = useRecorder(audioContext);
+
+  // maybe this goes in record component
   useEffect(() => {
     if (!audioBuffer) return;
     const date = new Date().toISOString().slice(0, 10);
@@ -140,6 +134,11 @@ const TrackList: FC<TrackListProps> = ({ trackNumber = 4 }) => {
         {allSamples.map((sample) => (
           <pre key={sample.id}>{sample.filename}</pre>
         ))}
+      </div>
+
+      <div className="track-add-remove">
+        <button onClick={() => setTrackNumber((n: number) => n + 1)}>+</button>
+        <button onClick={() => setTrackNumber((n: number) => n - 1)}>-</button>
       </div>
     </div>
   );

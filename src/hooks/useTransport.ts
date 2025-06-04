@@ -73,7 +73,8 @@ export default function useTransport(
       isRunningRef.current = true;
       setIsRunning(true);
       startTimeRef.current = audioContext.currentTime;
-      loop(); // kick off immediately
+      callbackRef.current();
+      rafIdRef.current = requestAnimationFrame(loop);
     }
   }, [audioContext, loop]);
 
