@@ -5,7 +5,6 @@ import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
 import type { TrackSample as Sample } from "../types/audio";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
-import type { UpdateSamplePositionFn } from "../types/audio";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";

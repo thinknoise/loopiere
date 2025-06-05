@@ -61,6 +61,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
     // Play Mechanics
     const transportCallback = useCallback(() => {
       playNow(getPlacedSamples(), bpm, trackAudioState);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [getPlacedSamples, bpm, trackAudioState]);
 
     const { start, stop } = useTransport(transportCallback);
