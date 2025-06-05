@@ -24,7 +24,7 @@ export async function loadAudio(resolvedPath: string): Promise<AudioBuffer> {
 
   if (!isAcceptable) {
     throw new Error(
-      `Invalid content-type \"${contentType}\" for ${resolvedPath}`
+      `Invalid content-type "${contentType}" for ${resolvedPath}`
     );
   }
 

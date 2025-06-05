@@ -59,12 +59,3 @@ export type TrackSample = BaseSample & {
   onTrack: boolean;
   startTime?: number;
 };
-
-/**
- * Function signature for updating the position of a placed sample.
- * Typically used in drag-and-drop or timeline-editing interactions.
- */
-export type UpdateSamplePositionFn = (
-  sample: TrackSample,
-  xPosFraction: number
-) => void;
