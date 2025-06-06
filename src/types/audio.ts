@@ -58,4 +58,13 @@ export type TrackSample = BaseSample & {
   xPos: number;
   onTrack: boolean;
   startTime?: number;
+
+  effects?: {
+    volume?: number;
+    pan?: number;
+    highpassFreq?: number;
+    lowpassFreq?: number;
+    bypassHighpass?: boolean;
+    bypassLowpass?: boolean;
+  };
 };

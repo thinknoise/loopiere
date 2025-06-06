@@ -29,6 +29,11 @@ export interface TrackAudioState {
   gains?: Record<number, number>;
   /** user‐driven pan per track */
   pans?: Record<number, number>;
+  /** bypass state for lowpass/highpass filters */
+  bypasses: {
+    lowpass: Record<number, boolean>;
+    highpass: Record<number, boolean>;
+  };
 }
 
 /**
@@ -96,12 +101,6 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         const trackId = sample.trackId!;
         const offset = (sample.xPos ?? 0) * loopLength;
 
-        console.debug(
-          `xPos ${(sample.xPos * 100).toFixed(
-            2
-          )} on track ${trackId} at offset ${offset}s`,
-          loopLength.toFixed(2)
-        );
         // create the BufferSource
         const src = audioContext.createBufferSource();
         src.buffer = buffer;
@@ -166,15 +165,42 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
           startTime
         );
 
-        // ─── chain it all: source → gain → pan → hp → lp → out
-        src
-          .connect(gainNode)
-          .connect(panNode)
-          .connect(highFilter)
-          .connect(lowFilter)
-          .connect(audioContext.destination);
+        // Always disconnect both filters before rebuilding chain
+        try {
+          highFilter.disconnect();
+        } catch {}
+        try {
+          lowFilter.disconnect();
+        } catch {}
 
-        // schedule start/stop in the 4-beat loop
+        let currentNode: AudioNode = src;
+
+        currentNode.connect(gainNode);
+        currentNode = gainNode;
+
+        currentNode.connect(panNode);
+        currentNode = panNode;
+
+        console.log(
+          `[Track ${trackId}]`,
+          "Bypass states:",
+          trackAudioState.bypasses
+        );
+
+        // Reconnect only if NOT bypassed
+        if (!trackAudioState.bypasses?.highpass[trackId]) {
+          currentNode.connect(highFilter);
+          currentNode = highFilter;
+        }
+
+        if (!trackAudioState.bypasses?.lowpass[trackId]) {
+          currentNode.connect(lowFilter);
+          currentNode = lowFilter;
+        }
+
+        currentNode.connect(audioContext.destination);
+
+        // schedule start/stop
         src.start(startTime + offset);
         src.stop(startTime + offset + loopLength);
 

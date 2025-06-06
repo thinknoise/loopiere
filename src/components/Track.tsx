@@ -28,6 +28,12 @@ export interface TrackProps {
   >;
   setTrackGains: React.Dispatch<React.SetStateAction<Record<number, number>>>;
   setTrackPans: React.Dispatch<React.SetStateAction<Record<number, number>>>;
+  setTrackBypasses: React.Dispatch<
+    React.SetStateAction<{
+      lowpass: Record<number, boolean>;
+      highpass: Record<number, boolean>;
+    }>
+  >;
 }
 
 const Track: FC<
@@ -40,18 +46,20 @@ const Track: FC<
       trackLeft,
       selected,
       onSelect = () => {
-        console.warn("Track onSelect not implemented"); // Placeholder for selection logic
+        console.warn("Track onSelect not implemented");
       },
       setTrackFrequencies,
       setTrackHighpassFrequencies,
-      setTrackGains, // ← newly added
-      setTrackPans, // ← newly added
+      setTrackGains,
+      setTrackPans,
+      setTrackBypasses,
       trackAudioState: {
         filters: trackFiltersRef,
         frequencies: trackFrequencies,
         highpassFrequencies,
-        gains: trackGains = {}, // pull gains out
-        pans: trackPans = {}, // pull pans out
+        gains: trackGains = {},
+        pans: trackPans = {},
+        bypasses = { lowpass: {}, highpass: {} },
       },
     },
     ref
@@ -61,6 +69,16 @@ const Track: FC<
     const allSamples = useTrackSampleStore((s) => s.allSamples);
     const trackSamples = allSamples.filter((s) => s.trackId === trackInfo.id);
 
+    const toggleBypass = (type: "lowpass" | "highpass") => {
+      setTrackBypasses((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [trackInfo.id]: !prev[type][trackInfo.id],
+        },
+      }));
+    };
+
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
     };
@@ -68,19 +86,15 @@ const Track: FC<
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
 
-      // 1) Bare‐bones payload
       const { id: sampleId, xDragOffset } = JSON.parse(
         e.dataTransfer.getData("application/json")
       ) as { id: number; xDragOffset: number };
 
-      // 2) Compute fractional position
       const rect = e.currentTarget.getBoundingClientRect();
       const dropX = Math.max(0, e.clientX - rect.left - xDragOffset);
       const xPos = dropX / trackWidth;
 
-      // 3) Rehydrate the original sample from your registry
       const original = getSampleFromRegistry(sampleId);
-      console.log("Dropped ID:", sampleId, "Original:", original);
       if (!original) return;
 
       let trackSample: Sample;
@@ -113,7 +127,6 @@ const Track: FC<
           path: original.path,
         };
       } else {
-        // original.type === "remote"
         trackSample = {
           ...common,
           type: "remote",
@@ -153,13 +166,9 @@ const Track: FC<
               <div
                 key={i}
                 className="beat-line"
-                style={{
-                  left: `${((i + 1) / beatsPerLoop) * 100}%`,
-                }}
+                style={{ left: `${((i + 1) / beatsPerLoop) * 100}%` }}
               />
             ))}
-
-            {/* TRACK CONTROL */}
 
             {trackSamples.map((sampleInfo: Sample) => (
               <TrackSample
@@ -175,7 +184,6 @@ const Track: FC<
         <div className={`track-control ${selected ? "expanded" : ""}`}>
           <div className="track-control-panel">
             <div className="control-item slider-strip">
-              {/* Pan knob above the volume slider */}
               <div className="control-item knob-strip">
                 <Knob
                   value={trackPans[trackInfo.id] ?? 0}
@@ -190,7 +198,6 @@ const Track: FC<
                 />
               </div>
 
-              {/* Volume slider */}
               <input
                 type="range"
                 id={`gain-${trackInfo.id}`}
@@ -211,7 +218,6 @@ const Track: FC<
               <label htmlFor={`gain-${trackInfo.id}`}>vol</label>
             </div>
 
-            {/* Low-pass filter */}
             <div className="control-item slider-strip">
               <input
                 type="range"
@@ -230,16 +236,21 @@ const Track: FC<
                   const lowF = trackFiltersRef.current?.get(
                     `${trackInfo.id}_lowpass`
                   ) as BiquadFilterNode | undefined;
-                  lowF?.frequency.setValueAtTime(
-                    freq,
-                    audioContext.currentTime
-                  );
+                  if (!bypasses.lowpass[trackInfo.id]) {
+                    lowF?.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
                 }}
+                disabled={bypasses.lowpass[trackInfo.id]}
               />
               <label htmlFor={`lowpass-${trackInfo.id}`}>low</label>
+              <button onClick={() => toggleBypass("lowpass")}>
+                {bypasses.lowpass[trackInfo.id] ? "x" : "o"}
+              </button>
             </div>
 
-            {/* High-pass filter */}
             <div className="control-item slider-strip">
               <input
                 type="range"
@@ -258,13 +269,19 @@ const Track: FC<
                   const highF = trackFiltersRef.current?.get(
                     `${trackInfo.id}_highpass`
                   ) as BiquadFilterNode | undefined;
-                  highF?.frequency.setValueAtTime(
-                    freq,
-                    audioContext.currentTime
-                  );
+                  if (!bypasses.highpass[trackInfo.id]) {
+                    highF?.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
                 }}
+                disabled={bypasses.highpass[trackInfo.id]}
               />
               <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
+              <button onClick={() => toggleBypass("highpass")}>
+                {bypasses.highpass[trackInfo.id] ? "x" : "o"}
+              </button>
             </div>
           </div>
         </div>

@@ -47,6 +47,15 @@ const TrackList: FC = () => {
   const [trackHighpassFrequencies, setTrackHighpassFrequencies] = useState<
     Record<number, number>
   >({});
+
+  const [trackBypasses, setTrackBypasses] = useState<{
+    lowpass: Record<number, boolean>;
+    highpass: Record<number, boolean>;
+  }>({
+    lowpass: {},
+    highpass: {},
+  });
+
   const [trackGains, setTrackGains] = useState<Record<number, number>>({});
   const [trackPans, setTrackPans] = useState<Record<number, number>>({});
 
@@ -65,8 +74,15 @@ const TrackList: FC = () => {
       highpassFrequencies: trackHighpassFrequencies,
       gains: trackGains,
       pans: trackPans,
+      bypasses: trackBypasses,
     }),
-    [trackFrequencies, trackHighpassFrequencies, trackGains, trackPans]
+    [
+      trackFrequencies,
+      trackHighpassFrequencies,
+      trackGains,
+      trackPans,
+      trackBypasses,
+    ]
   );
 
   const audioContext = useAudioContext();
@@ -96,6 +112,21 @@ const TrackList: FC = () => {
     setAllSamples([...prev, newSample]);
   }, [audioBuffer, setAllSamples]);
 
+  useEffect(() => {
+    tracks.forEach((track) => {
+      setTrackBypasses((prev) => ({
+        lowpass: {
+          ...prev.lowpass,
+          [track.id]: prev.lowpass[track.id] ?? false,
+        },
+        highpass: {
+          ...prev.highpass,
+          [track.id]: prev.highpass[track.id] ?? false,
+        },
+      }));
+    });
+  }, [tracks]);
+
   return (
     <div>
       <LoopControls
@@ -113,6 +144,7 @@ const TrackList: FC = () => {
           trackAudioState={trackAudioState}
           setTrackFrequencies={setTrackFrequencies}
           setTrackHighpassFrequencies={setTrackHighpassFrequencies}
+          setTrackBypasses={setTrackBypasses}
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
