@@ -1,6 +1,14 @@
 // src/components/LoopControls.tsx
 
-import React, { memo, FC, Ref, useMemo, useCallback, useEffect } from "react";
+import React, {
+  memo,
+  FC,
+  Ref,
+  useMemo,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
 import { TiArrowLoop } from "react-icons/ti";
 import { IoStopCircleOutline } from "react-icons/io5";
 import {
@@ -37,6 +45,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
     const { bpm, beatsPerLoop, setBpm, setBeatsPerLoop } = useLoopSettings();
     const { playNow, stopAll } = useAudioPlayback();
     const { trackAudioState } = useTrackAudioStateContext();
+    const [statsDrawerOpen, setStatsDrawerOpen] = useState<boolean>(false);
 
     // fer show
     const secsPerLoop = useMemo<number>(
@@ -117,19 +126,19 @@ const LoopControls: FC<LoopControlsProps> = memo(
             >
               <PiCloudArrowUpDuotone fontSize={32} />
             </IconButton>
-            <span className="tooltip-text">Save</span>
+            <span className="tooltip-text">Save Loop</span>
           </div>
           <div className="tooltip-wrapper">
             <IconButton onClick={onLoad} className="lc load-button">
               <PiCloudFogDuotone fontSize={32} />
             </IconButton>
-            <span className="tooltip-text">Load</span>
+            <span className="tooltip-text">Load Loop</span>
           </div>
           <div className="tooltip-wrapper">
             <IconButton onClick={onDelete} className="lc delete-button">
               <PiCloudSlashDuotone fontSize={32} />
             </IconButton>
-            <span className="tooltip-text">Delete</span>
+            <span className="tooltip-text">Delete Saved Loop</span>
           </div>
         </Box>
         <Box className="beats-selector">
@@ -145,7 +154,6 @@ const LoopControls: FC<LoopControlsProps> = memo(
             ))}
           </select>
         </Box>
-
         <Slider
           ref={sliderRef}
           min={40}
@@ -156,13 +164,30 @@ const LoopControls: FC<LoopControlsProps> = memo(
           valueLabelFormat={(value) => `${value} BPM`}
           className="bpm-slider"
         />
+        <Box className="loop-stats-container">
+          <Box
+            className="loop-stats-header"
+            onClick={() => setStatsDrawerOpen(!statsDrawerOpen)}
+          >
+            <Typography variant="subtitle2">Loop Stats</Typography>
+          </Box>
 
-        <Box className="loop-info">
-          <Typography variant="body2">Width: {trackWidth}px</Typography>
-          <Typography variant="body2">
-            Loop: {secsPerLoop.toFixed(2)}s
-          </Typography>
-        </Box>
+          <Box className={`loop-stats-drawer ${statsDrawerOpen ? "open" : ""}`}>
+            <Typography variant="body2">Width: {trackWidth}px</Typography>
+            <Typography variant="body2">
+              Loop: {secsPerLoop.toFixed(2)}s
+            </Typography>
+            <Typography variant="body2">Tracks: {trackNumber}</Typography>
+            <Typography variant="body2">
+              Samples: {allSamples.length}
+            </Typography>
+            {allSamples.map((sample) => (
+              <Typography key={sample.id} variant="body2">
+                {sample.title} ({sample.type}) - {sample.xPos.toFixed(2)}
+              </Typography>
+            ))}
+          </Box>
+        </Box>{" "}
       </Box>
     );
   }

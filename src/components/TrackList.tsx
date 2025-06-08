@@ -99,18 +99,6 @@ const TrackList: FC = () => {
         />
       ))}
 
-      <div
-        className={`track-sample-listing ${
-          isListingSelected ? "selected" : ""
-        }`}
-        onClick={() => setListingSelected(!isListingSelected)}
-      >
-        <h3>Track Samples:</h3>
-        {allSamples.map((sample) => (
-          <pre key={sample.id}>{sample.filename}</pre>
-        ))}
-      </div>
-
       <div className="track-add-remove">
         <button onClick={() => setTrackNumber((n: number) => n + 1)}>+</button>
         <button onClick={() => setTrackNumber((n: number) => n - 1)}>-</button>

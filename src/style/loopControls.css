@@ -23,25 +23,6 @@
   color: white;
 }
 
-.bpm-slider {
-  width: 30%;
-  margin: 2rem 0 0 0;
-}
-
-.loop-info {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: auto;
-  gap: 16px;
-  color: white;
-}
-
-.loop-info p {
-  font-size: 0.8rem;
-}
-
-
 /* === Base Button Style === */
 button.lc {
   width: 40px;
@@ -196,8 +177,9 @@ select#beats-select:focus {
   outline: none;
 }
 
-
 .bpm-slider {
+  width: 30%;
+  margin: 2rem 0 0 0;
   color: #1976d2;
   /* matches primary.main */
 }
@@ -235,4 +217,58 @@ select#beats-select:focus {
   font-size: 0.75rem;
   padding: 2px 6px;
   color: white;
+}
+
+.loop-stats-container {
+  position: relative;
+  width: fit-content;
+  color: white;
+  margin: auto;
+  font-family: sans-serif;
+}
+
+.loop-stats-header {
+  background-color: #222;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.loop-stats-header:hover {
+  background-color: #000000;
+}
+
+.loop-stats-drawer {
+  position: absolute;
+  right: 0;
+  z-index: 18;
+  overflow: hidden;
+  max-height: 0;
+  min-width: 210px;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  background-color: #1a1a1a;
+  padding: 0 12px;
+  border-radius: 4px;
+}
+
+.loop-stats-drawer p {
+  margin: 0;
+  padding: 4px 0;
+  font-size: 0.8rem;
+  line-height: 0.6rem;
+  text-align: left;
+  text-wrap: nowrap;
+  white-space: nowrap;
+  color: #ccc;
+}
+
+.loop-stats-drawer.open {
+  max-height: 300px;
+  /* large enough to fit content */
+  opacity: 1;
+  padding: 8px 12px;
 }
