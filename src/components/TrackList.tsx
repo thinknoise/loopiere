@@ -14,6 +14,7 @@ import useTrackWidth from "../hooks/useTrackWidth";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
+import { TrackAudioStateProvider } from "../context/TrackAudioStateContext";
 
 import type { TrackSample } from "../types/audio";
 
@@ -40,33 +41,12 @@ const TrackList: FC = () => {
 
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
-  const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
-  const [trackFrequencies, setTrackFrequencies] = useState<
-    Record<number, number>
-  >({});
-  const [trackHighpassFrequencies, setTrackHighpassFrequencies] = useState<
-    Record<number, number>
-  >({});
-  const [trackGains, setTrackGains] = useState<Record<number, number>>({});
-  const [trackPans, setTrackPans] = useState<Record<number, number>>({});
-
   const allSamples = useTrackSampleStore((s) => s.allSamples);
   const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
 
   const tracks = useMemo<TrackInfo[]>(
     () => generateTracks(trackNumber),
     [trackNumber]
-  );
-
-  const trackAudioState = useMemo(
-    () => ({
-      filters: trackFiltersRef,
-      frequencies: trackFrequencies,
-      highpassFrequencies: trackHighpassFrequencies,
-      gains: trackGains,
-      pans: trackPans,
-    }),
-    [trackFrequencies, trackHighpassFrequencies, trackGains, trackPans]
   );
 
   const audioContext = useAudioContext();
@@ -97,11 +77,10 @@ const TrackList: FC = () => {
   }, [audioBuffer, setAllSamples]);
 
   return (
-    <div>
+    <TrackAudioStateProvider trackNumber={trackNumber}>
       <LoopControls
         sliderRef={null}
         trackWidth={trackWidth}
-        trackAudioState={trackAudioState}
         trackNumber={trackNumber}
         setTrackNumber={setTrackNumber}
       />
@@ -110,9 +89,6 @@ const TrackList: FC = () => {
         <Track
           key={track.id}
           ref={trackRef}
-          trackAudioState={trackAudioState}
-          setTrackFrequencies={setTrackFrequencies}
-          setTrackHighpassFrequencies={setTrackHighpassFrequencies}
           trackInfo={track}
           trackWidth={trackWidth}
           trackLeft={trackLeft}
@@ -120,8 +96,6 @@ const TrackList: FC = () => {
           onSelect={() =>
             setSelectedTrackId((prev) => (prev === track.id ? null : track.id))
           }
-          setTrackGains={setTrackGains}
-          setTrackPans={setTrackPans}
         />
       ))}
 
@@ -141,7 +115,7 @@ const TrackList: FC = () => {
         <button onClick={() => setTrackNumber((n: number) => n + 1)}>+</button>
         <button onClick={() => setTrackNumber((n: number) => n - 1)}>-</button>
       </div>
-    </div>
+    </TrackAudioStateProvider>
   );
 };
 

@@ -18,7 +18,7 @@ export type PlaybackSample = TrackSample;
  * Shapes the shared audio-node state for each track,
  * including volume, pan, filters.
  */
-export interface TrackAudioState {
+export interface TrackAudioStateParams {
   /** Ref to a map of all persistent AudioNodes by key ("{trackId}_gain", etc.) */
   filters: React.RefObject<Map<string, AudioNode>>;
   /** lowpass cutoff per track */
@@ -29,6 +29,15 @@ export interface TrackAudioState {
   gains?: Record<number, number>;
   /** user‐driven pan per track */
   pans?: Record<number, number>;
+  /** bypass state for lowpass/highpass filters */
+  bypasses: {
+    lowpass: Record<number, boolean>;
+    highpass: Record<number, boolean>;
+  };
+  gainNodes: React.RefObject<Map<number, GainNode>>;
+  panNodes: React.RefObject<Map<number, StereoPannerNode>>;
+  highpassNodes: React.RefObject<Map<number, BiquadFilterNode>>;
+  lowpassNodes: React.RefObject<Map<number, BiquadFilterNode>>;
 }
 
 /**
@@ -40,7 +49,7 @@ export interface UseAudioPlaybackResult {
   playNow(
     samples: PlaybackSample[],
     bpm: number,
-    trackAudioState: TrackAudioState
+    trackAudioState: TrackAudioStateParams
   ): Promise<void>;
   stopAll(): void;
 }
@@ -50,36 +59,12 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
   const { beatsPerLoop } = useLoopSettings();
   const playingSources = useRef<AudioBufferSourceNode[]>([]);
 
-  // ─── persistent node maps ──────────────────────────────────────
-  const gainNodes = useRef<Map<number, GainNode>>(new Map());
-  const panNodes = useRef<Map<number, StereoPannerNode>>(new Map());
-  const highpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
-  const lowpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
-
-  /** get-or-create a node in the given map */
-  function getTrackNode<T extends AudioNode>(
-    map: Map<number, T>,
-    createNode: () => T,
-    key: string,
-    trackId: number,
-    refMap: React.RefObject<Map<string, AudioNode>>
-  ): T {
-    let node = map.get(trackId);
-    if (!node) {
-      node = createNode();
-      map.set(trackId, node);
-      // register it so your sliders can find it:
-      refMap.current?.set(key, node);
-    }
-    return node;
-  }
-
   // ─── playNow: schedule n-Beats Per Loop ───────────────────────────
   const playNow = useCallback(
     async (
       samples: PlaybackSample[],
       bpm: number,
-      trackAudioState: TrackAudioState
+      trackAudioState: TrackAudioStateParams
     ) => {
       // unlock context if needed
       await resumeAudioContext();
@@ -96,85 +81,86 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         const trackId = sample.trackId!;
         const offset = (sample.xPos ?? 0) * loopLength;
 
-        console.debug(
-          `xPos ${(sample.xPos * 100).toFixed(
-            2
-          )} on track ${trackId} at offset ${offset}s`,
-          loopLength.toFixed(2)
-        );
         // create the BufferSource
         const src = audioContext.createBufferSource();
         src.buffer = buffer;
 
         // ─── persistent gain ────────────────────────
-        const gainNode = getTrackNode(
-          gainNodes.current,
-          () => audioContext.createGain(),
-          `${trackId}_gain`,
-          trackId,
-          trackAudioState.filters
-        );
+        let gainNode = trackAudioState.gainNodes.current.get(trackId);
+        if (!gainNode) {
+          gainNode = audioContext.createGain();
+          trackAudioState.gainNodes.current.set(trackId, gainNode);
+        }
         gainNode.gain.setValueAtTime(
           trackAudioState.gains?.[trackId] ?? 1,
           startTime
         );
 
         // ─── persistent pan ─────────────────────────
-        const panNode = getTrackNode(
-          panNodes.current,
-          () => audioContext.createStereoPanner(),
-          `${trackId}_pan`,
-          trackId,
-          trackAudioState.filters
-        );
+        let panNode = trackAudioState.panNodes.current.get(trackId);
+        if (!panNode) {
+          panNode = audioContext.createStereoPanner();
+          trackAudioState.panNodes.current.set(trackId, panNode);
+        }
         panNode.pan.setValueAtTime(
           trackAudioState.pans?.[trackId] ?? 0,
           startTime
         );
 
         // ─── persistent highpass ────────────────────
-        const highFilter = getTrackNode(
-          highpassNodes.current,
-          () => {
-            const f = audioContext.createBiquadFilter();
-            f.type = "highpass";
-            return f;
-          },
-          `${trackId}_highpass`,
-          trackId,
-          trackAudioState.filters
-        );
-        highFilter.frequency.setValueAtTime(
+        let highpassNode = trackAudioState.highpassNodes.current.get(trackId);
+        if (!highpassNode) {
+          highpassNode = audioContext.createBiquadFilter();
+          highpassNode.type = "highpass";
+          trackAudioState.highpassNodes.current.set(trackId, highpassNode);
+        }
+        highpassNode.frequency.setValueAtTime(
           trackAudioState.highpassFrequencies[trackId] ?? 0,
           startTime
         );
 
         // ─── persistent lowpass ─────────────────────
-        const lowFilter = getTrackNode(
-          lowpassNodes.current,
-          () => {
-            const f = audioContext.createBiquadFilter();
-            f.type = "lowpass";
-            return f;
-          },
-          `${trackId}_lowpass`,
-          trackId,
-          trackAudioState.filters
-        );
-        lowFilter.frequency.setValueAtTime(
+        let lowpassNode = trackAudioState.lowpassNodes.current.get(trackId);
+        if (!lowpassNode) {
+          lowpassNode = audioContext.createBiquadFilter();
+          lowpassNode.type = "lowpass";
+          trackAudioState.lowpassNodes.current.set(trackId, lowpassNode);
+        }
+        lowpassNode.frequency.setValueAtTime(
           trackAudioState.frequencies[trackId] ?? audioContext.sampleRate / 2,
           startTime
         );
 
-        // ─── chain it all: source → gain → pan → hp → lp → out
-        src
-          .connect(gainNode)
-          .connect(panNode)
-          .connect(highFilter)
-          .connect(lowFilter)
-          .connect(audioContext.destination);
+        // Always disconnect both filters before rebuilding chain
+        try {
+          highpassNode.disconnect();
+        } catch {}
+        try {
+          lowpassNode.disconnect();
+        } catch {}
 
-        // schedule start/stop in the 4-beat loop
+        let currentNode: AudioNode = src;
+
+        currentNode.connect(gainNode);
+        currentNode = gainNode;
+
+        currentNode.connect(panNode);
+        currentNode = panNode;
+
+        // Reconnect only if NOT bypassed
+        if (!trackAudioState.bypasses?.highpass[trackId]) {
+          currentNode.connect(highpassNode);
+          currentNode = highpassNode;
+        }
+
+        if (!trackAudioState.bypasses?.lowpass[trackId]) {
+          currentNode.connect(lowpassNode);
+          currentNode = lowpassNode;
+        }
+
+        currentNode.connect(audioContext.destination);
+
+        // schedule start/stop
         src.start(startTime + offset);
         src.stop(startTime + offset + loopLength);
 

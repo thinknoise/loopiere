@@ -13,30 +13,28 @@ import { Box, IconButton, Slider, Typography } from "@mui/material";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 
-import useAudioPlayback, {
-  PlaybackSample,
-  TrackAudioState,
-} from "../hooks/useAudioPlayback";
+import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
 import useTransport from "../hooks/useTransport";
 
 import { useTrackSampleStore } from "../stores/trackSampleStore";
 import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { deleteSequence, loadSequence } from "../utils/loopStateManager";
+import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 
 export interface LoopControlsProps {
   onBpmChange?: (event: Event, value: number | number[]) => void;
   sliderRef: Ref<HTMLSpanElement>;
   trackWidth: number;
-  trackAudioState: TrackAudioState;
   trackNumber: number;
   setTrackNumber: (trackNumber: number) => void;
 }
 
 const LoopControls: FC<LoopControlsProps> = memo(
-  ({ sliderRef, trackWidth, trackAudioState, trackNumber, setTrackNumber }) => {
+  ({ sliderRef, trackWidth, trackNumber, setTrackNumber }) => {
     // Beats Per Minute
     const { bpm, beatsPerLoop, setBpm, setBeatsPerLoop } = useLoopSettings();
     const { playNow, stopAll } = useAudioPlayback();
+    const { trackAudioState } = useTrackAudioStateContext();
 
     // fer show
     const secsPerLoop = useMemo<number>(

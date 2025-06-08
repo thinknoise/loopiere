@@ -8,7 +8,8 @@ import { useTrackSampleStore } from "../stores/trackSampleStore";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
-import { TrackAudioState } from "../hooks/useAudioPlayback";
+import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
+
 import Knob from "./trackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
 import { useLoopSettings } from "../context/LoopSettingsContext";
@@ -19,15 +20,6 @@ export interface TrackProps {
   trackLeft: number;
   selected: boolean;
   onSelect: () => void;
-  trackAudioState: TrackAudioState;
-  setTrackFrequencies: React.Dispatch<
-    React.SetStateAction<Record<number, number>>
-  >;
-  setTrackHighpassFrequencies: React.Dispatch<
-    React.SetStateAction<Record<number, number>>
-  >;
-  setTrackGains: React.Dispatch<React.SetStateAction<Record<number, number>>>;
-  setTrackPans: React.Dispatch<React.SetStateAction<Record<number, number>>>;
 }
 
 const Track: FC<
@@ -40,18 +32,7 @@ const Track: FC<
       trackLeft,
       selected,
       onSelect = () => {
-        console.warn("Track onSelect not implemented"); // Placeholder for selection logic
-      },
-      setTrackFrequencies,
-      setTrackHighpassFrequencies,
-      setTrackGains, // ← newly added
-      setTrackPans, // ← newly added
-      trackAudioState: {
-        filters: trackFiltersRef,
-        frequencies: trackFrequencies,
-        highpassFrequencies,
-        gains: trackGains = {}, // pull gains out
-        pans: trackPans = {}, // pull pans out
+        console.warn("Track onSelect not implemented");
       },
     },
     ref
@@ -61,6 +42,36 @@ const Track: FC<
     const allSamples = useTrackSampleStore((s) => s.allSamples);
     const trackSamples = allSamples.filter((s) => s.trackId === trackInfo.id);
 
+    const {
+      trackAudioState: {
+        filters: trackFiltersRef,
+        frequencies: trackFrequencies,
+        highpassFrequencies,
+        gains: trackGains,
+        pans: trackPans,
+        bypasses,
+      },
+      setTrackFrequencies,
+      setTrackHighpassFrequencies,
+      setTrackGains,
+      setTrackPans,
+      setTrackBypasses,
+      gainNodes,
+      panNodes,
+      highpassNodes,
+      lowpassNodes,
+    } = useTrackAudioStateContext();
+
+    const toggleBypass = (type: "lowpass" | "highpass") => {
+      setTrackBypasses((prev) => ({
+        ...prev,
+        [type]: {
+          ...prev[type],
+          [trackInfo.id]: !prev[type][trackInfo.id],
+        },
+      }));
+    };
+
     const handleDragOver = (e: DragEvent<HTMLDivElement>): void => {
       e.preventDefault();
     };
@@ -68,19 +79,15 @@ const Track: FC<
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
 
-      // 1) Bare‐bones payload
       const { id: sampleId, xDragOffset } = JSON.parse(
         e.dataTransfer.getData("application/json")
       ) as { id: number; xDragOffset: number };
 
-      // 2) Compute fractional position
       const rect = e.currentTarget.getBoundingClientRect();
       const dropX = Math.max(0, e.clientX - rect.left - xDragOffset);
       const xPos = dropX / trackWidth;
 
-      // 3) Rehydrate the original sample from your registry
       const original = getSampleFromRegistry(sampleId);
-      console.log("Dropped ID:", sampleId, "Original:", original);
       if (!original) return;
 
       let trackSample: Sample;
@@ -113,7 +120,6 @@ const Track: FC<
           path: original.path,
         };
       } else {
-        // original.type === "remote"
         trackSample = {
           ...common,
           type: "remote",
@@ -153,13 +159,9 @@ const Track: FC<
               <div
                 key={i}
                 className="beat-line"
-                style={{
-                  left: `${((i + 1) / beatsPerLoop) * 100}%`,
-                }}
+                style={{ left: `${((i + 1) / beatsPerLoop) * 100}%` }}
               />
             ))}
-
-            {/* TRACK CONTROL */}
 
             {trackSamples.map((sampleInfo: Sample) => (
               <TrackSample
@@ -175,22 +177,18 @@ const Track: FC<
         <div className={`track-control ${selected ? "expanded" : ""}`}>
           <div className="track-control-panel">
             <div className="control-item slider-strip">
-              {/* Pan knob above the volume slider */}
               <div className="control-item knob-strip">
                 <Knob
                   value={trackPans[trackInfo.id] ?? 0}
                   onChange={(val) => {
                     setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
-                    const panNode = trackFiltersRef.current?.get(
-                      `${trackInfo.id}_pan`
-                    ) as StereoPannerNode | undefined;
+                    const panNode = panNodes.current.get(trackInfo.id);
                     panNode?.pan.setValueAtTime(val, audioContext.currentTime);
                   }}
                   size={20}
                 />
               </div>
 
-              {/* Volume slider */}
               <input
                 type="range"
                 id={`gain-${trackInfo.id}`}
@@ -202,16 +200,13 @@ const Track: FC<
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
                   setTrackGains((prev) => ({ ...prev, [trackInfo.id]: val }));
-                  const gainNode = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_gain`
-                  ) as GainNode | undefined;
+                  const gainNode = gainNodes.current.get(trackInfo.id);
                   gainNode?.gain.setValueAtTime(val, audioContext.currentTime);
                 }}
               />
               <label htmlFor={`gain-${trackInfo.id}`}>vol</label>
             </div>
 
-            {/* Low-pass filter */}
             <div className="control-item slider-strip">
               <input
                 type="range"
@@ -227,19 +222,22 @@ const Track: FC<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const lowF = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_lowpass`
-                  ) as BiquadFilterNode | undefined;
-                  lowF?.frequency.setValueAtTime(
-                    freq,
-                    audioContext.currentTime
-                  );
+                  const lowpassNode = lowpassNodes.current.get(trackInfo.id);
+                  if (!bypasses.lowpass[trackInfo.id]) {
+                    lowpassNode?.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
                 }}
+                disabled={bypasses.lowpass[trackInfo.id]}
               />
               <label htmlFor={`lowpass-${trackInfo.id}`}>low</label>
+              <button onClick={() => toggleBypass("lowpass")}>
+                {bypasses.lowpass[trackInfo.id] ? "x" : "o"}
+              </button>
             </div>
 
-            {/* High-pass filter */}
             <div className="control-item slider-strip">
               <input
                 type="range"
@@ -255,16 +253,20 @@ const Track: FC<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const highF = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_highpass`
-                  ) as BiquadFilterNode | undefined;
-                  highF?.frequency.setValueAtTime(
-                    freq,
-                    audioContext.currentTime
-                  );
+                  const highpassNode = highpassNodes.current.get(trackInfo.id);
+                  if (!bypasses.highpass[trackInfo.id]) {
+                    highpassNode?.frequency.setValueAtTime(
+                      freq,
+                      audioContext.currentTime
+                    );
+                  }
                 }}
+                disabled={bypasses.highpass[trackInfo.id]}
               />
               <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
+              <button onClick={() => toggleBypass("highpass")}>
+                {bypasses.highpass[trackInfo.id] ? "x" : "o"}
+              </button>
             </div>
           </div>
         </div>
