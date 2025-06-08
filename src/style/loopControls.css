@@ -1,0 +1,151 @@
+.control-panel {
+  background-color: #2c2c2c;
+  border-radius: 8px;
+  width: 95%;
+  margin: 0 auto 1rem;
+  display: flex;
+  flex-direction: row;
+  gap: 16px;
+  padding: 0 1rem;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.beats-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: white;
+}
+
+.bpm-slider {
+  width: 30%;
+  margin-top: 2rem;
+}
+
+.loop-info {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  gap: 16px;
+  color: white;
+}
+
+.loop-info p {
+  font-size: 0.8rem;
+}
+
+
+/* === Base Button Style === */
+button.lc {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+button.lc:hover {
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+/* === Individual Button Themes === */
+
+button.play-button {
+  background-color: #00aa00;
+  transform: rotate(180deg);
+}
+
+button.play-button:hover {
+  background-color: #00ff00;
+}
+
+button.stop-button {
+  background-color: #852020;
+}
+
+button.stop-button:hover {
+  background-color: #ff3d3d;
+}
+
+button.clear-button {
+  background-color: #6e6e6e;
+}
+
+button.clear-button:hover {
+  background-color: #ff0000;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+button.save-button {
+  background-color: #1976d2;
+}
+
+button.save-button:hover {
+  background-color: #3ea6ff;
+}
+
+button.save-button:disabled {
+  color: #3b3b3b;
+  background-color: grey;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+button.load-button {
+  background-color: #1976d2;
+}
+
+button.load-button:hover {
+  background-color: #3ea6ff;
+}
+
+button.delete-button {
+  background-color: #d32f2f;
+}
+
+button.delete-button:hover {
+  background-color: #ff3d3d;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+/* === SVG Sizing for Buttons === */
+button.lc svg {
+  width: 32px;
+  height: 32px;
+}
+
+/* === Select Dropdown (Beats/Loop) === */
+select#beats-select {
+  padding: 0.3rem 0.6rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  color: white;
+  border: 1px solid #444;
+  appearance: none;
+  transition: border-color 0.2s, background-color 0.2s;
+  margin-right: 3rem;
+}
+
+select#beats-select:hover,
+select#beats-select:focus {
+  border-color: #888;
+  outline: none;
+}

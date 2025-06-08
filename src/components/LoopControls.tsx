@@ -21,6 +21,8 @@ import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { deleteSequence, loadSequence } from "../utils/loopStateManager";
 import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 
+import "../style/loopControls.css"; // Assuming you have some styles for LoopControls
+
 export interface LoopControlsProps {
   onBpmChange?: (event: Event, value: number | number[]) => void;
   sliderRef: Ref<HTMLSpanElement>;
@@ -81,39 +83,9 @@ const LoopControls: FC<LoopControlsProps> = memo(
     }, [beatsPerLoop]);
 
     return (
-      <Box
-        sx={{
-          bgcolor: "grey.800",
-          borderRadius: 2,
-          boxShadow: 3,
-          width: "88%",
-          mx: "auto",
-          mb: 4,
-          display: "flex",
-          flexDirection: "row",
-          gap: 2,
-        }}
-      >
-        <Box
-          sx={{
-            p: 2,
-            display: "flex",
-            flexWrap: "wrap",
-            gap: 1,
-            justifyContent: "center",
-          }}
-        >
-          <IconButton
-            onClick={start}
-            aria-label="Play Loop"
-            sx={{
-              color: "common.white",
-              width: 50,
-              bgcolor: "success.main",
-              "&:hover": { bgcolor: "success.dark" },
-              transform: "rotate(180deg)",
-            }}
-          >
+      <Box className="control-panel">
+        <Box className="control-buttons">
+          <IconButton onClick={start} className="lc play-button">
             <TiArrowLoop fontSize={35} />
           </IconButton>
           <IconButton
@@ -121,91 +93,36 @@ const LoopControls: FC<LoopControlsProps> = memo(
               stop();
               stopAll();
             }}
-            aria-label="Stop"
-            sx={{
-              color: "common.white",
-              bgcolor: "error.main",
-              "&:hover": { bgcolor: "error.dark" },
-            }}
+            className="lc stop-button"
           >
             <IoStopCircleOutline fontSize={32} />
           </IconButton>
-          <IconButton
-            onClick={clearSamples}
-            aria-label="Clear Loop"
-            sx={{
-              color: "common.white",
-              "&:hover": { bgcolor: "warning.dark" },
-            }}
-          >
+          <IconButton onClick={clearSamples} className="lc clear-button">
             <PiEraserDuotone fontSize={32} />
           </IconButton>
           <IconButton
             onClick={onSave}
             disabled={emptyTracks}
-            aria-label="Save Loop"
-            sx={{
-              color: "common.white",
-              bgcolor: "primary.main",
-              "&:hover": { bgcolor: "primary.dark" },
-              "&:disabled": {
-                color: "#3b3b3b",
-                bgcolor: "grey",
-                pointerEvents: "none",
-                "&:hover": { bgcolor: "grey" },
-              },
-            }}
+            className="lc save-button"
           >
             <PiCloudArrowUpDuotone fontSize={32} />
           </IconButton>
-          <IconButton
-            onClick={onLoad}
-            aria-label="Load Loop"
-            sx={{
-              color: "common.white",
-              bgcolor: "info.main",
-              "&:hover": { bgcolor: "info.dark" },
-            }}
-          >
+          <IconButton onClick={onLoad} className="lc load-button">
             <PiCloudFogDuotone fontSize={32} />
           </IconButton>
-          <IconButton
-            onClick={onDelete}
-            aria-label="Delete Loop"
-            sx={{
-              color: "common.white",
-              bgcolor: "error.main",
-              "&:hover": { bgcolor: "purple.800" },
-            }}
-          >
+          <IconButton onClick={onDelete} className="lc delete-button">
             <PiCloudSlashDuotone fontSize={32} />
           </IconButton>
         </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            color: "common.white",
-          }}
-        >
+        <Box className="beats-selector">
           <select
             id="beats-select"
             value={beatsPerLoop}
             onChange={(e) => setBeatsPerLoop(Number(e.target.value))}
-            style={{
-              padding: "6px 12px",
-              fontSize: "1rem",
-              borderRadius: "4px",
-              backgroundColor: "#1e1e1e",
-              color: "white",
-              border: "1px solid #444",
-            }}
           >
             {Array.from({ length: 13 }, (_, i) => i + 4).map((n) => (
               <option key={n} value={n}>
-                {n} b / loop
+                {n} beats / loop
               </option>
             ))}
           </select>
@@ -231,15 +148,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
           }}
         />
 
-        <Box
-          sx={{
-            display: "flex",
-            m: "auto",
-            gap: 2,
-            color: "common.white",
-            justifyContent: "center",
-          }}
-        >
+        <Box className="loop-info">
           <Typography variant="body2">Width: {trackWidth}px</Typography>
           <Typography variant="body2">
             Loop: {secsPerLoop.toFixed(2)}s
