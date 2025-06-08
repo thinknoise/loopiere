@@ -225,3 +225,9 @@
 .vertical-slider:active::-moz-range-thumb {
   box-shadow: 0 0 10px #000;
 }
+
+.bypass-toggle {
+  font-size: 0.875rem;
+  padding: 0;
+  line-height: 0.7
+}
