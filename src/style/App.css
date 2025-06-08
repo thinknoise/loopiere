@@ -4,11 +4,21 @@
 
 h1 {
   color: grey;
-  margin-bottom: 0;
+  margin: 8px auto;
 }
 
+.app-icon {
+  width: 28px;
+  height: 28px;
+  margin-left: 3px;
+  vertical-align: bottom;
+  transform: scaleX(-1);
+  filter: invert(100%) brightness(80%) contrast(80%);
+}
+
+
 .track-add-remove {
-  padding-left: 10%;
+  padding-left: 8%;
   text-align: left;
 }
 
@@ -18,5 +28,8 @@ h1 {
 
 .version {
   font-size: 0.5rem;
-  color: rgb(188, 188, 188);
+  color: rgb(181, 181, 255);
+  position: absolute;
+  left: 56%;
+  top: 0px;
 }

@@ -180,7 +180,7 @@ select#beats-select:focus {
 
 .bpm-slider {
   width: 30%;
-  margin: 2rem 0 0 0;
+  margin: 2rem 1rem 0 0;
   color: #1976d2;
   /* matches primary.main */
 }
@@ -206,12 +206,12 @@ select#beats-select:focus {
 
 /* Rail style */
 .bpm-slider .MuiSlider-rail {
-  background-color: #444;
+  background-color: #b0b0b0;
   height: 4px;
   opacity: 0.5;
 }
 
-/* Value label (bubble with BPM) */
+/* bpm label) */
 .bpm-slider .MuiSlider-valueLabel {
   background-color: #1976d2;
   border-radius: 4px;
@@ -220,6 +220,7 @@ select#beats-select:focus {
   color: white;
 }
 
+/* Loop Stats */
 .loop-stats-container {
   position: relative;
   width: fit-content;

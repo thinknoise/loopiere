@@ -10,7 +10,7 @@ import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
 import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 
-import Knob from "./trackControls/knob";
+import Knob from "./TrackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 
