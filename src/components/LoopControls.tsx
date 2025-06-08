@@ -83,20 +83,20 @@ const LoopControls: FC<LoopControlsProps> = memo(
     return (
       <Box
         sx={{
-          p: 2,
-          bgcolor: "grey.900",
+          bgcolor: "grey.800",
           borderRadius: 2,
           boxShadow: 3,
-          width: "518px",
+          width: "88%",
           mx: "auto",
           mb: 4,
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
           gap: 2,
         }}
       >
         <Box
           sx={{
+            p: 2,
             display: "flex",
             flexWrap: "wrap",
             gap: 1,
@@ -190,7 +190,6 @@ const LoopControls: FC<LoopControlsProps> = memo(
             color: "common.white",
           }}
         >
-          <label htmlFor="beats-select">Beats per Loop:</label>
           <select
             id="beats-select"
             value={beatsPerLoop}
@@ -206,7 +205,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
           >
             {Array.from({ length: 13 }, (_, i) => i + 4).map((n) => (
               <option key={n} value={n}>
-                {n} beats
+                {n} b / loop
               </option>
             ))}
           </select>
@@ -221,6 +220,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
           valueLabelDisplay="on"
           valueLabelFormat={(value) => `${value} BPM`}
           sx={{
+            width: "30%",
             color: "primary.main",
             mt: 5,
             "& .MuiSlider-valueLabel": {
@@ -234,7 +234,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
         <Box
           sx={{
             display: "flex",
-            flexWrap: "wrap",
+            m: "auto",
             gap: 2,
             color: "common.white",
             justifyContent: "center",
