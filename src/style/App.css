@@ -4,9 +4,19 @@
 
 h1 {
   color: grey;
+  margin-bottom: 0;
 }
 
 .track-add-remove {
-  padding-left: 5%;
+  padding-left: 10%;
   text-align: left;
+}
+
+.track-add-remove button {
+  font-size: 1.5rem;
+}
+
+.version {
+  font-size: 0.5rem;
+  color: rgb(188, 188, 188);
 }
