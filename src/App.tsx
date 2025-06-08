@@ -12,8 +12,15 @@ const App: React.FC = () => {
   const appVersion = packageJson.version;
   return (
     <div className="App">
-      <h1>Loopiere</h1>
-      <p className="version">Version: {appVersion}</p>
+      <h1>
+        Loopiere
+        <img
+          src="/loopiere/icon/android-chrome-192x192.png"
+          alt="Loopiere Icon"
+          className="app-icon"
+        />
+      </h1>
+      <p className="version">{appVersion}</p>
       <AudioContextProvider>
         <TrackList />
         <BankSampleList />
