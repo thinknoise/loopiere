@@ -18,7 +18,7 @@ export type PlaybackSample = TrackSample;
  * Shapes the shared audio-node state for each track,
  * including volume, pan, filters.
  */
-export interface TrackAudioState {
+export interface TrackAudioStateParams {
   /** Ref to a map of all persistent AudioNodes by key ("{trackId}_gain", etc.) */
   filters: React.RefObject<Map<string, AudioNode>>;
   /** lowpass cutoff per track */
@@ -45,7 +45,7 @@ export interface UseAudioPlaybackResult {
   playNow(
     samples: PlaybackSample[],
     bpm: number,
-    trackAudioState: TrackAudioState
+    trackAudioState: TrackAudioStateParams
   ): Promise<void>;
   stopAll(): void;
 }
@@ -84,7 +84,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
     async (
       samples: PlaybackSample[],
       bpm: number,
-      trackAudioState: TrackAudioState
+      trackAudioState: TrackAudioStateParams
     ) => {
       // unlock context if needed
       await resumeAudioContext();

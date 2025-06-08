@@ -8,7 +8,9 @@ import { useTrackSampleStore } from "../stores/trackSampleStore";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
-import { TrackAudioState } from "../hooks/useAudioPlayback";
+import { TrackAudioStateParams } from "../hooks/useAudioPlayback";
+import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
+
 import Knob from "./trackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
 import { useLoopSettings } from "../context/LoopSettingsContext";
@@ -19,21 +21,6 @@ export interface TrackProps {
   trackLeft: number;
   selected: boolean;
   onSelect: () => void;
-  trackAudioState: TrackAudioState;
-  setTrackFrequencies: React.Dispatch<
-    React.SetStateAction<Record<number, number>>
-  >;
-  setTrackHighpassFrequencies: React.Dispatch<
-    React.SetStateAction<Record<number, number>>
-  >;
-  setTrackGains: React.Dispatch<React.SetStateAction<Record<number, number>>>;
-  setTrackPans: React.Dispatch<React.SetStateAction<Record<number, number>>>;
-  setTrackBypasses: React.Dispatch<
-    React.SetStateAction<{
-      lowpass: Record<number, boolean>;
-      highpass: Record<number, boolean>;
-    }>
-  >;
 }
 
 const Track: FC<
@@ -48,19 +35,6 @@ const Track: FC<
       onSelect = () => {
         console.warn("Track onSelect not implemented");
       },
-      setTrackFrequencies,
-      setTrackHighpassFrequencies,
-      setTrackGains,
-      setTrackPans,
-      setTrackBypasses,
-      trackAudioState: {
-        filters: trackFiltersRef,
-        frequencies: trackFrequencies,
-        highpassFrequencies,
-        gains: trackGains = {},
-        pans: trackPans = {},
-        bypasses = { lowpass: {}, highpass: {} },
-      },
     },
     ref
   ) => {
@@ -68,6 +42,22 @@ const Track: FC<
     const { beatsPerLoop } = useLoopSettings();
     const allSamples = useTrackSampleStore((s) => s.allSamples);
     const trackSamples = allSamples.filter((s) => s.trackId === trackInfo.id);
+
+    const {
+      trackAudioState: {
+        filters: trackFiltersRef,
+        frequencies: trackFrequencies,
+        highpassFrequencies,
+        gains: trackGains,
+        pans: trackPans,
+        bypasses,
+      },
+      setTrackFrequencies,
+      setTrackHighpassFrequencies,
+      setTrackGains,
+      setTrackPans,
+      setTrackBypasses,
+    } = useTrackAudioStateContext();
 
     const toggleBypass = (type: "lowpass" | "highpass") => {
       setTrackBypasses((prev) => ({
