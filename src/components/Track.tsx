@@ -8,7 +8,6 @@ import { useTrackSampleStore } from "../stores/trackSampleStore";
 import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
-import { TrackAudioStateParams } from "../hooks/useAudioPlayback";
 import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 
 import Knob from "./trackControls/knob";
@@ -57,6 +56,10 @@ const Track: FC<
       setTrackGains,
       setTrackPans,
       setTrackBypasses,
+      gainNodes,
+      panNodes,
+      highpassNodes,
+      lowpassNodes,
     } = useTrackAudioStateContext();
 
     const toggleBypass = (type: "lowpass" | "highpass") => {
@@ -179,9 +182,7 @@ const Track: FC<
                   value={trackPans[trackInfo.id] ?? 0}
                   onChange={(val) => {
                     setTrackPans((prev) => ({ ...prev, [trackInfo.id]: val }));
-                    const panNode = trackFiltersRef.current?.get(
-                      `${trackInfo.id}_pan`
-                    ) as StereoPannerNode | undefined;
+                    const panNode = panNodes.current.get(trackInfo.id);
                     panNode?.pan.setValueAtTime(val, audioContext.currentTime);
                   }}
                   size={20}
@@ -199,9 +200,7 @@ const Track: FC<
                 onChange={(e) => {
                   const val = parseFloat(e.target.value);
                   setTrackGains((prev) => ({ ...prev, [trackInfo.id]: val }));
-                  const gainNode = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_gain`
-                  ) as GainNode | undefined;
+                  const gainNode = gainNodes.current.get(trackInfo.id);
                   gainNode?.gain.setValueAtTime(val, audioContext.currentTime);
                 }}
               />
@@ -223,11 +222,9 @@ const Track: FC<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const lowF = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_lowpass`
-                  ) as BiquadFilterNode | undefined;
+                  const lowpassNode = lowpassNodes.current.get(trackInfo.id);
                   if (!bypasses.lowpass[trackInfo.id]) {
-                    lowF?.frequency.setValueAtTime(
+                    lowpassNode?.frequency.setValueAtTime(
                       freq,
                       audioContext.currentTime
                     );
@@ -256,11 +253,9 @@ const Track: FC<
                     ...prev,
                     [trackInfo.id]: freq,
                   }));
-                  const highF = trackFiltersRef.current?.get(
-                    `${trackInfo.id}_highpass`
-                  ) as BiquadFilterNode | undefined;
+                  const highpassNode = highpassNodes.current.get(trackInfo.id);
                   if (!bypasses.highpass[trackInfo.id]) {
-                    highF?.frequency.setValueAtTime(
+                    highpassNode?.frequency.setValueAtTime(
                       freq,
                       audioContext.currentTime
                     );

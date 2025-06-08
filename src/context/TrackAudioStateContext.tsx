@@ -9,9 +9,9 @@ export const TrackAudioStateProvider: React.FC<{
   trackNumber: number;
   children: React.ReactNode;
 }> = ({ trackNumber, children }) => {
-  const audioState = useTrackAudioState(trackNumber);
+  const state = useTrackAudioState(trackNumber);
   return (
-    <TrackAudioStateContext.Provider value={audioState}>
+    <TrackAudioStateContext.Provider value={state}>
       {children}
     </TrackAudioStateContext.Provider>
   );

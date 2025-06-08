@@ -1,6 +1,11 @@
 import { useRef, useState, useEffect, useMemo } from "react";
 
 export function useTrackAudioState(trackNumber: number) {
+  const gainNodes = useRef<Map<number, GainNode>>(new Map());
+  const panNodes = useRef<Map<number, StereoPannerNode>>(new Map());
+  const highpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
+  const lowpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
+
   const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
 
   const [trackFrequencies, setTrackFrequencies] = useState<
@@ -37,6 +42,10 @@ export function useTrackAudioState(trackNumber: number) {
       gains: trackGains,
       pans: trackPans,
       bypasses: trackBypasses,
+      gainNodes: gainNodes,
+      panNodes: panNodes,
+      highpassNodes: highpassNodes,
+      lowpassNodes: lowpassNodes,
     }),
     [
       trackFrequencies,
@@ -44,6 +53,10 @@ export function useTrackAudioState(trackNumber: number) {
       trackGains,
       trackPans,
       trackBypasses,
+      gainNodes,
+      panNodes,
+      highpassNodes,
+      lowpassNodes,
     ]
   );
 
@@ -54,5 +67,9 @@ export function useTrackAudioState(trackNumber: number) {
     setTrackGains,
     setTrackPans,
     setTrackBypasses,
+    gainNodes,
+    panNodes,
+    highpassNodes,
+    lowpassNodes,
   };
 }

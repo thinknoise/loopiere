@@ -34,6 +34,10 @@ export interface TrackAudioStateParams {
     lowpass: Record<number, boolean>;
     highpass: Record<number, boolean>;
   };
+  gainNodes: React.RefObject<Map<number, GainNode>>;
+  panNodes: React.RefObject<Map<number, StereoPannerNode>>;
+  highpassNodes: React.RefObject<Map<number, BiquadFilterNode>>;
+  lowpassNodes: React.RefObject<Map<number, BiquadFilterNode>>;
 }
 
 /**
@@ -54,30 +58,6 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
   const audioContext = getAudioContext();
   const { beatsPerLoop } = useLoopSettings();
   const playingSources = useRef<AudioBufferSourceNode[]>([]);
-
-  // ─── persistent node maps ──────────────────────────────────────
-  const gainNodes = useRef<Map<number, GainNode>>(new Map());
-  const panNodes = useRef<Map<number, StereoPannerNode>>(new Map());
-  const highpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
-  const lowpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
-
-  /** get-or-create a node in the given map */
-  function getTrackNode<T extends AudioNode>(
-    map: Map<number, T>,
-    createNode: () => T,
-    key: string,
-    trackId: number,
-    refMap: React.RefObject<Map<string, AudioNode>>
-  ): T {
-    let node = map.get(trackId);
-    if (!node) {
-      node = createNode();
-      map.set(trackId, node);
-      // register it so your sliders can find it:
-      refMap.current?.set(key, node);
-    }
-    return node;
-  }
 
   // ─── playNow: schedule n-Beats Per Loop ───────────────────────────
   const playNow = useCallback(
@@ -106,71 +86,57 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         src.buffer = buffer;
 
         // ─── persistent gain ────────────────────────
-        const gainNode = getTrackNode(
-          gainNodes.current,
-          () => audioContext.createGain(),
-          `${trackId}_gain`,
-          trackId,
-          trackAudioState.filters
-        );
+        let gainNode = trackAudioState.gainNodes.current.get(trackId);
+        if (!gainNode) {
+          gainNode = audioContext.createGain();
+          trackAudioState.gainNodes.current.set(trackId, gainNode);
+        }
         gainNode.gain.setValueAtTime(
           trackAudioState.gains?.[trackId] ?? 1,
           startTime
         );
 
         // ─── persistent pan ─────────────────────────
-        const panNode = getTrackNode(
-          panNodes.current,
-          () => audioContext.createStereoPanner(),
-          `${trackId}_pan`,
-          trackId,
-          trackAudioState.filters
-        );
+        let panNode = trackAudioState.panNodes.current.get(trackId);
+        if (!panNode) {
+          panNode = audioContext.createStereoPanner();
+          trackAudioState.panNodes.current.set(trackId, panNode);
+        }
         panNode.pan.setValueAtTime(
           trackAudioState.pans?.[trackId] ?? 0,
           startTime
         );
 
         // ─── persistent highpass ────────────────────
-        const highFilter = getTrackNode(
-          highpassNodes.current,
-          () => {
-            const f = audioContext.createBiquadFilter();
-            f.type = "highpass";
-            return f;
-          },
-          `${trackId}_highpass`,
-          trackId,
-          trackAudioState.filters
-        );
-        highFilter.frequency.setValueAtTime(
+        let highpassNode = trackAudioState.highpassNodes.current.get(trackId);
+        if (!highpassNode) {
+          highpassNode = audioContext.createBiquadFilter();
+          highpassNode.type = "highpass";
+          trackAudioState.highpassNodes.current.set(trackId, highpassNode);
+        }
+        highpassNode.frequency.setValueAtTime(
           trackAudioState.highpassFrequencies[trackId] ?? 0,
           startTime
         );
 
         // ─── persistent lowpass ─────────────────────
-        const lowFilter = getTrackNode(
-          lowpassNodes.current,
-          () => {
-            const f = audioContext.createBiquadFilter();
-            f.type = "lowpass";
-            return f;
-          },
-          `${trackId}_lowpass`,
-          trackId,
-          trackAudioState.filters
-        );
-        lowFilter.frequency.setValueAtTime(
+        let lowpassNode = trackAudioState.lowpassNodes.current.get(trackId);
+        if (!lowpassNode) {
+          lowpassNode = audioContext.createBiquadFilter();
+          lowpassNode.type = "lowpass";
+          trackAudioState.lowpassNodes.current.set(trackId, lowpassNode);
+        }
+        lowpassNode.frequency.setValueAtTime(
           trackAudioState.frequencies[trackId] ?? audioContext.sampleRate / 2,
           startTime
         );
 
         // Always disconnect both filters before rebuilding chain
         try {
-          highFilter.disconnect();
+          highpassNode.disconnect();
         } catch {}
         try {
-          lowFilter.disconnect();
+          lowpassNode.disconnect();
         } catch {}
 
         let currentNode: AudioNode = src;
@@ -181,21 +147,15 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         currentNode.connect(panNode);
         currentNode = panNode;
 
-        console.log(
-          `[Track ${trackId}]`,
-          "Bypass states:",
-          trackAudioState.bypasses
-        );
-
         // Reconnect only if NOT bypassed
         if (!trackAudioState.bypasses?.highpass[trackId]) {
-          currentNode.connect(highFilter);
-          currentNode = highFilter;
+          currentNode.connect(highpassNode);
+          currentNode = highpassNode;
         }
 
         if (!trackAudioState.bypasses?.lowpass[trackId]) {
-          currentNode.connect(lowFilter);
-          currentNode = lowFilter;
+          currentNode.connect(lowpassNode);
+          currentNode = lowpassNode;
         }
 
         currentNode.connect(audioContext.destination);
