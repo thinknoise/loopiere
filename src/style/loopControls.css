@@ -1,0 +1,275 @@
+.control-panel {
+  background-color: #2c2c2c;
+  border-radius: 8px;
+  width: 90%;
+  margin: 0 auto 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  gap: 16px;
+  padding: 0 1rem;
+}
+
+.control-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  align-items: center;
+}
+
+.beats-selector {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+/* === Base Button Style === */
+button.lc {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+}
+
+button.lc:hover {
+  cursor: pointer;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.8);
+}
+
+/* === Individual Button Themes === */
+
+button.play-button {
+  background-color: #00aa00;
+  transform: rotate(180deg);
+}
+
+button.play-button:hover {
+  background-color: #00ff00;
+}
+
+button.stop-button {
+  background-color: #852020;
+}
+
+button.stop-button:hover {
+  background-color: #ff3d3d;
+}
+
+button.clear-button {
+  background-color: #6e6e6e;
+}
+
+button.clear-button:hover {
+  background-color: #ff0000;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+button.save-button {
+  background-color: #1976d2;
+}
+
+button.save-button:hover {
+  background-color: #3ea6ff;
+}
+
+button.save-button:disabled {
+  color: #3b3b3b;
+  background-color: grey;
+  pointer-events: none;
+  box-shadow: none;
+}
+
+button.load-button {
+  background-color: #1976d2;
+}
+
+button.load-button:hover {
+  background-color: #3ea6ff;
+}
+
+button.delete-button {
+  background-color: #d32f2f;
+}
+
+button.delete-button:hover {
+  background-color: #ff3d3d;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+/* === SVG Sizing for Buttons === */
+button.lc svg {
+  width: 32px;
+  height: 32px;
+}
+
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(10px) rotateX(-90deg);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s ease;
+
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px) rotateX(-90deg);
+  background-color: #b3b3b3;
+  color: #000000;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) rotateX(0deg);
+}
+
+/* Optional: arrow */
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #b3b3b3 transparent transparent transparent;
+}
+
+
+
+/* === Select Dropdown (Beats/Loop) === */
+select#beats-select {
+  padding: 0.3rem 0.6rem;
+  font-size: 1rem;
+  border-radius: 4px;
+  background-color: #1e1e1e;
+  color: white;
+  border: 1px solid #444;
+  appearance: none;
+  transition: border-color 0.2s, background-color 0.2s;
+  margin-right: 3rem;
+}
+
+select#beats-select:hover,
+select#beats-select:focus {
+  border-color: #888;
+  outline: none;
+}
+
+.bpm-slider {
+  width: 30%;
+  margin: 2rem 0 0 0;
+  color: #1976d2;
+  /* matches primary.main */
+}
+
+.bpm-slider.MuiSlider-root {
+  margin: 2rem 0 0 0;
+  width: 30%;
+}
+
+/* Thumb style */
+.bpm-slider .MuiSlider-thumb {
+  width: 16px;
+  height: 16px;
+  background-color: #1976d2;
+  border: 2px solid white;
+}
+
+/* Track style */
+.bpm-slider .MuiSlider-track {
+  background-color: #1976d2;
+  height: 4px;
+}
+
+/* Rail style */
+.bpm-slider .MuiSlider-rail {
+  background-color: #444;
+  height: 4px;
+  opacity: 0.5;
+}
+
+/* Value label (bubble with BPM) */
+.bpm-slider .MuiSlider-valueLabel {
+  background-color: #1976d2;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  color: white;
+}
+
+.loop-stats-container {
+  position: relative;
+  width: fit-content;
+  color: white;
+  margin: auto;
+  font-family: sans-serif;
+}
+
+.loop-stats-header {
+  background-color: #222;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+  text-align: center;
+  transition: background-color 0.2s ease;
+}
+
+.loop-stats-header:hover {
+  background-color: #000000;
+}
+
+.loop-stats-drawer {
+  position: absolute;
+  right: 0;
+  z-index: 18;
+  overflow: hidden;
+  max-height: 0;
+  min-width: 210px;
+  opacity: 0;
+  transition: max-height 0.4s ease, opacity 0.3s ease;
+  background-color: #1a1a1a;
+  padding: 0 12px;
+  border-radius: 4px;
+}
+
+.loop-stats-drawer p {
+  margin: 0;
+  padding: 4px 0;
+  font-size: 0.8rem;
+  line-height: 0.6rem;
+  text-align: left;
+  text-wrap: nowrap;
+  white-space: nowrap;
+  color: #ccc;
+}
+
+.loop-stats-drawer.open {
+  max-height: 300px;
+  /* large enough to fit content */
+  opacity: 1;
+  padding: 8px 12px;
+}

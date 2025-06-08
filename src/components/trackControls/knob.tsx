@@ -56,6 +56,9 @@ export const Knob: React.FC<KnobProps> = ({
   const sideAmount = Math.abs(value * 10).toFixed(1);
   return (
     <div className="knob-container">
+      <div className="knob-label">
+        {sideAmount} {side}
+      </div>
       <div
         ref={knobRef}
         className="knob draggable"
@@ -67,9 +70,6 @@ export const Knob: React.FC<KnobProps> = ({
           className="knob-indicator"
           style={{ transform: `translateX(-50%) rotate(${angle}deg)` }}
         />
-      </div>
-      <div className="knob-label">
-        {sideAmount} {side}
       </div>
     </div>
   );

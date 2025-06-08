@@ -38,6 +38,8 @@ export interface TrackAudioStateParams {
   panNodes: React.RefObject<Map<number, StereoPannerNode>>;
   highpassNodes: React.RefObject<Map<number, BiquadFilterNode>>;
   lowpassNodes: React.RefObject<Map<number, BiquadFilterNode>>;
+  sampleRates?: Record<number, number>;
+  sampleRateNodes: React.RefObject<Map<number, number>>;
 }
 
 /**
@@ -84,6 +86,9 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
         // create the BufferSource
         const src = audioContext.createBufferSource();
         src.buffer = buffer;
+
+        const sampleRate = trackAudioState.sampleRates?.[trackId] ?? 1;
+        src.playbackRate.setValueAtTime(sampleRate, startTime);
 
         // ─── persistent gain ────────────────────────
         let gainNode = trackAudioState.gainNodes.current.get(trackId);

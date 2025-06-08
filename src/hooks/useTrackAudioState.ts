@@ -5,6 +5,7 @@ export function useTrackAudioState(trackNumber: number) {
   const panNodes = useRef<Map<number, StereoPannerNode>>(new Map());
   const highpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
   const lowpassNodes = useRef<Map<number, BiquadFilterNode>>(new Map());
+  const sampleRateNodes = useRef<Map<number, number>>(new Map());
 
   const trackFiltersRef = useRef<Map<string, AudioNode>>(new Map());
 
@@ -24,6 +25,10 @@ export function useTrackAudioState(trackNumber: number) {
     highpass: {},
   });
 
+  const [trackSampleRates, setTrackSampleRates] = useState<
+    Record<number, number>
+  >({});
+
   // Ensure new tracks have default bypass state
   useEffect(() => {
     for (let id = 1; id <= trackNumber; id++) {
@@ -42,10 +47,12 @@ export function useTrackAudioState(trackNumber: number) {
       gains: trackGains,
       pans: trackPans,
       bypasses: trackBypasses,
+      sampleRates: trackSampleRates,
       gainNodes: gainNodes,
       panNodes: panNodes,
       highpassNodes: highpassNodes,
       lowpassNodes: lowpassNodes,
+      sampleRateNodes: sampleRateNodes,
     }),
     [
       trackFrequencies,
@@ -53,10 +60,12 @@ export function useTrackAudioState(trackNumber: number) {
       trackGains,
       trackPans,
       trackBypasses,
+      trackSampleRates,
       gainNodes,
       panNodes,
       highpassNodes,
       lowpassNodes,
+      sampleRateNodes,
     ]
   );
 
@@ -67,9 +76,11 @@ export function useTrackAudioState(trackNumber: number) {
     setTrackGains,
     setTrackPans,
     setTrackBypasses,
+    setTrackSampleRates,
     gainNodes,
     panNodes,
     highpassNodes,
     lowpassNodes,
+    sampleRateNodes,
   };
 }

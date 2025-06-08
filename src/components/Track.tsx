@@ -50,16 +50,19 @@ const Track: FC<
         gains: trackGains,
         pans: trackPans,
         bypasses,
+        sampleRates: sampleRates,
       },
       setTrackFrequencies,
       setTrackHighpassFrequencies,
       setTrackGains,
       setTrackPans,
       setTrackBypasses,
+      setTrackSampleRates,
       gainNodes,
       panNodes,
       highpassNodes,
       lowpassNodes,
+      sampleRateNodes,
     } = useTrackAudioStateContext();
 
     const toggleBypass = (type: "lowpass" | "highpass") => {
@@ -208,6 +211,12 @@ const Track: FC<
             </div>
 
             <div className="control-item slider-strip">
+              <button
+                className="bypass-toggle"
+                onClick={() => toggleBypass("lowpass")}
+              >
+                {bypasses.lowpass[trackInfo.id] ? "x" : "o"}
+              </button>
               <input
                 type="range"
                 id={`lowpass-${trackInfo.id}`}
@@ -233,12 +242,15 @@ const Track: FC<
                 disabled={bypasses.lowpass[trackInfo.id]}
               />
               <label htmlFor={`lowpass-${trackInfo.id}`}>low</label>
-              <button onClick={() => toggleBypass("lowpass")}>
-                {bypasses.lowpass[trackInfo.id] ? "x" : "o"}
-              </button>
             </div>
 
             <div className="control-item slider-strip">
+              <button
+                className="bypass-toggle"
+                onClick={() => toggleBypass("highpass")}
+              >
+                {bypasses.highpass[trackInfo.id] ? "x" : "o"}
+              </button>
               <input
                 type="range"
                 id={`highpass-${trackInfo.id}`}
@@ -264,9 +276,35 @@ const Track: FC<
                 disabled={bypasses.highpass[trackInfo.id]}
               />
               <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
-              <button onClick={() => toggleBypass("highpass")}>
-                {bypasses.highpass[trackInfo.id] ? "x" : "o"}
-              </button>
+            </div>
+
+            {/* sample rate */}
+            <div className="control-item slider-strip">
+              <span className="value-display">
+                {sampleRates[trackInfo.id]?.toFixed(2) ?? "1.00"}×
+              </span>
+
+              <input
+                type="range"
+                id={`sample-rate-${trackInfo.id}`}
+                min="0.33"
+                max="2"
+                step="0.0595"
+                value={sampleRates[trackInfo.id] ?? 1}
+                className="vertical-slider"
+                onChange={(e) => {
+                  const val = parseFloat(e.target.value);
+                  setTrackSampleRates((prev) => ({
+                    ...prev,
+                    [trackInfo.id]: val,
+                  }));
+                  const sampleRateNode = sampleRateNodes.current.get(
+                    trackInfo.id
+                  );
+                  // sampleRateNode?.setValueAtTime(val);
+                }}
+              />
+              <label htmlFor={`sample-rate-${trackInfo.id}`}>rate</label>
             </div>
           </div>
         </div>
