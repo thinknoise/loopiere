@@ -85,34 +85,52 @@ const LoopControls: FC<LoopControlsProps> = memo(
     return (
       <Box className="control-panel">
         <Box className="control-buttons">
-          <IconButton onClick={start} className="lc play-button">
-            <TiArrowLoop fontSize={35} />
-          </IconButton>
-          <IconButton
-            onClick={() => {
-              stop();
-              stopAll();
-            }}
-            className="lc stop-button"
-          >
-            <IoStopCircleOutline fontSize={32} />
-          </IconButton>
-          <IconButton onClick={clearSamples} className="lc clear-button">
-            <PiEraserDuotone fontSize={32} />
-          </IconButton>
-          <IconButton
-            onClick={onSave}
-            disabled={emptyTracks}
-            className="lc save-button"
-          >
-            <PiCloudArrowUpDuotone fontSize={32} />
-          </IconButton>
-          <IconButton onClick={onLoad} className="lc load-button">
-            <PiCloudFogDuotone fontSize={32} />
-          </IconButton>
-          <IconButton onClick={onDelete} className="lc delete-button">
-            <PiCloudSlashDuotone fontSize={32} />
-          </IconButton>
+          <div className="tooltip-wrapper">
+            <IconButton onClick={start} className="lc play-button">
+              <TiArrowLoop fontSize={35} />
+            </IconButton>
+            <span className="tooltip-text">Play</span>
+          </div>
+          <div className="tooltip-wrapper">
+            <IconButton
+              onClick={() => {
+                stop();
+                stopAll();
+              }}
+              className="lc stop-button"
+            >
+              <IoStopCircleOutline fontSize={32} />
+            </IconButton>
+            <span className="tooltip-text">Stop</span>
+          </div>
+          <div className="tooltip-wrapper">
+            <IconButton onClick={clearSamples} className="lc clear-button">
+              <PiEraserDuotone fontSize={32} />
+            </IconButton>
+            <span className="tooltip-text">Clear</span>
+          </div>
+          <div className="tooltip-wrapper">
+            <IconButton
+              onClick={onSave}
+              disabled={emptyTracks}
+              className="lc save-button"
+            >
+              <PiCloudArrowUpDuotone fontSize={32} />
+            </IconButton>
+            <span className="tooltip-text">Save</span>
+          </div>
+          <div className="tooltip-wrapper">
+            <IconButton onClick={onLoad} className="lc load-button">
+              <PiCloudFogDuotone fontSize={32} />
+            </IconButton>
+            <span className="tooltip-text">Load</span>
+          </div>
+          <div className="tooltip-wrapper">
+            <IconButton onClick={onDelete} className="lc delete-button">
+              <PiCloudSlashDuotone fontSize={32} />
+            </IconButton>
+            <span className="tooltip-text">Delete</span>
+          </div>
         </Box>
         <Box className="beats-selector">
           <select
@@ -136,16 +154,7 @@ const LoopControls: FC<LoopControlsProps> = memo(
           onChange={(_, value) => setBpm(value as number)}
           valueLabelDisplay="on"
           valueLabelFormat={(value) => `${value} BPM`}
-          sx={{
-            width: "30%",
-            color: "primary.main",
-            mt: 5,
-            "& .MuiSlider-valueLabel": {
-              pv: 0,
-              bgcolor: "primary.main",
-              borderRadius: 1,
-            },
-          }}
+          className="bpm-slider"
         />
 
         <Box className="loop-info">

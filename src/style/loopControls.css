@@ -1,7 +1,7 @@
 .control-panel {
   background-color: #2c2c2c;
   border-radius: 8px;
-  width: 95%;
+  width: 90%;
   margin: 0 auto 1rem;
   display: flex;
   flex-direction: row;
@@ -20,13 +20,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
   color: white;
 }
 
 .bpm-slider {
   width: 30%;
-  margin-top: 2rem;
+  margin: 2rem 0 0 0;
 }
 
 .loop-info {
@@ -131,6 +130,53 @@ button.lc svg {
   height: 32px;
 }
 
+.tooltip-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip-text {
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(10px) rotateX(-90deg);
+  transform-origin: bottom center;
+  transition:
+    opacity 0.3s ease,
+    transform 0.4s ease;
+
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px) rotateX(-90deg);
+  background-color: #b3b3b3;
+  color: #000000;
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.tooltip-wrapper:hover .tooltip-text {
+  visibility: visible;
+  opacity: 1;
+  transform: translateX(-50%) translateY(0) rotateX(0deg);
+}
+
+/* Optional: arrow */
+.tooltip-text::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #b3b3b3 transparent transparent transparent;
+}
+
+
+
 /* === Select Dropdown (Beats/Loop) === */
 select#beats-select {
   padding: 0.3rem 0.6rem;
@@ -148,4 +194,45 @@ select#beats-select:hover,
 select#beats-select:focus {
   border-color: #888;
   outline: none;
+}
+
+
+.bpm-slider {
+  color: #1976d2;
+  /* matches primary.main */
+}
+
+.bpm-slider.MuiSlider-root {
+  margin: 2rem 0 0 0;
+  width: 30%;
+}
+
+/* Thumb style */
+.bpm-slider .MuiSlider-thumb {
+  width: 16px;
+  height: 16px;
+  background-color: #1976d2;
+  border: 2px solid white;
+}
+
+/* Track style */
+.bpm-slider .MuiSlider-track {
+  background-color: #1976d2;
+  height: 4px;
+}
+
+/* Rail style */
+.bpm-slider .MuiSlider-rail {
+  background-color: #444;
+  height: 4px;
+  opacity: 0.5;
+}
+
+/* Value label (bubble with BPM) */
+.bpm-slider .MuiSlider-valueLabel {
+  background-color: #1976d2;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  padding: 2px 6px;
+  color: white;
 }
