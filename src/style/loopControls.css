@@ -4,6 +4,7 @@
   width: 90%;
   margin: 0 auto 1rem;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: row;
   gap: 16px;
   padding: 0 1rem;
