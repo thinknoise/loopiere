@@ -4,10 +4,17 @@ import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import { addSampleToRegistry } from "../utils/sampleRegistry";
+import {
+  addSampleToAwsRegistry,
+  addSampleToRegistry,
+  getAllAwsSamples,
+} from "../utils/sampleRegistry";
 import type { RecordingSample, TrackSample } from "../types/audio";
 import "../style/bankRecordingList.css";
 import "../style/bankTab.css";
+import SampleUploader from "./SampleUploader";
+import SaveSampleButton from "./BankRecordingSaveSampleButton";
+import { hydrateAwsSamplesFromS3 } from "../utils/awsHydration";
 
 const BankRecordingList: FC = () => {
   const [recordings, setRecordings] = useState<RecordingSample[]>([]);
@@ -21,21 +28,29 @@ const BankRecordingList: FC = () => {
   } = useRecorder(useAudioContext()) as any;
   const lastHandledBuffer = useRef<AudioBuffer | null>(null);
 
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    hydrateAwsSamplesFromS3().then(() => setHydrated(true));
+  }, []);
+
   useEffect(() => {
     if (!audioBuffer) return;
     if (audioBuffer === lastHandledBuffer.current) return; // Already handled!
     lastHandledBuffer.current = audioBuffer;
 
     (async () => {
-      const url = await getRecordedBlobURL();
+      const result = await getRecordedBlobURL();
+      if (!result) return;
+      const { blob, url } = result;
       setRecordings((prevRecordings) => {
-        const filename = `Recording ${prevRecordings.length + 1}`;
+        const filename = `Recording${prevRecordings.length + 1}`;
         const date = new Date().toISOString().split("T")[0];
         const newRecording: RecordingSample & TrackSample = {
           id: Date.now(),
           type: "recording",
           blobUrl: url,
-          blob: new Blob(),
+          blob: blob,
           filename,
           title: `${filename} ${date}`,
           duration: audioBuffer.duration,
@@ -80,16 +95,44 @@ const BankRecordingList: FC = () => {
       {/* let the vu meter always be there */}
       {<VUMeter inputLevel={inputLevel} />}
       <div className="samples">
+        {hydrated &&
+          getAllAwsSamples().map((sample) => (
+            <BankSample key={sample.id} sample={sample} />
+          ))}
         {recordings.map((recording) => (
-          <BankSample
-            key={recording.id}
-            sample={recording}
-            onRemove={(id) => {
-              setRecordings((prev) => prev.filter((s) => s.id !== id));
-            }}
-          />
+          <>
+            <BankSample
+              key={recording.id}
+              sample={recording}
+              onRemove={(id) => {
+                setRecordings((prev) => prev.filter((s) => s.id !== id));
+              }}
+            />
+            <SaveSampleButton
+              blob={recording.blob}
+              fileName={recording.filename + ".wav"}
+              onSave={(sample) => {
+                addSampleToAwsRegistry({
+                  id: recording.id,
+                  title: recording.title,
+                  duration: recording.duration,
+                  trimStart: 0,
+                  trimEnd: recording.duration,
+                  recordedAt: new Date(),
+                  type: "recording",
+                  filename: recording.filename,
+                  blob: recording.blob,
+                  blobUrl: recording.blobUrl,
+                  s3Key: sample.s3Key,
+                  s3Url: sample.s3Url,
+                  name: sample.name,
+                });
+              }}
+            />
+          </>
         ))}
       </div>
+      <SampleUploader />
     </div>
   );
 };

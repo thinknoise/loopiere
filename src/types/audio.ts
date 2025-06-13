@@ -33,6 +33,9 @@ export type RecordingSample = SampleCore & {
   blob: Blob;
   blobUrl: string;
   recordedAt: Date;
+  s3Key?: string;
+  s3Url?: string;
+  name?: string;
 };
 
 /**
