@@ -28,7 +28,6 @@ export async function hydrateAwsSamplesFromS3() {
 
     try {
       const buffer = await loadAudio(s3Url);
-      console.log(`✅ Loaded sample: ${filename} (${s3Url})`);
       const sample: RecordingSample = {
         id,
         type: "recording",

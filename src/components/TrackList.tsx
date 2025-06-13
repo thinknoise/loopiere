@@ -36,12 +36,10 @@ const TrackList: FC = () => {
 
   const [trackNumber, setTrackNumber] = useState(4);
 
-  const [isListingSelected, setListingSelected] = useState<boolean>(false);
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
-  const allSamples = useTrackSampleStore((s) => s.allSamples);
   const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
 
   const tracks = useMemo<TrackInfo[]>(

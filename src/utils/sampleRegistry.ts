@@ -13,6 +13,7 @@ const awsRegistry = new Map<number, RecordingSample>();
  */
 export function addSampleToRegistry(sample: BaseSample) {
   registry.set(sample.id, sample);
+  console.log("Adding sample to registry:", Array.from(registry.values()));
 }
 
 /**
@@ -28,12 +29,6 @@ export function getSampleFromRegistry(id: number): BaseSample | undefined {
  */
 export async function addSampleToAwsRegistry(sample: RecordingSample) {
   const buffer = await getSampleBuffer(sample);
-  console.log(
-    "Adding sample to AWS registry:",
-    sample.id,
-    sample.s3Url,
-    buffer
-  );
   if (!buffer) {
     console.warn("⚠️ Skipping broken S3 sample:", sample.s3Url);
     return;
@@ -41,6 +36,7 @@ export async function addSampleToAwsRegistry(sample: RecordingSample) {
 
   sample.buffer = buffer;
   awsRegistry.set(sample.id, sample);
+  addSampleToRegistry(sample);
 }
 
 /**
