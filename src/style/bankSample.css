@@ -87,9 +87,9 @@
   border-radius: 3px;
   align-items: center;
   justify-content: center;
-  color: #000000;
+  color: #ffffff;
   font-size: x-small;
-  background-color: rgba(83, 180, 253, 1);
+  background-color: rgb(35, 81, 118);
 
   transition: background-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
 }
@@ -101,4 +101,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.error-message {
+  background-color: rgba(255, 0, 0, 0.5);
+  color: white;
+  font-size: small;
+}
+
+.error-message span {
+  font-weight: bold;
 }

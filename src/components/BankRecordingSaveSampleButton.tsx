@@ -53,15 +53,11 @@ export default function SaveSampleButton({ blob, fileName, onSave }: Props) {
   };
 
   return (
-    <div className="save-upload-container">
-      <button
-        className="save-upload-button"
-        onClick={handleClick}
-        disabled={saving}
-      >
-        {saving ? "Saving..." : "Save to Bank"}
-      </button>
-      {error && <div className="error-message">{error}</div>}
+    <div
+      className={`save-upload-button ${error ? "error-message" : ""}`}
+      onClick={handleClick}
+    >
+      {saving && !error ? "Saving..." : !error ? "Save to Bank" : error}
     </div>
   );
 }
