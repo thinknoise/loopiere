@@ -5,10 +5,12 @@ import CompactWaveform from "./CompactWaveform";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
-import "../style/bankSample.css";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
 import SaveSampleButton from "./BankRecordingSaveSampleButton";
 import { addSampleToAwsRegistry } from "../utils/sampleRegistry";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { BUCKET, REGION, s3 } from "../utils/awsConfig";
+import "../style/bankSample.css";
 
 export interface Sample {
   id?: string | number;
@@ -96,6 +98,53 @@ const BankSample: FC<BankSampleProps> = ({
     src.start();
   };
 
+  async function saveSampleToS3AndRegistry(sample: Sample): Promise<boolean> {
+    if (!sample.blob || !sample.filename) {
+      console.error("Invalid sample: missing blob or filename");
+      return false;
+    }
+
+    const key = `uploads/${Date.now()}-${sample.filename}.wav`;
+
+    try {
+      const buffer = await sample.blob.arrayBuffer();
+      const command = new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: new Uint8Array(buffer),
+        ContentType: sample.blob.type,
+      });
+
+      await s3.send(command);
+
+      const uploadedSample = {
+        name: sample.filename + ".wav",
+        s3Key: key,
+        s3Url: `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`,
+        createdAt: Date.now(),
+      };
+
+      addSampleToAwsRegistry({
+        id: sample.id !== undefined ? Number(sample.id) : 0,
+        title: sample.title,
+        duration: sample.duration,
+        trimStart: 0,
+        trimEnd: sample.duration,
+        recordedAt: new Date(),
+        type: "recording",
+        filename: sample.filename,
+        blob: sample.blob,
+        blobUrl: sample.blobUrl,
+        ...uploadedSample,
+      });
+
+      return true;
+    } catch (err) {
+      console.error("Failed to upload and register sample:", err);
+      return false;
+    }
+  }
+
   return (
     <button
       ref={btnRef}
@@ -134,23 +183,7 @@ const BankSample: FC<BankSampleProps> = ({
         <SaveSampleButton
           blob={sample.blob}
           fileName={sample.filename + ".wav"}
-          onSave={(uploadedSample) => {
-            addSampleToAwsRegistry({
-              id: sample.id !== undefined ? Number(sample.id) : 0,
-              title: sample.title,
-              duration: sample.duration,
-              trimStart: 0,
-              trimEnd: sample.duration,
-              recordedAt: new Date(),
-              type: "recording",
-              filename: sample.filename,
-              blob: sample.blob,
-              blobUrl: sample.blobUrl,
-              s3Key: uploadedSample.s3Key,
-              s3Url: uploadedSample.s3Url,
-              name: uploadedSample.name,
-            });
-          }}
+          onSave={() => saveSampleToS3AndRegistry(sample)}
         />
       )}
     </button>

@@ -4,16 +4,11 @@ import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import {
-  addSampleToAwsRegistry,
-  addSampleToRegistry,
-  getAllAwsSamples,
-} from "../utils/sampleRegistry";
+import { addSampleToRegistry, getAllAwsSamples } from "../utils/sampleRegistry";
 import type { RecordingSample, TrackSample } from "../types/audio";
 import "../style/bankRecordingList.css";
 import "../style/bankTab.css";
 import SampleUploader from "./SampleUploader";
-import SaveSampleButton from "./BankRecordingSaveSampleButton";
 import { hydrateAwsSamplesFromS3 } from "../utils/awsHydration";
 
 const BankRecordingList: FC = () => {
