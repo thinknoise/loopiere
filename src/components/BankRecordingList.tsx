@@ -96,11 +96,11 @@ const BankRecordingList: FC = () => {
       {<VUMeter inputLevel={inputLevel} />}
       <div className="samples">
         {hydrated &&
-          getAllAwsSamples().map((sample) => (
-            <BankSample key={sample.id} sample={sample} />
+          getAllAwsSamples().map((awsSample) => (
+            <BankSample key={awsSample.id} sample={awsSample} />
           ))}
         {recordings.map((recording) => (
-          <>
+          <div className="recording-item" key={recording.id}>
             <BankSample
               key={recording.id}
               sample={recording}
@@ -108,28 +108,7 @@ const BankRecordingList: FC = () => {
                 setRecordings((prev) => prev.filter((s) => s.id !== id));
               }}
             />
-            <SaveSampleButton
-              blob={recording.blob}
-              fileName={recording.filename + ".wav"}
-              onSave={(sample) => {
-                addSampleToAwsRegistry({
-                  id: recording.id,
-                  title: recording.title,
-                  duration: recording.duration,
-                  trimStart: 0,
-                  trimEnd: recording.duration,
-                  recordedAt: new Date(),
-                  type: "recording",
-                  filename: recording.filename,
-                  blob: recording.blob,
-                  blobUrl: recording.blobUrl,
-                  s3Key: sample.s3Key,
-                  s3Url: sample.s3Url,
-                  name: sample.name,
-                });
-              }}
-            />
-          </>
+          </div>
         ))}
       </div>
       <SampleUploader />

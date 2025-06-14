@@ -1,6 +1,7 @@
 import React, { useRef } from "react";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "../utils/awsConfig";
+import "../style/sampleUploaded.css";
 
 export default function SampleUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,9 +32,11 @@ export default function SampleUploader() {
   };
 
   return (
-    <div>
+    <div className="sample-uploader">
       <input type="file" ref={fileInputRef} />
-      <button onClick={handleUpload}>Upload to S3</button>
+      <button className="upload-button" onClick={handleUpload}>
+        Upload to S3
+      </button>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3, BUCKET, REGION } from "../utils/awsConfig";
+import "../style/bankSample.css";
 
 type Props = {
   blob: Blob;
@@ -52,11 +53,15 @@ export default function SaveSampleButton({ blob, fileName, onSave }: Props) {
   };
 
   return (
-    <div>
-      <button onClick={handleClick} disabled={saving}>
+    <div className="save-upload-container">
+      <button
+        className="save-upload-button"
+        onClick={handleClick}
+        disabled={saving}
+      >
         {saving ? "Saving..." : "Save to Bank"}
       </button>
-      {error && <div style={{ color: "red", marginTop: 4 }}>{error}</div>}
+      {error && <div className="error-message">{error}</div>}
     </div>
   );
 }

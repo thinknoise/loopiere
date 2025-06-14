@@ -7,6 +7,8 @@ import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import "../style/bankSample.css";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
+import SaveSampleButton from "./BankRecordingSaveSampleButton";
+import { addSampleToAwsRegistry } from "../utils/sampleRegistry";
 
 export interface Sample {
   id?: string | number;
@@ -107,6 +109,7 @@ const BankSample: FC<BankSampleProps> = ({
       }}
     >
       <span>{sample.filename.replace(/\.\w+$/, "")}</span>
+      <span>{sample.filename}s</span>
       {audioBuffer && (
         <CompactWaveform
           buffer={audioBuffer}
@@ -125,6 +128,29 @@ const BankSample: FC<BankSampleProps> = ({
           }}
           role="button"
           aria-label="Remove sample"
+        />
+      )}
+      {sample.filename.substring(sample.filename.length - 4) !== ".wav" && (
+        <SaveSampleButton
+          blob={sample.blob}
+          fileName={sample.filename + ".wav"}
+          onSave={(uploadedSample) => {
+            addSampleToAwsRegistry({
+              id: sample.id !== undefined ? Number(sample.id) : 0,
+              title: sample.title,
+              duration: sample.duration,
+              trimStart: 0,
+              trimEnd: sample.duration,
+              recordedAt: new Date(),
+              type: "recording",
+              filename: sample.filename,
+              blob: sample.blob,
+              blobUrl: sample.blobUrl,
+              s3Key: uploadedSample.s3Key,
+              s3Url: uploadedSample.s3Url,
+              name: uploadedSample.name,
+            });
+          }}
         />
       )}
     </button>
