@@ -5,7 +5,6 @@ import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
 import type { TrackSample as Sample, BaseSample } from "../types/audio";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
-import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
 import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
@@ -13,6 +12,7 @@ import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 import Knob from "./TrackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
 import { useLoopSettings } from "../context/LoopSettingsContext";
+import "../style/track.css";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
