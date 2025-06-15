@@ -7,7 +7,6 @@ import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
-import { hydrateAndRegisterRecordingSample } from "../utils/sampleRegistry";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, REGION, s3 } from "../utils/awsConfig";
 import "../style/bankSample.css";
@@ -100,7 +99,11 @@ const BankSample: FC<BankSampleProps> = ({
     src.start();
   };
 
-  async function saveSampleToS3AndRegistry(sample: Sample): Promise<boolean> {
+  async function saveSampleToS3AndRegistry(
+    sample: Sample,
+    onSampleSaved?: () => void
+  ): Promise<boolean> {
+    console.group("onSampleSaved", onSampleSaved);
     if (!sample.blob || !sample.filename) {
       console.error("Invalid sample: missing blob or filename");
       return false;
@@ -126,27 +129,12 @@ const BankSample: FC<BankSampleProps> = ({
         createdAt: Date.now(),
       };
 
-      console.log("Sample uploaded to S3:", uploadedSample);
-      await hydrateAndRegisterRecordingSample(
-        {
-          id: sample.id !== undefined ? Number(sample.id) : 0,
-          title: sample.title,
-          duration: sample.duration,
-          trimStart: 0,
-          trimEnd: sample.duration,
-          recordedAt: new Date(),
-          type: "recording",
-          filename: sample.filename,
-          blob: sample.blob,
-          blobUrl: sample.blobUrl,
-          ...uploadedSample,
-        },
-        audioBuffer ?? undefined
-      );
+      console.log("Sample uploaded to S3:", uploadedSample, onSampleSaved);
 
+      // Optionally: hydrate all again if needed right away
       if (onSampleSaved) {
-        console.log("Sample saved successfully:");
-        onSampleSaved(); // trigger refresh from parent
+        console.log("Calling onSampleSaved callback");
+        onSampleSaved();
       }
 
       return true;
@@ -156,6 +144,7 @@ const BankSample: FC<BankSampleProps> = ({
     }
   }
 
+  console.log("Rendering BankSample: onSampleSaved - ", onSampleSaved);
   return (
     <button
       ref={btnRef}
@@ -190,8 +179,13 @@ const BankSample: FC<BankSampleProps> = ({
           aria-label="Remove sample"
         />
       )}
+      {/* Save button 
+      This button is only shown if the sample is not a .wav file.
+      */}
       {sample.filename.substring(sample.filename.length - 4) !== ".wav" && (
-        <SaveSampleButton onSave={() => saveSampleToS3AndRegistry(sample)} />
+        <SaveSampleButton
+          onSave={() => saveSampleToS3AndRegistry(sample, onSampleSaved)}
+        />
       )}
     </button>
   );

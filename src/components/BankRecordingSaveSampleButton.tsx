@@ -13,6 +13,7 @@ export default function SaveSampleButton({ onSave }: Props) {
     setSaving(true);
     setError(null);
     try {
+      console.log("Saving sample...", onSave);
       const success = await onSave(); // updated
       if (!success) {
         setError("Upload failed. Check console.");

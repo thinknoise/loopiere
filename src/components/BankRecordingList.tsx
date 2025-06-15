@@ -4,10 +4,7 @@ import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import {
-  addSampleToRegistry,
-  getAwsSamplesFromRegistry,
-} from "../utils/sampleRegistry";
+import { addSampleToRegistry } from "../utils/sampleRegistry";
 import type {
   RecordingSample,
   TrackSample as TrackSampleType,
@@ -34,22 +31,11 @@ const BankRecordingList: FC = () => {
 
   const [hydrated, setHydrated] = useState(false);
 
-  const refreshSamples = async () => {
-    const awsSamples = getAwsSamplesFromRegistry();
-    const formattedSamples = awsSamples.map((sample) => ({
-      ...sample,
-      trackId: 0,
-      xPos: 0,
-      onTrack: false,
-    }));
-    setSamplesFromAws(formattedSamples);
-  };
-
   useEffect(() => {
     console.log("Hydrating AWS samples from S3...");
-    hydrateAwsSamplesFromS3().then(() => {
+    hydrateAwsSamplesFromS3().then((hydratedSamples) => {
+      setSamplesFromAws(hydratedSamples);
       setHydrated(true);
-      refreshSamples();
     });
   }, []);
 
@@ -82,6 +68,7 @@ const BankRecordingList: FC = () => {
           trackId: 0,
         };
 
+        console.log("New recording created:", newRecording);
         addSampleToRegistry(newRecording);
         return [...prevRecordings, newRecording];
       });
@@ -125,19 +112,32 @@ const BankRecordingList: FC = () => {
       <div className="samples">
         {hydrated &&
           samplesFromAws.map((awsSample) => (
-            <BankSample key={awsSample.id} sample={awsSample} />
+            <BankSample
+              key={awsSample.id}
+              sample={awsSample}
+              onSampleSaved={() => {
+                console.log("Sample saved, refreshing...");
+                hydrateAwsSamplesFromS3().then((hydratedSamples) => {
+                  setSamplesFromAws(hydratedSamples);
+                  setHydrated(true);
+                });
+              }}
+            />
           ))}
         {recordings.map((recording) => (
           <div className="recording-item" key={recording.id}>
             <BankSample
               key={recording.id}
               sample={recording}
-              onSampleSaved={() => {
-                console.log("Sample saved, refreshing...");
-                refreshSamples();
-              }}
               onRemove={(id) => {
                 setRecordings((prev) => prev.filter((s) => s.id !== id));
+              }}
+              onSampleSaved={() => {
+                console.log("Sample saved, refreshing...");
+                hydrateAwsSamplesFromS3().then((hydratedSamples) => {
+                  setSamplesFromAws(hydratedSamples);
+                  setHydrated(true);
+                });
               }}
             />
           </div>

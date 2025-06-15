@@ -1,9 +1,14 @@
 // src/utils/sampleRegistry.ts
 
 import type { BaseSample, RecordingSample } from "../types/audio";
-import { getSampleBuffer } from "../utils/audioManager";
 
 // Unified registry for all samples
+// This can include local samples, remote samples, and recording samples.
+// It allows for easy access and management of samples across the application.
+// The key is the sample ID, and the value is the sample object.
+// This registry can be used to store samples that are uploaded to AWS S3,
+// recorded locally, or fetched from any other source.
+// It is designed to be flexible and extensible for future sample types.
 const registry = new Map<number, BaseSample>();
 
 /**
@@ -30,27 +35,10 @@ export function getAllSamples(): BaseSample[] {
 
 /**
  * Retrieve only RecordingSamples that have been uploaded and hydrated with a buffer.
+ * may want to be more AWS specific in the future to filter by type or other criteria.
  */
 export function getAwsSamplesFromRegistry(): RecordingSample[] {
   return Array.from(registry.values()).filter(
     (s): s is RecordingSample => s.type === "recording" && !!s.buffer
   );
-}
-
-/**
- * Add a sample that has been uploaded to AWS S3.
- * Ensures it is hydrated with a decoded buffer.
- */
-export async function hydrateAndRegisterRecordingSample(
-  sample: RecordingSample,
-  bufferOverride?: AudioBuffer
-) {
-  const buffer = bufferOverride ?? (await getSampleBuffer(sample));
-  if (!buffer) {
-    console.warn("⚠️ Skipping broken S3 sample:", sample.s3Url);
-    return;
-  }
-
-  sample.buffer = buffer;
-  addSampleToRegistry(sample);
 }

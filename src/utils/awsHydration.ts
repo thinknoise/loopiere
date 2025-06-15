@@ -1,6 +1,12 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
-import { hydrateAndRegisterRecordingSample } from "./sampleRegistry";
-import type { RecordingSample } from "../types/audio";
+import {
+  addSampleToRegistry,
+  getAwsSamplesFromRegistry,
+} from "./sampleRegistry";
+import type {
+  RecordingSample,
+  TrackSample as TrackSampleType,
+} from "../types/audio";
 import { s3, BUCKET, REGION } from "./awsConfig";
 import { loadAudio } from "./audioManager";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -26,6 +32,15 @@ export async function hydrateAwsSamplesFromS3() {
     const filename = obj.Key.split("/").pop() ?? "Untitled";
     const id = parseInt(obj.Key.match(/\d+/)?.[0] || Date.now().toString(), 10);
 
+    // i should probably check if the id is already in the registry
+    if (getAwsSamplesFromRegistry().some((s) => s.id === id)) {
+      console.warn(
+        `Sample with ID ${id} already exists in registry, skipping.`
+      );
+      continue;
+    }
+    console.log(`Loading sample: ${filename} (${s3Url})`);
+
     try {
       const buffer = await loadAudio(s3Url);
       const sample: RecordingSample = {
@@ -36,6 +51,7 @@ export async function hydrateAwsSamplesFromS3() {
         blob: new Blob(),
         blobUrl: s3Url,
         recordedAt: new Date(),
+        buffer,
         duration: buffer.duration,
         trimStart: 0,
         trimEnd: buffer.duration,
@@ -43,11 +59,23 @@ export async function hydrateAwsSamplesFromS3() {
         s3Url,
         name: filename,
       };
-      await hydrateAndRegisterRecordingSample(sample, buffer);
+
+      sample.buffer = buffer;
+      console.log("addSampleToRegistry", sample.id);
+      await addSampleToRegistry(sample);
     } catch (err) {
       console.warn(`❌ Failed to load or decode sample: ${filename}`, err);
     }
   }
+  const hydratedSamples = getAwsSamplesFromRegistry();
+
+  const formatted = hydratedSamples.map((sample) => ({
+    ...sample,
+    trackId: 0,
+    xPos: 0,
+    onTrack: false,
+  }));
   console.log("✅ Hydration from S3 completed");
-  return true;
+
+  return formatted as TrackSampleType[];
 }
