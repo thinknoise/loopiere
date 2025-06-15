@@ -5,7 +5,10 @@ import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { addSampleToRegistry, getAllAwsSamples } from "../utils/sampleRegistry";
-import type { RecordingSample, TrackSample } from "../types/audio";
+import type {
+  RecordingSample,
+  TrackSample as TrackSampleType,
+} from "../types/audio";
 import "../style/bankRecordingList.css";
 import "../style/bankTab.css";
 import SampleUploader from "./SampleUploader";
@@ -13,6 +16,9 @@ import { hydrateAwsSamplesFromS3 } from "../utils/awsHydration";
 
 const BankRecordingList: FC = () => {
   const [recordings, setRecordings] = useState<RecordingSample[]>([]);
+  const [samplesFromAws, setSamplesFromAws] = useState<TrackSampleType[]>([]);
+  const [loadFileSelect, setLoadFileSelect] = useState(false);
+
   const {
     startRecording,
     stopRecording,
@@ -25,8 +31,23 @@ const BankRecordingList: FC = () => {
 
   const [hydrated, setHydrated] = useState(false);
 
+  const refreshSamples = async () => {
+    const awsSamples = await getAllAwsSamples();
+    const formattedSamples = awsSamples.map((sample) => ({
+      ...sample,
+      trackId: 0,
+      xPos: 0,
+      onTrack: false,
+    }));
+    setSamplesFromAws(formattedSamples);
+  };
+
   useEffect(() => {
-    hydrateAwsSamplesFromS3().then(() => setHydrated(true));
+    console.log("Hydrating AWS samples from S3...");
+    hydrateAwsSamplesFromS3().then(() => {
+      setHydrated(true);
+      refreshSamples();
+    });
   }, []);
 
   useEffect(() => {
@@ -41,7 +62,7 @@ const BankRecordingList: FC = () => {
       setRecordings((prevRecordings) => {
         const filename = `Recording${prevRecordings.length + 1}`;
         const date = new Date().toISOString().split("T")[0];
-        const newRecording: RecordingSample & TrackSample = {
+        const newRecording: RecordingSample & TrackSampleType = {
           id: Date.now(),
           type: "recording",
           blobUrl: url,
@@ -89,9 +110,18 @@ const BankRecordingList: FC = () => {
       </button>
       {/* let the vu meter always be there */}
       {<VUMeter inputLevel={inputLevel} />}
+      {(loadFileSelect && <SampleUploader />) || (
+        <button
+          className="load-file-btn"
+          onClick={() => setLoadFileSelect(true)}
+        >
+          File
+        </button>
+      )}
+
       <div className="samples">
         {hydrated &&
-          getAllAwsSamples().map((awsSample) => (
+          samplesFromAws.map((awsSample) => (
             <BankSample key={awsSample.id} sample={awsSample} />
           ))}
         {recordings.map((recording) => (
@@ -99,6 +129,10 @@ const BankRecordingList: FC = () => {
             <BankSample
               key={recording.id}
               sample={recording}
+              onSampleSaved={() => {
+                console.log("Sample saved, refreshing...");
+                refreshSamples();
+              }}
               onRemove={(id) => {
                 setRecordings((prev) => prev.filter((s) => s.id !== id));
               }}
@@ -106,7 +140,6 @@ const BankRecordingList: FC = () => {
           </div>
         ))}
       </div>
-      <SampleUploader />
     </div>
   );
 };

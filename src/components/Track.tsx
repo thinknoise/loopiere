@@ -1,9 +1,9 @@
 // src/components/Track.tsx
 
 import React, { forwardRef, Ref, DragEvent, FC } from "react";
+import type { TrackSample as Sample, BaseSample } from "../types/audio";
 import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
-import type { TrackSample as Sample, BaseSample } from "../types/audio";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";

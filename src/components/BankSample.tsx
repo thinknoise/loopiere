@@ -2,11 +2,11 @@
 
 import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
 import CompactWaveform from "./CompactWaveform";
+import SaveSampleButton from "./BankRecordingSaveSampleButton";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
-import SaveSampleButton from "./BankRecordingSaveSampleButton";
 import { addSampleToAwsRegistry } from "../utils/sampleRegistry";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, REGION, s3 } from "../utils/awsConfig";
@@ -26,6 +26,7 @@ export interface BankSampleProps {
   offset?: number;
   btnClass?: string;
   onRemove?: (id: string | number) => void;
+  onSampleSaved?: () => void;
 }
 
 const TOTAL_TRACK_WIDTH = 916;
@@ -37,6 +38,7 @@ const BankSample: FC<BankSampleProps> = ({
   offset,
   btnClass = "",
   onRemove,
+  onSampleSaved,
 }) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
@@ -124,7 +126,8 @@ const BankSample: FC<BankSampleProps> = ({
         createdAt: Date.now(),
       };
 
-      addSampleToAwsRegistry({
+      console.log("Sample uploaded to S3:", uploadedSample);
+      await addSampleToAwsRegistry({
         id: sample.id !== undefined ? Number(sample.id) : 0,
         title: sample.title,
         duration: sample.duration,
@@ -137,6 +140,11 @@ const BankSample: FC<BankSampleProps> = ({
         blobUrl: sample.blobUrl,
         ...uploadedSample,
       });
+
+      if (onSampleSaved) {
+        console.log("Sample saved successfully:");
+        onSampleSaved(); // trigger refresh from parent
+      }
 
       return true;
     } catch (err) {
@@ -180,11 +188,7 @@ const BankSample: FC<BankSampleProps> = ({
         />
       )}
       {sample.filename.substring(sample.filename.length - 4) !== ".wav" && (
-        <SaveSampleButton
-          blob={sample.blob}
-          fileName={sample.filename + ".wav"}
-          onSave={() => saveSampleToS3AndRegistry(sample)}
-        />
+        <SaveSampleButton onSave={() => saveSampleToS3AndRegistry(sample)} />
       )}
     </button>
   );

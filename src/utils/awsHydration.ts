@@ -50,4 +50,6 @@ export async function hydrateAwsSamplesFromS3() {
       console.warn(`❌ Failed to load or decode sample: ${filename}`, err);
     }
   }
+  console.log("✅ Hydration from S3 completed");
+  return true;
 }

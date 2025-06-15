@@ -2,23 +2,24 @@ import React, { useState } from "react";
 import "../style/bankSample.css";
 
 type Props = {
-  blob: Blob;
-  fileName: string;
-  onSave: () => void;
+  onSave: () => Promise<boolean>; // updated
 };
 
-export default function SaveSampleButton({ blob, fileName, onSave }: Props) {
+export default function SaveSampleButton({ onSave }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClick = async () => {
+    setSaving(true);
+    setError(null);
     try {
-      setSaving(true);
-      setError(null);
-      await onSave();
+      const success = await onSave(); // updated
+      if (!success) {
+        setError("Upload failed. Check console.");
+      }
     } catch (err) {
       console.error(err);
-      setError("Upload failed. Check console.");
+      setError("Unexpected error.");
     } finally {
       setSaving(false);
     }
