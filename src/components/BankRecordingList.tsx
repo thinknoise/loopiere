@@ -4,7 +4,10 @@ import React, { useEffect, useState, FC, useRef } from "react";
 import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
-import { addSampleToRegistry, getAllAwsSamples } from "../utils/sampleRegistry";
+import {
+  addSampleToRegistry,
+  getAwsSamplesFromRegistry,
+} from "../utils/sampleRegistry";
 import type {
   RecordingSample,
   TrackSample as TrackSampleType,
@@ -32,7 +35,7 @@ const BankRecordingList: FC = () => {
   const [hydrated, setHydrated] = useState(false);
 
   const refreshSamples = async () => {
-    const awsSamples = await getAllAwsSamples();
+    const awsSamples = getAwsSamplesFromRegistry();
     const formattedSamples = awsSamples.map((sample) => ({
       ...sample,
       trackId: 0,

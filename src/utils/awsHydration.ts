@@ -1,5 +1,5 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
-import { addSampleToAwsRegistry } from "./sampleRegistry";
+import { hydrateAndRegisterRecordingSample } from "./sampleRegistry";
 import type { RecordingSample } from "../types/audio";
 import { s3, BUCKET, REGION } from "./awsConfig";
 import { loadAudio } from "./audioManager";
@@ -33,19 +33,17 @@ export async function hydrateAwsSamplesFromS3() {
         type: "recording",
         filename,
         title: filename,
-        blob: new Blob(), // Optional: could omit or flag differently
+        blob: new Blob(),
         blobUrl: s3Url,
-        recordedAt: new Date(), // Placeholder – could extract from metadata
+        recordedAt: new Date(),
         duration: buffer.duration,
         trimStart: 0,
         trimEnd: buffer.duration,
-        buffer,
         s3Key: obj.Key,
         s3Url,
         name: filename,
       };
-
-      await addSampleToAwsRegistry(sample);
+      await hydrateAndRegisterRecordingSample(sample, buffer);
     } catch (err) {
       console.warn(`❌ Failed to load or decode sample: ${filename}`, err);
     }

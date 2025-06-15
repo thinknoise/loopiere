@@ -7,7 +7,7 @@ import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
-import { addSampleToAwsRegistry } from "../utils/sampleRegistry";
+import { hydrateAndRegisterRecordingSample } from "../utils/sampleRegistry";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, REGION, s3 } from "../utils/awsConfig";
 import "../style/bankSample.css";
@@ -127,19 +127,22 @@ const BankSample: FC<BankSampleProps> = ({
       };
 
       console.log("Sample uploaded to S3:", uploadedSample);
-      await addSampleToAwsRegistry({
-        id: sample.id !== undefined ? Number(sample.id) : 0,
-        title: sample.title,
-        duration: sample.duration,
-        trimStart: 0,
-        trimEnd: sample.duration,
-        recordedAt: new Date(),
-        type: "recording",
-        filename: sample.filename,
-        blob: sample.blob,
-        blobUrl: sample.blobUrl,
-        ...uploadedSample,
-      });
+      await hydrateAndRegisterRecordingSample(
+        {
+          id: sample.id !== undefined ? Number(sample.id) : 0,
+          title: sample.title,
+          duration: sample.duration,
+          trimStart: 0,
+          trimEnd: sample.duration,
+          recordedAt: new Date(),
+          type: "recording",
+          filename: sample.filename,
+          blob: sample.blob,
+          blobUrl: sample.blobUrl,
+          ...uploadedSample,
+        },
+        audioBuffer ?? undefined
+      );
 
       if (onSampleSaved) {
         console.log("Sample saved successfully:");
