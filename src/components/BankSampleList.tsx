@@ -69,7 +69,13 @@ const BankSampleList: FC = () => {
           <BankRecordingList />
         ) : (
           bankSamples.map((bankSample, index) => (
-            <BankSample key={index} sample={bankSample} />
+            <BankSample
+              key={index}
+              sample={bankSample}
+              onSampleSaved={() => {
+                console.log("Sample saved:", bankSample.id);
+              }}
+            />
           ))
         )}
       </div>

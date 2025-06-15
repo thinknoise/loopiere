@@ -25,7 +25,7 @@ export interface BankSampleProps {
   offset?: number;
   btnClass?: string;
   onRemove?: (id: string | number) => void;
-  onSampleSaved?: () => void;
+  onSampleSaved: () => void;
 }
 
 const TOTAL_TRACK_WIDTH = 916;
@@ -133,7 +133,6 @@ const BankSample: FC<BankSampleProps> = ({
 
       // Optionally: hydrate all again if needed right away
       if (onSampleSaved) {
-        console.log("Calling onSampleSaved callback");
         onSampleSaved();
       }
 
@@ -144,7 +143,6 @@ const BankSample: FC<BankSampleProps> = ({
     }
   }
 
-  console.log("Rendering BankSample: onSampleSaved - ", onSampleSaved);
   return (
     <button
       ref={btnRef}
