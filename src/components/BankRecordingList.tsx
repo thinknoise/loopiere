@@ -5,10 +5,7 @@ import BankSample from "./BankSample";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
-import type {
-  RecordingSample,
-  TrackSample as TrackSampleType,
-} from "../types/audio";
+import type { RecordingSample, TrackSampleType } from "../types/audio";
 import "../style/bankRecordingList.css";
 import "../style/bankTab.css";
 import SampleUploader from "./SampleUploader";

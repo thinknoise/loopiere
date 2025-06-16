@@ -56,7 +56,7 @@ export type BaseSample = LocalSample | RecordingSample | RemoteSample;
  * A sample placed on a track at a specific time/location.
  * Adds timeline and positioning metadata to a source sample.
  */
-export type TrackSample = BaseSample & {
+export type TrackSampleType = BaseSample & {
   trackId: number;
   xPos: number;
   onTrack: boolean;

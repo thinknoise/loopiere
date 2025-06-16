@@ -1,7 +1,7 @@
 // src/hooks/useAudioPlayback.ts
 
 import { useCallback, useRef } from "react";
-import type { TrackSample } from "../types/audio";
+import type { TrackSampleType } from "../types/audio";
 import { getSampleBuffer } from "../utils/audioManager";
 import {
   getAudioContext,
@@ -12,7 +12,7 @@ import { useLoopSettings } from "../context/LoopSettingsContext";
 /**
  * Alias for playback sample — identical to TrackSample since xPos is core.
  */
-export type PlaybackSample = TrackSample;
+export type PlaybackSample = TrackSampleType;
 
 /**
  * Shapes the shared audio-node state for each track,

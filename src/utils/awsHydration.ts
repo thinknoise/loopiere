@@ -3,10 +3,7 @@ import {
   addSampleToRegistry,
   getAwsSamplesFromRegistry,
 } from "./sampleRegistry";
-import type {
-  RecordingSample,
-  TrackSample as TrackSampleType,
-} from "../types/audio";
+import type { RecordingSample, TrackSampleType } from "../types/audio";
 import { s3, BUCKET, REGION } from "./awsConfig";
 import { loadAudio } from "./audioManager";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
@@ -34,9 +31,6 @@ export async function hydrateAwsSamplesFromS3() {
 
     // i should probably check if the id is already in the registry
     if (getAwsSamplesFromRegistry().some((s) => s.id === id)) {
-      console.warn(
-        `Sample with ID ${id} already exists in registry, skipping.`
-      );
       continue;
     }
     console.log(`Loading sample: ${filename} (${s3Url})`);

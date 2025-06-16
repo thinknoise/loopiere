@@ -1,7 +1,7 @@
 // src/components/TrackSample.tsx
 
 import React, { useRef, useState, useCallback, FC, MouseEvent } from "react";
-import type { TrackSample as Sample } from "../types/audio";
+import type { TrackSampleType } from "../types/audio";
 import useAudioBuffer from "../hooks/useAudioBuffer";
 import useEventListener from "../hooks/useEventListener";
 import CompactWaveform from "./CompactWaveform";
@@ -11,7 +11,7 @@ import { useTrackSampleStore } from "../stores/trackSampleStore";
 import { useLoopSettings } from "../context/LoopSettingsContext";
 
 export interface TrackSampleProps {
-  sample: Sample;
+  sample: TrackSampleType;
   trackWidth: number;
   trackLeft: number;
 }

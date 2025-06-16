@@ -1,13 +1,13 @@
 // src/utils/storageUtils.ts
 
 import { getSampleBuffer } from "./audioManager";
-import type { TrackSample } from "../types/audio";
+import type { TrackSampleType } from "../types/audio";
 
 /**
  * Strip out the live AudioBuffer before serializing,
  * but keep all other TrackSample fields.
  */
-type BaseSerializedSample = Omit<TrackSample, "buffer"> & {
+type BaseSerializedSample = Omit<TrackSampleType, "buffer"> & {
   __fileBased: boolean;
 };
 
@@ -42,7 +42,7 @@ type SerializedSample = SerializedFileSample | SerializedPCMSample;
  * @param trackNumber
  */
 export function saveAllSamplesToLocalStorage(
-  allSamples: TrackSample[],
+  allSamples: TrackSampleType[],
   bpm: number,
   beatsPerLoop: number,
   trackNumber: number
@@ -122,7 +122,7 @@ export async function getAllSamplesFromLocalStorage(
 ): Promise<{
   bpm: number;
   beatsPerLoop: number;
-  samples: TrackSample[];
+  samples: TrackSampleType[];
   trackNumber: number;
 }> {
   const raw = localStorage.getItem("LoopiereSavedLoopV2");
@@ -143,8 +143,8 @@ export async function getAllSamplesFromLocalStorage(
     serializedSamples.map(async (data: Record<string, any>) => {
       if (data.__fileBased) {
         const { __fileBased, ...meta } = data;
-        const buffer = await getSampleBuffer(meta as TrackSample);
-        return { ...(meta as TrackSample), buffer };
+        const buffer = await getSampleBuffer(meta as TrackSampleType);
+        return { ...(meta as TrackSampleType), buffer };
       }
 
       // reconstruct recorded sample from PCM
@@ -167,7 +167,7 @@ export async function getAllSamplesFromLocalStorage(
         buffer.copyToChannel(new Float32Array(chanArr), ch);
       });
 
-      return { ...(rest as TrackSample), buffer };
+      return { ...(rest as TrackSampleType), buffer };
     })
   );
 

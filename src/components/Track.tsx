@@ -1,7 +1,7 @@
 // src/components/Track.tsx
 
 import React, { forwardRef, Ref, DragEvent, FC } from "react";
-import type { TrackSample as Sample, BaseSample } from "../types/audio";
+import type { TrackSampleType, BaseSample } from "../types/audio";
 import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
@@ -25,15 +25,15 @@ export interface TrackProps {
 // Utility: convert any sample to a track sample
 function promoteToTrackSample(
   sample: BaseSample,
-  overrides: Partial<Pick<Sample, "trackId" | "xPos" | "onTrack">>
-): Sample {
-  const base: Sample = {
+  overrides: Partial<Pick<TrackSampleType, "trackId" | "xPos" | "onTrack">>
+): TrackSampleType {
+  const base: TrackSampleType = {
     ...sample,
     id: Date.now() + Math.floor(Math.random() * 100000), // Ensure uniqueness
     trackId: overrides.trackId ?? 0,
     xPos: overrides.xPos ?? 0,
     onTrack: overrides.onTrack ?? false,
-  } as Sample;
+  } as TrackSampleType;
   return base;
 }
 
@@ -156,7 +156,7 @@ const Track: FC<
               />
             ))}
 
-            {trackSamples.map((sampleInfo: Sample) => (
+            {trackSamples.map((sampleInfo: TrackSampleType) => (
               <TrackSample
                 key={sampleInfo.id}
                 sample={sampleInfo}

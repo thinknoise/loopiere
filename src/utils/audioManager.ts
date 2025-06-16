@@ -2,7 +2,7 @@
 
 import { getAudioContext } from "./audioContextSetup";
 import { resolveSamplePath } from "./resolveSamplePath";
-import type { BaseSample, TrackSample } from "../types/audio";
+import type { BaseSample, TrackSampleType } from "../types/audio";
 
 /**
  * Fetches & decodes an audio file.
@@ -107,7 +107,7 @@ export async function getSampleBuffer(
  * @param tracks - array of track objects with numeric `id` fields
  */
 export async function prepareAllTracks(
-  allSamples: TrackSample[],
+  allSamples: TrackSampleType[],
   tracks: { id?: number }[]
 ): Promise<void> {
   if (!Array.isArray(allSamples) || !Array.isArray(tracks)) {
@@ -115,7 +115,7 @@ export async function prepareAllTracks(
     return;
   }
 
-  const samplesByTrack = allSamples.reduce<Record<number, TrackSample[]>>(
+  const samplesByTrack = allSamples.reduce<Record<number, TrackSampleType[]>>(
     (acc, s) => {
       const tid = s.trackId;
       if (tid == null) return acc;
