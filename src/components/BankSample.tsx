@@ -101,9 +101,8 @@ const BankSample: FC<BankSampleProps> = ({
 
   async function saveSampleToS3AndRegistry(
     sample: Sample,
-    onSampleSaved?: () => void
+    onSampleSaved: () => void
   ): Promise<boolean> {
-    console.group("onSampleSaved", onSampleSaved);
     if (!sample.blob || !sample.filename) {
       console.error("Invalid sample: missing blob or filename");
       return false;

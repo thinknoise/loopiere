@@ -61,7 +61,7 @@ export async function hydrateAwsSamplesFromS3() {
       };
 
       sample.buffer = buffer;
-      console.log("addSampleToRegistry", sample.id);
+      console.log("adds aws recordings to registry:", sample.id);
       await addSampleToRegistry(sample);
     } catch (err) {
       console.warn(`❌ Failed to load or decode sample: ${filename}`, err);

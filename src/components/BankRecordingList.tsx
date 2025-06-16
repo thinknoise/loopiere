@@ -69,7 +69,9 @@ const BankRecordingList: FC = () => {
         };
 
         console.log("New recording created:", newRecording);
-        addSampleToRegistry(newRecording);
+        // this adds neew recordings to the bank sample registry
+        // but it doesn't need ot go there because it's not a sample file (aws, local, etc.)
+        // addSampleToRegistry(newRecording);
         return [...prevRecordings, newRecording];
       });
     })();
@@ -115,6 +117,7 @@ const BankRecordingList: FC = () => {
             <BankSample
               key={awsSample.id}
               sample={awsSample}
+              // dry up wiley
               onSampleSaved={() => {
                 console.log("Sample saved, refreshing...");
                 hydrateAwsSamplesFromS3().then((hydratedSamples) => {
@@ -133,11 +136,14 @@ const BankRecordingList: FC = () => {
                 setRecordings((prev) => prev.filter((s) => s.id !== id));
               }}
               onSampleSaved={() => {
-                console.log("Sample saved, refreshing...");
+                console.log("recordings saved, refreshing...");
                 hydrateAwsSamplesFromS3().then((hydratedSamples) => {
                   setSamplesFromAws(hydratedSamples);
                   setHydrated(true);
                 });
+                setRecordings((prev) =>
+                  prev.filter((s) => s.id !== recording.id)
+                );
               }}
             />
           </div>
