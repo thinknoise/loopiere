@@ -1,13 +1,13 @@
 // src/stores/trackSampleStore.ts
 import { create } from "zustand";
-import { TrackSample } from "@/types/audio";
+import type { TrackSampleType } from "@/types/audio";
 
 type TrackSampleState = {
-  allSamples: TrackSample[];
+  allSamples: TrackSampleType[];
 
   // Actions
-  setAllSamples: (samples: TrackSample[]) => void;
-  addSample: (sample: TrackSample) => void;
+  setAllSamples: (samples: TrackSampleType[]) => void;
+  addSample: (sample: TrackSampleType) => void;
   removeSample: (id: number) => void;
   clearSamples: () => void;
 };

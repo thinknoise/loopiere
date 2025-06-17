@@ -1,13 +1,13 @@
 // utils/loopStateManager.ts
 
-import type { TrackSample } from "../types/audio";
+import type { TrackSampleType } from "../types/audio";
 import {
   saveAllSamplesToLocalStorage,
   getAllSamplesFromLocalStorage,
 } from "./storageUtils";
 
 export async function loadSequence(
-  setAllSamples: (samples: TrackSample[]) => void,
+  setAllSamples: (samples: TrackSampleType[]) => void,
   setBpm: (bpm: number) => void,
   setBeatsPerLoop: (beatsPerLoop: number) => void,
   setTrackNumber: (tracNumber: number) => void
@@ -25,7 +25,7 @@ export async function loadSequence(
 }
 
 export function deleteSequence(
-  setAllSamples: (samples: TrackSample[]) => void,
+  setAllSamples: (samples: TrackSampleType[]) => void,
   setBpm: (bpm: number) => void,
   beatsPerLoop: number
 ) {
@@ -35,7 +35,9 @@ export function deleteSequence(
   setBpm(initialBpm);
 }
 
-export function clearSamples(setAllSamples: (samples: TrackSample[]) => void) {
+export function clearSamples(
+  setAllSamples: (samples: TrackSampleType[]) => void
+) {
   setAllSamples([]);
 }
 

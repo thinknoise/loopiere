@@ -2,11 +2,14 @@
 
 import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
 import CompactWaveform from "./CompactWaveform";
+import SaveSampleButton from "./BankRecording/BankRecordingSaveSampleButton";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
-import "../style/bankSample.css";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { BUCKET, REGION, s3 } from "../utils/awsConfig";
+import "../style/bankSample.css";
 
 export interface Sample {
   id?: string | number;
@@ -22,6 +25,7 @@ export interface BankSampleProps {
   offset?: number;
   btnClass?: string;
   onRemove?: (id: string | number) => void;
+  onSampleSaved: () => void;
 }
 
 const TOTAL_TRACK_WIDTH = 916;
@@ -33,6 +37,7 @@ const BankSample: FC<BankSampleProps> = ({
   offset,
   btnClass = "",
   onRemove,
+  onSampleSaved,
 }) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
@@ -94,6 +99,49 @@ const BankSample: FC<BankSampleProps> = ({
     src.start();
   };
 
+  async function saveSampleToS3AndRegistry(
+    sample: Sample,
+    onSampleSaved: () => void
+  ): Promise<boolean> {
+    if (!sample.blob || !sample.filename) {
+      console.error("Invalid sample: missing blob or filename");
+      return false;
+    }
+
+    const key = `uploads/${Date.now()}-${sample.filename}.wav`;
+
+    try {
+      const buffer = await sample.blob.arrayBuffer();
+      const command = new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: new Uint8Array(buffer),
+        ContentType: sample.blob.type,
+      });
+
+      await s3.send(command);
+
+      const uploadedSample = {
+        name: sample.filename + ".wav",
+        s3Key: key,
+        s3Url: `https://${BUCKET}.s3.${REGION}.amazonaws.com/${key}`,
+        createdAt: Date.now(),
+      };
+
+      console.log("Sample uploaded to S3:", uploadedSample, onSampleSaved);
+
+      // Optionally: hydrate all again if needed right away
+      if (onSampleSaved) {
+        onSampleSaved();
+      }
+
+      return true;
+    } catch (err) {
+      console.error("Failed to upload and register sample:", err);
+      return false;
+    }
+  }
+
   return (
     <button
       ref={btnRef}
@@ -107,6 +155,7 @@ const BankSample: FC<BankSampleProps> = ({
       }}
     >
       <span>{sample.filename.replace(/\.\w+$/, "")}</span>
+      <span>{sample.filename}s</span>
       {audioBuffer && (
         <CompactWaveform
           buffer={audioBuffer}
@@ -125,6 +174,14 @@ const BankSample: FC<BankSampleProps> = ({
           }}
           role="button"
           aria-label="Remove sample"
+        />
+      )}
+      {/* Save button 
+      This button is only shown if the sample is not a .wav file.
+      */}
+      {sample.filename.substring(sample.filename.length - 4) !== ".wav" && (
+        <SaveSampleButton
+          onSave={() => saveSampleToS3AndRegistry(sample, onSampleSaved)}
         />
       )}
     </button>

@@ -9,7 +9,7 @@ export interface UseRecorderResult {
   audioBuffer: AudioBuffer | null;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
-  getRecordedBlobURL: () => Promise<string | null>;
+  getRecordedBlobURL: () => Promise<{ blob: Blob; url: string } | null>;
   inputLevel: number;
 }
 
@@ -26,7 +26,7 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
 
   // START RECORDING
   const startRecording = useCallback(async (): Promise<void> => {
-    // console.log("start recording");
+    console.log("start recording");
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     mediaStreamRef.current = stream;
 
@@ -65,7 +65,10 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
     setIsRecording(false);
   }, []);
 
-  const getRecordedBlobURL = useCallback(async (): Promise<string | null> => {
+  const getRecordedBlobURL = useCallback(async (): Promise<{
+    blob: Blob;
+    url: string;
+  } | null> => {
     if (!audioBuffer) return null;
 
     const offlineCtx = new OfflineAudioContext(
@@ -80,55 +83,63 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
 
     const renderedBuffer = await offlineCtx.startRendering();
     const wavBlob = audioBufferToWavBlob(renderedBuffer);
-    return URL.createObjectURL(wavBlob);
+    const url = URL.createObjectURL(wavBlob);
+
+    return { blob: wavBlob, url };
   }, [audioBuffer]);
 
   function audioBufferToWavBlob(buffer: AudioBuffer): Blob {
-    const numOfChan = buffer.numberOfChannels;
-    const length = buffer.length * numOfChan * 2 + 44;
-    const bufferArray = new ArrayBuffer(length);
-    const view = new DataView(bufferArray);
+    const numChannels = buffer.numberOfChannels;
+    const sampleRate = buffer.sampleRate;
+    const format = 1; // PCM
+    const bitDepth = 16;
 
-    let offset = 0;
-    const writeUTF = (str: string) => {
-      for (let i = 0; i < str.length; i++) {
-        view.setUint8(offset + i, str.charCodeAt(i));
-      }
-      offset += str.length;
-    };
+    const length = buffer.length * numChannels * (bitDepth / 8);
+    const wavBuffer = new ArrayBuffer(44 + length);
+    const view = new DataView(wavBuffer);
 
-    writeUTF("RIFF");
-    view.setUint32(offset, 36 + buffer.length * numOfChan * 2, true);
-    offset += 4;
-    writeUTF("WAVEfmt ");
-    view.setUint32(offset, 16, true);
-    offset += 4;
-    view.setUint16(offset, 1, true);
-    offset += 2;
-    view.setUint16(offset, numOfChan, true);
-    offset += 2;
-    view.setUint32(offset, buffer.sampleRate, true);
-    offset += 4;
-    view.setUint32(offset, buffer.sampleRate * numOfChan * 2, true);
-    offset += 4;
-    view.setUint16(offset, numOfChan * 2, true);
-    offset += 2;
-    view.setUint16(offset, 16, true);
-    offset += 2;
-    writeUTF("data");
-    view.setUint32(offset, buffer.length * numOfChan * 2, true);
-    offset += 4;
+    /* RIFF chunk descriptor */
+    writeString(view, 0, "RIFF");
+    view.setUint32(4, 36 + length, true); // chunkSize
+    writeString(view, 8, "WAVE");
 
+    /* fmt subchunk */
+    writeString(view, 12, "fmt ");
+    view.setUint32(16, 16, true); // subchunk1Size
+    view.setUint16(20, format, true); // audioFormat
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * numChannels * (bitDepth / 8), true); // byteRate
+    view.setUint16(32, numChannels * (bitDepth / 8), true); // blockAlign
+    view.setUint16(34, bitDepth, true);
+
+    /* data subchunk */
+    writeString(view, 36, "data");
+    view.setUint32(40, length, true);
+
+    // Write interleaved PCM samples
+    const offset = 44;
+    const channels = [];
+    for (let i = 0; i < numChannels; i++) {
+      channels.push(buffer.getChannelData(i));
+    }
+
+    let sampleIdx = 0;
     for (let i = 0; i < buffer.length; i++) {
-      for (let ch = 0; ch < numOfChan; ch++) {
-        let sample = buffer.getChannelData(ch)[i];
-        sample = Math.max(-1, Math.min(1, sample));
-        view.setInt16(offset, sample * 0x7fff, true);
-        offset += 2;
+      for (let ch = 0; ch < numChannels; ch++) {
+        const sample = Math.max(-1, Math.min(1, channels[ch][i]));
+        view.setInt16(offset + sampleIdx, sample * 0x7fff, true);
+        sampleIdx += 2;
       }
     }
 
     return new Blob([view], { type: "audio/wav" });
+  }
+
+  function writeString(view: DataView, offset: number, str: string) {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
   }
 
   useEffect(() => {

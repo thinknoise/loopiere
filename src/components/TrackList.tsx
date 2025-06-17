@@ -16,7 +16,7 @@ import { useAudioContext } from "./AudioContextProvider";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
 import { TrackAudioStateProvider } from "../context/TrackAudioStateContext";
 
-import type { TrackSample } from "../types/audio";
+import type { TrackSampleType } from "../types/audio";
 
 import "../style/tracklist.css";
 
@@ -36,12 +36,10 @@ const TrackList: FC = () => {
 
   const [trackNumber, setTrackNumber] = useState(4);
 
-  const [isListingSelected, setListingSelected] = useState<boolean>(false);
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
   const [trackWidth, trackLeft] = useTrackWidth(trackRef);
 
-  const allSamples = useTrackSampleStore((s) => s.allSamples);
   const setAllSamples = useTrackSampleStore((s) => s.setAllSamples);
 
   const tracks = useMemo<TrackInfo[]>(
@@ -56,7 +54,7 @@ const TrackList: FC = () => {
   useEffect(() => {
     if (!audioBuffer) return;
     const date = new Date().toISOString().slice(0, 10);
-    const newSample: TrackSample = {
+    const newSample: TrackSampleType = {
       id: Date.now(),
       type: "recording",
       blobUrl: "",

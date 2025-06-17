@@ -33,7 +33,10 @@ export default function useAudioBuffer(
         if (sample.buffer instanceof AudioBuffer) {
           audioBuf = sample.buffer;
         } else {
-          audioBuf = await getSampleBuffer(sample);
+          console.log("useAudioBuffer: loading sample", sample);
+          const maybeBuffer = await getSampleBuffer(sample);
+          if (!maybeBuffer) return; // or handle error
+          audioBuf = maybeBuffer;
         }
 
         if (!isMounted) return;

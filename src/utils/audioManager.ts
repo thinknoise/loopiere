@@ -2,7 +2,7 @@
 
 import { getAudioContext } from "./audioContextSetup";
 import { resolveSamplePath } from "./resolveSamplePath";
-import type { BaseSample, TrackSample } from "../types/audio";
+import type { BaseSample, TrackSampleType } from "../types/audio";
 
 /**
  * Fetches & decodes an audio file.
@@ -42,16 +42,25 @@ const bufferCache: Map<string, AudioBuffer> = new Map();
  */
 export async function getSampleBuffer(
   sample: BaseSample
-): Promise<AudioBuffer> {
+): Promise<AudioBuffer | null> {
   if (sample.buffer) return sample.buffer;
 
   const blobUrl = sample.type === "recording" ? sample.blobUrl : null;
 
+  console.log("getSampleBuffer", sample, blobUrl);
+
   if (blobUrl) {
-    const arrayBuffer = await fetch(blobUrl).then((r) => r.arrayBuffer());
-    const audioCtx = getAudioContext();
-    sample.buffer = await audioCtx.decodeAudioData(arrayBuffer);
-    return sample.buffer;
+    try {
+      const arrayBuffer = await fetch(blobUrl).then((r) => r.arrayBuffer());
+      console.log("Decoding blobUrl", blobUrl, "size:", arrayBuffer.byteLength);
+      const audioCtx = getAudioContext();
+      const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+      sample.buffer = decoded;
+      return decoded;
+    } catch (err) {
+      console.error("❌ Failed to decode blobUrl:", blobUrl, err);
+      return null;
+    }
   }
 
   const cacheKey =
@@ -74,13 +83,22 @@ export async function getSampleBuffer(
       : null;
 
   if (!rawPath) {
-    throw new Error("getSampleBuffer: sample missing both url and path");
+    console.error(
+      "❌ getSampleBuffer: sample missing both url and path",
+      sample
+    );
+    return null;
   }
 
-  const assetPath = resolveSamplePath(rawPath);
-  const decoded = await loadAudio(assetPath);
-  sample.buffer = decoded;
-  return decoded;
+  try {
+    const assetPath = resolveSamplePath(rawPath);
+    const decoded = await loadAudio(assetPath);
+    sample.buffer = decoded;
+    return decoded;
+  } catch (err) {
+    console.error("❌ Failed to load or decode sample at path:", rawPath, err);
+    return null;
+  }
 }
 
 /**
@@ -89,7 +107,7 @@ export async function getSampleBuffer(
  * @param tracks - array of track objects with numeric `id` fields
  */
 export async function prepareAllTracks(
-  allSamples: TrackSample[],
+  allSamples: TrackSampleType[],
   tracks: { id?: number }[]
 ): Promise<void> {
   if (!Array.isArray(allSamples) || !Array.isArray(tracks)) {
@@ -97,7 +115,7 @@ export async function prepareAllTracks(
     return;
   }
 
-  const samplesByTrack = allSamples.reduce<Record<number, TrackSample[]>>(
+  const samplesByTrack = allSamples.reduce<Record<number, TrackSampleType[]>>(
     (acc, s) => {
       const tid = s.trackId;
       if (tid == null) return acc;

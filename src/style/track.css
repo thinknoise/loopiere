@@ -231,3 +231,26 @@
   padding: 0;
   line-height: 0.7
 }
+
+.track-toggle-icon {
+  width: 20px;
+  display: flex;
+  background-color: #3ea6ff;
+  color: #fff;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.track-toggle-icon:hover {
+  background-color: #60bfff;
+  transform: scale(1.3);
+}
+
+.track-toggle-icon.active {
+  background-color: #000000;
+  transform: scale(1.1);
+}
+
+.track-toggle-icon.active:hover {
+  background-color: #000000;
+  transform: scale(0.8);
+}

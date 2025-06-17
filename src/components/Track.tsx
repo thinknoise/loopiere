@@ -1,11 +1,10 @@
 // src/components/Track.tsx
 
 import React, { forwardRef, Ref, DragEvent, FC } from "react";
+import type { TrackSampleType, BaseSample } from "../types/audio";
 import TrackSample from "./TrackSample";
 import { TrackInfo } from "./TrackList";
-import type { TrackSample as Sample } from "../types/audio";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
-import "../style/track.css";
 import { getSampleFromRegistry } from "../utils/sampleRegistry";
 import { useAudioContext } from "./AudioContextProvider";
 import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
@@ -13,6 +12,7 @@ import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 import Knob from "./TrackControls/knob";
 import faderIcon from "../assets/faderIcon.svg";
 import { useLoopSettings } from "../context/LoopSettingsContext";
+import "../style/track.css";
 
 export interface TrackProps {
   trackInfo: TrackInfo;
@@ -20,6 +20,21 @@ export interface TrackProps {
   trackLeft: number;
   selected: boolean;
   onSelect: () => void;
+}
+
+// Utility: convert any sample to a track sample
+function promoteToTrackSample(
+  sample: BaseSample,
+  overrides: Partial<Pick<TrackSampleType, "trackId" | "xPos" | "onTrack">>
+): TrackSampleType {
+  const base: TrackSampleType = {
+    ...sample,
+    id: Date.now() + Math.floor(Math.random() * 100000), // Ensure uniqueness
+    trackId: overrides.trackId ?? 0,
+    xPos: overrides.xPos ?? 0,
+    onTrack: overrides.onTrack ?? false,
+  } as TrackSampleType;
+  return base;
 }
 
 const Track: FC<
@@ -81,57 +96,32 @@ const Track: FC<
 
     const handleDrop = (e: DragEvent<HTMLDivElement>) => {
       e.preventDefault();
+      const data = e.dataTransfer.getData("application/json");
+      if (!data) return;
 
-      const { id: sampleId, xDragOffset } = JSON.parse(
-        e.dataTransfer.getData("application/json")
-      ) as { id: number; xDragOffset: number };
+      try {
+        const { id: sampleId, xDragOffset } = JSON.parse(data);
+        const rect = e.currentTarget.getBoundingClientRect();
+        const dropX = Math.max(0, e.clientX - rect.left - xDragOffset);
+        const xPos = dropX / trackWidth;
 
-      const rect = e.currentTarget.getBoundingClientRect();
-      const dropX = Math.max(0, e.clientX - rect.left - xDragOffset);
-      const xPos = dropX / trackWidth;
+        console.log(
+          `Dropping sample ${sampleId} at xPos ${xPos} on track ${trackInfo.id}`
+        );
+        const original = getSampleFromRegistry(sampleId);
+        if (!original) return;
+        console.log("Original sample:", original);
+        const trackSample = promoteToTrackSample(original, {
+          trackId: trackInfo.id,
+          xPos,
+          onTrack: true,
+        });
 
-      const original = getSampleFromRegistry(sampleId);
-      if (!original) return;
-
-      let trackSample: Sample;
-
-      const common = {
-        id: Date.now(),
-        trackId: trackInfo.id,
-        xPos,
-        onTrack: true,
-        title: original.title ?? "Untitled Sample",
-        filename: original.filename ?? "sample.wav",
-        buffer: original.buffer,
-        duration: original.duration ?? original.buffer?.duration ?? 0,
-        trimStart: 0,
-        trimEnd: original.duration ?? original.buffer?.duration ?? 0,
-      };
-
-      if (original.type === "recording") {
-        trackSample = {
-          ...common,
-          type: "recording",
-          blob: original.blob,
-          blobUrl: original.blobUrl,
-          recordedAt: original.recordedAt,
-        };
-      } else if (original.type === "local") {
-        trackSample = {
-          ...common,
-          type: "local",
-          path: original.path,
-        };
-      } else {
-        trackSample = {
-          ...common,
-          type: "remote",
-          url: original.url,
-        };
+        const prev = useTrackSampleStore.getState().allSamples;
+        useTrackSampleStore.getState().setAllSamples([...prev, trackSample]);
+      } catch (err) {
+        console.warn("❌ Failed to parse drag data:", err);
       }
-
-      const prev = useTrackSampleStore.getState().allSamples;
-      useTrackSampleStore.getState().setAllSamples([...prev, trackSample]);
     };
 
     return (
@@ -166,7 +156,7 @@ const Track: FC<
               />
             ))}
 
-            {trackSamples.map((sampleInfo: Sample) => (
+            {trackSamples.map((sampleInfo: TrackSampleType) => (
               <TrackSample
                 key={sampleInfo.id}
                 sample={sampleInfo}
@@ -278,7 +268,6 @@ const Track: FC<
               <label htmlFor={`highpass-${trackInfo.id}`}>high</label>
             </div>
 
-            {/* sample rate */}
             <div className="control-item slider-strip">
               <span className="value-display">
                 {sampleRates[trackInfo.id]?.toFixed(2) ?? "1.00"}×
