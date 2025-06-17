@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import "../style/bankSample.css";
+import "../../style/bankSample.css";
 
 type Props = {
   onSave: () => Promise<boolean>; // updated

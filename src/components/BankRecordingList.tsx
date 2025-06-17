@@ -5,7 +5,7 @@ import type { RecordingSample, TrackSampleType } from "../types/audio";
 import { useRecorder } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { hydrateAwsSamplesFromS3 } from "../utils/awsHydration";
-import { VUMeter } from "./BankRecordingVuMeter";
+import { VUMeter } from "./BankRecording/BankRecordingVuMeter";
 import BankSample from "./BankSample";
 import SampleUploader from "./SampleUploader";
 import "../style/bankRecordingList.css";

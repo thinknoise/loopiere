@@ -2,7 +2,7 @@
 
 import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
 import CompactWaveform from "./CompactWaveform";
-import SaveSampleButton from "./BankRecordingSaveSampleButton";
+import SaveSampleButton from "./BankRecording/BankRecordingSaveSampleButton";
 import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
 import { resumeAudioContext } from "../utils/audioContextSetup";
