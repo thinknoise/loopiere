@@ -3,15 +3,37 @@
 import banks from "../data/banks.json";
 import React, { useEffect, useState, useCallback, FC } from "react";
 import type { LocalSample } from "../types/audio";
-import BankSample from "./BankSample";
-import BankRecordingList from "./BankRecordingList";
+
+import { ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { s3, BUCKET } from "../utils/awsConfig";
+
 import { fetchAudioData as fetchAudio } from "../utils/fetchAudioData";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
+
+import BankSample from "./BankSample";
+import BankRecordingList from "./BankRecordingList";
+
 import "../style/bankTab.css";
+
+const listBankJsonFiles = async (): Promise<string[]> => {
+  const command = new ListObjectsV2Command({
+    Bucket: BUCKET,
+    Prefix: "data/",
+  });
+
+  const response = await s3.send(command);
+  const contents = response.Contents || [];
+
+  return contents
+    .map((obj) => obj.Key)
+    .filter((key): key is string => !!key && key.endsWith(".json"))
+    .map((key) => key.replace("data/", ""));
+};
 
 const BankSampleList: FC = () => {
   const [bankSamples, setBankSamples] = useState<LocalSample[]>([]);
-  const [bankFilename, setBankFilename] = useState<string>("recorded");
+  const [bankSelection, setBankSelection] = useState<string>("recorded");
+  const [bankFilenames, setBankFilenames] = useState<string[]>(["recorded"]);
 
   const spawnSamples = useCallback((filename: string): void => {
     fetchAudio(filename)
@@ -42,21 +64,28 @@ const BankSampleList: FC = () => {
   }, []);
 
   useEffect(() => {
-    if (bankFilename !== "recorded") {
-      spawnSamples(bankFilename);
-    }
-  }, [bankFilename, spawnSamples]);
+    listBankJsonFiles()
+      .then((filenames) => {
+        setBankFilenames(["recorded", ...filenames]);
+      })
+      .catch((err) => {
+        console.error("Error listing bank JSON files:", err);
+      });
+  }, []);
 
-  const tabFilenames = banks.map((b) => b.filename);
-  tabFilenames.unshift("recorded");
+  useEffect(() => {
+    if (bankSelection !== "recorded") {
+      spawnSamples(bankSelection);
+    }
+  }, [bankSelection, bankFilenames, spawnSamples]);
 
   return (
     <div className="bank-tabs">
-      {tabFilenames.map((filename, i) => (
+      {bankFilenames.map((filename, i) => (
         <button
           key={i}
-          className={bankFilename === filename ? "tab selected" : "tab"}
-          onClick={() => setBankFilename(filename)}
+          className={bankSelection === filename ? "tab selected" : "tab"}
+          onClick={() => setBankSelection(filename)}
         >
           {filename === "recorded"
             ? "Recorded"
@@ -65,7 +94,7 @@ const BankSampleList: FC = () => {
       ))}
 
       <div className="button-container">
-        {bankFilename === "recorded" ? (
+        {bankSelection === "recorded" ? (
           <BankRecordingList />
         ) : (
           bankSamples.map((bankSample, index) => (

@@ -1,6 +1,6 @@
 // src/components/LoopControls.tsx
 
-import React, { memo, FC, Ref, useCallback, useEffect } from "react";
+import React, { memo, FC, useCallback, useEffect } from "react";
 import { TiArrowLoop } from "react-icons/ti";
 import { IoStopCircleOutline } from "react-icons/io5";
 import {
@@ -11,15 +11,15 @@ import {
 } from "react-icons/pi";
 import { Box, IconButton, Slider } from "@mui/material";
 import { useLoopSettings } from "../context/LoopSettingsContext";
+import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 
 import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
 import useTransport from "../hooks/useTransport";
 
 import { useTrackSampleStore } from "../stores/trackSampleStore";
+import { useTrackNumberStore } from "../stores/trackNumberStore";
 import { saveAllSamplesToLocalStorage } from "../utils/storageUtils";
 import { deleteSequence, loadSequence } from "../utils/loopStateManager";
-import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
-import { useTrackNumberStore } from "../stores/trackNumberStore";
 
 import "../style/loopControls.css"; // Assuming you have some styles for LoopControls
 
