@@ -78,7 +78,6 @@ const TrackList: FC = () => {
     <TrackAudioStateProvider trackNumber={trackNumber}>
       <LoopControls
         sliderRef={null}
-        trackWidth={trackWidth}
         trackNumber={trackNumber}
         setTrackNumber={setTrackNumber}
       />

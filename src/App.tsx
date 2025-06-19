@@ -1,4 +1,4 @@
-// Rename App.js → App.tsx
+// App.tsx
 
 import React from "react";
 import packageJson from "../package.json";

@@ -1,14 +1,6 @@
 // src/components/LoopControls.tsx
 
-import React, {
-  memo,
-  FC,
-  Ref,
-  useMemo,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import React, { memo, FC, Ref, useCallback, useEffect } from "react";
 import { TiArrowLoop } from "react-icons/ti";
 import { IoStopCircleOutline } from "react-icons/io5";
 import {
@@ -19,7 +11,6 @@ import {
 } from "react-icons/pi";
 import { Box, IconButton, Slider, Typography } from "@mui/material";
 import { useLoopSettings } from "../context/LoopSettingsContext";
-import { bpmToSecondsPerLoop } from "../utils/timingUtils";
 
 import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
 import useTransport from "../hooks/useTransport";
@@ -34,24 +25,16 @@ import "../style/loopControls.css"; // Assuming you have some styles for LoopCon
 export interface LoopControlsProps {
   onBpmChange?: (event: Event, value: number | number[]) => void;
   sliderRef: Ref<HTMLSpanElement>;
-  trackWidth: number;
   trackNumber: number;
   setTrackNumber: (trackNumber: number) => void;
 }
 
 const LoopControls: FC<LoopControlsProps> = memo(
-  ({ sliderRef, trackWidth, trackNumber, setTrackNumber }) => {
+  ({ sliderRef, trackNumber, setTrackNumber }) => {
     // Beats Per Minute
     const { bpm, beatsPerLoop, setBpm, setBeatsPerLoop } = useLoopSettings();
     const { playNow, stopAll } = useAudioPlayback();
     const { trackAudioState } = useTrackAudioStateContext();
-    const [statsDrawerOpen, setStatsDrawerOpen] = useState<boolean>(false);
-
-    // fer show
-    const secsPerLoop = useMemo<number>(
-      () => bpmToSecondsPerLoop(bpm, beatsPerLoop),
-      [bpm, beatsPerLoop]
-    );
 
     // All Samples from Zustand store
     const allSamples = useTrackSampleStore((s) => s.allSamples);
@@ -164,30 +147,6 @@ const LoopControls: FC<LoopControlsProps> = memo(
           valueLabelFormat={(value) => `${value} BPM`}
           className="bpm-slider"
         />
-        <Box className="loop-stats-container">
-          <Box
-            className="loop-stats-header"
-            onClick={() => setStatsDrawerOpen(!statsDrawerOpen)}
-          >
-            <Typography variant="subtitle2">Loop Stats</Typography>
-          </Box>
-
-          <Box className={`loop-stats-drawer ${statsDrawerOpen ? "open" : ""}`}>
-            <Typography variant="body2">Width: {trackWidth}px</Typography>
-            <Typography variant="body2">
-              Loop: {secsPerLoop.toFixed(2)}s
-            </Typography>
-            <Typography variant="body2">Tracks: {trackNumber}</Typography>
-            <Typography variant="body2">
-              Samples: {allSamples.length}
-            </Typography>
-            {allSamples.map((sample) => (
-              <Typography key={sample.id} variant="body2">
-                {sample.title} ({sample.type}) - {sample.xPos.toFixed(2)}
-              </Typography>
-            ))}
-          </Box>
-        </Box>{" "}
       </Box>
     );
   }
