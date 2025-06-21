@@ -1,15 +1,17 @@
 import React, { createContext, useContext } from "react";
 import { useTrackAudioState } from "../hooks/useTrackAudioState";
+import { useTrackNumberStore } from "../stores/trackNumberStore";
 
 const TrackAudioStateContext = createContext<ReturnType<
   typeof useTrackAudioState
 > | null>(null);
 
 export const TrackAudioStateProvider: React.FC<{
-  trackNumber: number;
   children: React.ReactNode;
-}> = ({ trackNumber, children }) => {
+}> = ({ children }) => {
+  const { trackNumber } = useTrackNumberStore();
   const state = useTrackAudioState(trackNumber);
+
   return (
     <TrackAudioStateContext.Provider value={state}>
       {children}

@@ -16,7 +16,7 @@ const registry = new Map<number, BaseSample>();
  */
 export function addSampleToRegistry(sample: BaseSample) {
   registry.set(sample.id, sample);
-  console.log("Adding sample to registry:", Array.from(registry.values()));
+  // console.log("Adding sample to registry:", Array.from(registry.values()));
 }
 
 /**

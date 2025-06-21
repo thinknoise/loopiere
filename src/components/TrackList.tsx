@@ -8,15 +8,14 @@ import React, {
   FC,
   RefObject,
 } from "react";
-import LoopControls from "./LoopControls";
+import type { TrackSampleType } from "../types/audio";
+
 import Track from "./Track";
 import useTrackWidth from "../hooks/useTrackWidth";
 import { useRecorder, UseRecorderResult } from "../hooks/useRecorder";
 import { useAudioContext } from "./AudioContextProvider";
 import { useTrackSampleStore } from "../stores/trackSampleStore";
-import { TrackAudioStateProvider } from "../context/TrackAudioStateContext";
-
-import type { TrackSampleType } from "../types/audio";
+import { useTrackNumberStore } from "../stores/trackNumberStore";
 
 import "../style/tracklist.css";
 
@@ -34,7 +33,7 @@ const generateTracks = (n: number): TrackInfo[] =>
 const TrackList: FC = () => {
   const trackRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null!);
 
-  const [trackNumber, setTrackNumber] = useState(4);
+  const { trackNumber, setTrackNumber } = useTrackNumberStore();
 
   const [selectedTrackId, setSelectedTrackId] = useState<number | null>(null);
 
@@ -75,14 +74,7 @@ const TrackList: FC = () => {
   }, [audioBuffer, setAllSamples]);
 
   return (
-    <TrackAudioStateProvider trackNumber={trackNumber}>
-      <LoopControls
-        sliderRef={null}
-        trackWidth={trackWidth}
-        trackNumber={trackNumber}
-        setTrackNumber={setTrackNumber}
-      />
-
+    <div>
       {tracks.map((track) => (
         <Track
           key={track.id}
@@ -98,10 +90,10 @@ const TrackList: FC = () => {
       ))}
 
       <div className="track-add-remove">
-        <button onClick={() => setTrackNumber((n: number) => n + 1)}>+</button>
-        <button onClick={() => setTrackNumber((n: number) => n - 1)}>-</button>
+        <button onClick={() => setTrackNumber(trackNumber + 1)}>+</button>
+        <button onClick={() => setTrackNumber(trackNumber - 1)}>-</button>
       </div>
-    </TrackAudioStateProvider>
+    </div>
   );
 };
 

@@ -1,13 +1,13 @@
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import {
   addSampleToRegistry,
   getAwsSamplesFromRegistry,
 } from "./sampleRegistry";
 import type { RecordingSample, TrackSampleType } from "../types/audio";
-import { s3, BUCKET, REGION } from "./awsConfig";
+import { s3, BUCKET } from "./awsConfig";
 import { loadAudio } from "./audioManager";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export async function hydrateAwsSamplesFromS3() {
   const command = new ListObjectsV2Command({

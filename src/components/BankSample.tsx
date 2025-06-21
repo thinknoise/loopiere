@@ -155,7 +155,6 @@ const BankSample: FC<BankSampleProps> = ({
       }}
     >
       <span>{sample.filename.replace(/\.\w+$/, "")}</span>
-      <span>{sample.filename}s</span>
       {audioBuffer && (
         <CompactWaveform
           buffer={audioBuffer}
