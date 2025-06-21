@@ -1,6 +1,4 @@
 // src/components/BankSampleList.tsx
-
-import banks from "../data/banks.json";
 import React, { useEffect, useState, useCallback, FC } from "react";
 import type { LocalSample } from "../types/audio";
 
@@ -95,9 +93,7 @@ const BankSampleList: FC = () => {
           className={bankSelection === filename ? "tab selected" : "tab"}
           onClick={() => setBankSelection(filename)}
         >
-          {filename === "recorded"
-            ? "Recorded"
-            : banks.find((b) => b.filename === filename)?.name ?? filename}
+          {filename === "recorded" ? "Recorded" : filename}
         </button>
       ))}
 
