@@ -35,27 +35,30 @@ const BankSampleList: FC = () => {
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
 
-  const spawnSamples = useCallback((folder: string) => {
-    console.log("Spawning samples for folder:", folder, awsKeys);
-    const samples = awsKeys
-      .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
-      .map((key, idx): LocalSample => {
-        console.log("Spawning sample:", key);
-        const filename = key.split("/").pop() ?? "Untitled";
-        const title = filename.replace(/\.[^/.]+$/, "");
-        const sample: LocalSample = {
-          id: Date.now() + idx,
-          filename: key,
-          title,
-          type: "local",
-          path: key,
-        };
-        addSampleToRegistry(sample);
-        return sample;
-      });
+  const spawnSamples = useCallback(
+    (folder: string) => {
+      console.log("Spawning samples for folder:", folder, awsKeys);
+      const samples = awsKeys
+        .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
+        .map((key, idx): LocalSample => {
+          console.log("Spawning sample:", key);
+          const filename = key.split("/").pop() ?? "Untitled";
+          const title = filename.replace(/\.[^/.]+$/, "");
+          const sample: LocalSample = {
+            id: Date.now() + idx,
+            filename: key,
+            title,
+            type: "local",
+            path: key,
+          };
+          addSampleToRegistry(sample);
+          return sample;
+        });
 
-    setBankSamples(samples);
-  }, []);
+      setBankSamples(samples);
+    },
+    [awsKeys]
+  );
 
   useEffect(() => {
     listBanksDirectories()

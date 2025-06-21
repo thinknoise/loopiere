@@ -177,6 +177,7 @@ const BankSample: FC<BankSampleProps> = ({
       )}
       {/* Save button 
       This button is only shown if the sample is not a .wav file.
+      wiley - do this by type
       */}
       {sample.filename.substring(sample.filename.length - 4) !== ".wav" && (
         <SaveSampleButton
