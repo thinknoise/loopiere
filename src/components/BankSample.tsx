@@ -26,7 +26,7 @@ export interface BankSampleProps {
   offset?: number;
   btnClass?: string;
   onRemove?: (id: string | number) => void;
-  onSampleSaved: () => void;
+  updateBankSamples: () => void;
 }
 
 const TOTAL_TRACK_WIDTH = 916;
@@ -38,7 +38,7 @@ const BankSample: FC<BankSampleProps> = ({
   offset,
   btnClass = "",
   onRemove,
-  onSampleSaved,
+  updateBankSamples,
 }) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
@@ -105,7 +105,7 @@ const BankSample: FC<BankSampleProps> = ({
 
   async function saveSampleToS3AndRegistry(
     sample: Sample,
-    onSampleSaved: () => void
+    updateBankSamples: () => void
   ): Promise<boolean> {
     if (!sample.blob || !sample.filename) {
       console.error("Invalid sample: missing blob or filename");
@@ -132,10 +132,10 @@ const BankSample: FC<BankSampleProps> = ({
         createdAt: Date.now(),
       };
 
-      console.log("Sample uploaded to S3:", uploadedSample, onSampleSaved);
+      console.log("Sample uploaded to S3:", uploadedSample, updateBankSamples);
 
-      if (onSampleSaved) {
-        onSampleSaved();
+      if (updateBankSamples) {
+        updateBankSamples();
       }
 
       return true;
@@ -160,6 +160,11 @@ const BankSample: FC<BankSampleProps> = ({
       // await deleteFromRegistry(s3Key); // depends on your implementation
 
       console.log("Sample deleted from S3:", s3Key);
+      if (updateBankSamples) {
+        console.log("Updating bank samples after deletion");
+        updateBankSamples();
+      }
+
       return true;
     } catch (err) {
       console.error("Failed to delete sample from S3:", err);
@@ -224,7 +229,7 @@ const BankSample: FC<BankSampleProps> = ({
       */}
       {sample.filename.substring(sample.filename.length - 4) !== ".wav" && (
         <SaveSampleButton
-          onSave={() => saveSampleToS3AndRegistry(sample, onSampleSaved)}
+          onSave={() => saveSampleToS3AndRegistry(sample, updateBankSamples)}
         />
       )}
     </button>

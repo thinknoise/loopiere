@@ -11,6 +11,7 @@ import BankSample from "./BankSample";
 import BankRecordingList from "./BankRecordingList";
 
 import "../style/bankTab.css";
+import { hydrateAwsSamplesFromS3 } from "../utils/awsHydration";
 
 const listBanksDirectories = async (): Promise<string[]> => {
   const command = new ListObjectsV2Command({
@@ -35,7 +36,7 @@ const BankSampleList: FC = () => {
 
   const spawnSamples = useCallback(
     (folder: string) => {
-      console.log("Spawning samples for folder:", folder, awsKeys);
+      console.log("Spawning samples for folder:", folder);
       const samples = awsKeys
         .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
         .map((key, idx): AwsSampleType => {
@@ -61,7 +62,6 @@ const BankSampleList: FC = () => {
   useEffect(() => {
     listBanksDirectories()
       .then((directories) => {
-        console.log("Available bank directories:", directories, bankSamples);
         const folders = new Set<string>();
 
         for (const key of directories) {
@@ -105,8 +105,11 @@ const BankSampleList: FC = () => {
             <BankSample
               key={index}
               sample={bankSample}
-              onSampleSaved={() => {
-                console.log("Sample saved:", bankSample.id);
+              updateBankSamples={() => {
+                console.log("recordings saved, refreshing...");
+                hydrateAwsSamplesFromS3().then((hydratedSamples) => {
+                  setBankSamples(hydratedSamples);
+                });
               }}
             />
           ))

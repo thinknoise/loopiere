@@ -115,7 +115,7 @@ const BankRecordingList: FC = () => {
               key={awsSample.id}
               sample={awsSample}
               // dry up wiley
-              onSampleSaved={() => {
+              updateBankSamples={() => {
                 console.log("Sample saved, refreshing...");
                 hydrateAwsSamplesFromS3().then((hydratedSamples) => {
                   setSamplesFromAws(hydratedSamples);
@@ -132,7 +132,7 @@ const BankRecordingList: FC = () => {
               onRemove={(id) => {
                 setRecordings((prev) => prev.filter((s) => s.id !== id));
               }}
-              onSampleSaved={() => {
+              updateBankSamples={() => {
                 console.log("recordings saved, refreshing...");
                 hydrateAwsSamplesFromS3().then((hydratedSamples) => {
                   setSamplesFromAws(hydratedSamples);
