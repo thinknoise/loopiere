@@ -112,7 +112,7 @@ const BankSample: FC<BankSampleProps> = ({
       return false;
     }
 
-    const key = `uploads/${Date.now()}-${sample.filename}.wav`;
+    const key = `banks/recorded/${Date.now()}-${sample.filename}.wav`;
 
     try {
       const buffer = await sample.blob.arrayBuffer();

@@ -12,7 +12,7 @@ import { loadAudio } from "./audioManager";
 export async function hydrateAwsSamplesFromS3() {
   const command = new ListObjectsV2Command({
     Bucket: BUCKET,
-    Prefix: "uploads/",
+    Prefix: "banks/recorded/",
   });
 
   const result = await s3.send(command);

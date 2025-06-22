@@ -70,7 +70,7 @@ const BankSampleList: FC = () => {
           if (folder) folders.add(folder);
         }
 
-        setBankFilenames((prev) => ["recorded", ...Array.from(folders)]);
+        setBankFilenames((prev) => [...Array.from(folders)]);
         setAwsKeys(directories);
       })
       .catch((err) => {
@@ -83,7 +83,7 @@ const BankSampleList: FC = () => {
       console.log("Spawning samples for bank:", bankSelection);
       spawnSamples(bankSelection);
     }
-  }, [bankSelection, spawnSamples, awsKeys]);
+  }, [bankSelection, spawnSamples]);
 
   return (
     <div className="bank-tabs">
