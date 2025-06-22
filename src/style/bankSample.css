@@ -52,6 +52,10 @@
 
 }
 
+.remove-sample-btn.aws {
+  background-color: #ff0000;
+}
+
 .remove-sample-btn:after {
   position: absolute;
   top: 0;

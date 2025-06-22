@@ -1,13 +1,14 @@
 // src/components/BankSample.tsx
 
 import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import CompactWaveform from "./CompactWaveform";
 import SaveSampleButton from "./BankRecording/BankRecordingSaveSampleButton";
-import { loadAudio } from "../utils/audioManager";
 import { useAudioContext } from "./AudioContextProvider";
+import { loadAudio } from "../utils/audioManager";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { BUCKET, REGION, s3 } from "../utils/awsConfig";
 import "../style/bankSample.css";
 
@@ -90,7 +91,10 @@ const BankSample: FC<BankSampleProps> = ({
     );
   };
 
-  const onClick = () => {
+  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation(); // Prevent playback on parent button
+
+    console.log("Sample clicked:", sample);
     if (!audioBuffer) return;
     resumeAudioContext();
     const src = audioContext.createBufferSource();
@@ -130,7 +134,6 @@ const BankSample: FC<BankSampleProps> = ({
 
       console.log("Sample uploaded to S3:", uploadedSample, onSampleSaved);
 
-      // Optionally: hydrate all again if needed right away
       if (onSampleSaved) {
         onSampleSaved();
       }
@@ -138,6 +141,28 @@ const BankSample: FC<BankSampleProps> = ({
       return true;
     } catch (err) {
       console.error("Failed to upload and register sample:", err);
+      return false;
+    }
+  }
+
+  async function deleteSampleFromS3AndRegistry(
+    s3Key: string
+  ): Promise<boolean> {
+    try {
+      const command = new DeleteObjectCommand({
+        Bucket: BUCKET,
+        Key: `banks/${s3Key}`,
+      });
+
+      await s3.send(command);
+
+      // Optionally remove from registry/database here
+      // await deleteFromRegistry(s3Key); // depends on your implementation
+
+      console.log("Sample deleted from S3:", s3Key);
+      return true;
+    } catch (err) {
+      console.error("Failed to delete sample from S3:", err);
       return false;
     }
   }
@@ -169,6 +194,24 @@ const BankSample: FC<BankSampleProps> = ({
             e.stopPropagation(); // Prevent playback on parent button
             if (sample.id !== undefined) {
               onRemove(sample.id);
+            }
+          }}
+          role="button"
+          aria-label="Remove sample"
+        />
+      )}
+      {sample.type === "aws" && (
+        <span
+          className="remove-sample-btn aws"
+          onClick={() => {
+            console.log("Trying to delete sample:", sample);
+
+            if (sample.filename) {
+              deleteSampleFromS3AndRegistry(sample.filename).then((success) => {
+                if (success && onRemove && sample.id !== undefined) {
+                  onRemove(sample.id);
+                }
+              });
             }
           }}
           role="button"

@@ -1,6 +1,6 @@
 // src/components/BankSampleList.tsx
 import React, { useEffect, useState, useCallback, FC } from "react";
-import type { LocalSample } from "../types/audio";
+import type { AwsSampleType, BaseSample, LocalSample } from "../types/audio";
 
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "../utils/awsConfig";
@@ -28,7 +28,7 @@ const listBanksDirectories = async (): Promise<string[]> => {
 };
 
 const BankSampleList: FC = () => {
-  const [bankSamples, setBankSamples] = useState<LocalSample[]>([]);
+  const [bankSamples, setBankSamples] = useState<BaseSample[]>([]);
   const [bankSelection, setBankSelection] = useState<string>("recorded");
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
@@ -38,15 +38,15 @@ const BankSampleList: FC = () => {
       console.log("Spawning samples for folder:", folder, awsKeys);
       const samples = awsKeys
         .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
-        .map((key, idx): LocalSample => {
+        .map((key, idx): AwsSampleType => {
           console.log("Spawning sample:", key);
           const filename = key.split("/").pop() ?? "Untitled";
           const title = filename.replace(/\.[^/.]+$/, "");
-          const sample: LocalSample = {
+          const sample: BaseSample = {
             id: Date.now() + idx,
             filename: key,
             title,
-            type: "local",
+            type: "aws", // was local, but now we are using AWS
             path: key,
           };
           addSampleToRegistry(sample);
