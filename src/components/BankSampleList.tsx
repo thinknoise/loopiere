@@ -30,7 +30,7 @@ const listBanksDirectories = async (): Promise<string[]> => {
 
 const BankSampleList: FC = () => {
   const [bankSamples, setBankSamples] = useState<BaseSample[]>([]);
-  const [bankSelection, setBankSelection] = useState<string>("recorded");
+  const [bankSelection, setBankSelection] = useState<string>("kit");
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
 
@@ -93,7 +93,7 @@ const BankSampleList: FC = () => {
           className={bankSelection === filename ? "tab selected" : "tab"}
           onClick={() => setBankSelection(filename)}
         >
-          {filename === "recorded" ? "Recorded" : filename}
+          {filename}
         </button>
       ))}
 
