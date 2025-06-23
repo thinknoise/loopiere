@@ -19,6 +19,16 @@ export interface SampleCore {
  * A sample sourced from the local project files.
  * Example: "samples/kick.wav"
  */
+export type AwsSampleType = SampleCore & {
+  type: "aws";
+  path: string;
+  s3Key?: string;
+};
+
+/**
+ * A sample sourced from the local project files.
+ * Example: "samples/kick.wav"
+ */
 export type LocalSample = SampleCore & {
   type: "local";
   path: string;
@@ -50,7 +60,11 @@ export type RemoteSample = SampleCore & {
  * Union of all sample source types.
  * Represents an audio source regardless of where it came from.
  */
-export type BaseSample = LocalSample | RecordingSample | RemoteSample;
+export type BaseSample =
+  | LocalSample
+  | RecordingSample
+  | RemoteSample
+  | AwsSampleType;
 
 /**
  * A sample placed on a track at a specific time/location.

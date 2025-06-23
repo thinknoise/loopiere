@@ -1,8 +1,6 @@
 // src/components/BankSampleList.tsx
-
-import banks from "../data/banks.json";
 import React, { useEffect, useState, useCallback, FC } from "react";
-import type { LocalSample } from "../types/audio";
+import type { AwsSampleType, BaseSample } from "../types/audio";
 
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "../utils/awsConfig";
@@ -30,59 +28,61 @@ const listBanksDirectories = async (): Promise<string[]> => {
 };
 
 const BankSampleList: FC = () => {
-  const [bankSamples, setBankSamples] = useState<LocalSample[]>([]);
+  const [bankSamples, setBankSamples] = useState<BaseSample[]>([]);
   const [bankSelection, setBankSelection] = useState<string>("recorded");
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
 
-  const spawnSamples = useCallback((folder: string) => {
-    console.log("Spawning samples for folder:", folder, awsKeys);
-    const samples = awsKeys
-      .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
-      .map((key, idx): LocalSample => {
-        console.log("Spawning sample:", key);
-        const filename = key.split("/").pop() ?? "Untitled";
-        const title = filename.replace(/\.[^/.]+$/, "");
-        const sample: LocalSample = {
-          id: Date.now() + idx,
-          filename: key,
-          title,
-          type: "local",
-          path: key,
-        };
-        addSampleToRegistry(sample);
-        return sample;
-      });
+  const spawnSamples = useCallback(
+    (folder: string) => {
+      console.log("Spawning samples for folder:", folder);
+      const samples = awsKeys
+        .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
+        .map((key, idx): AwsSampleType => {
+          const filename = key.split("/").pop() ?? "Untitled";
+          const title = filename.replace(/\.[^/.]+$/, "");
+          const sample: BaseSample = {
+            id: Date.now() + idx,
+            filename: key,
+            title,
+            type: "aws", // was local, but now we are using AWS
+            path: key,
+          };
+          addSampleToRegistry(sample);
+          return sample;
+        });
 
-    setBankSamples(samples);
-  }, []);
+      setBankSamples(samples);
+    },
+    [awsKeys]
+  );
 
-  useEffect(() => {
-    listBanksDirectories()
-      .then((directories) => {
-        console.log("Available bank directories:", directories, bankSamples);
-        const folders = new Set<string>();
+  const fetchBankDirectories = async () => {
+    try {
+      const directories = await listBanksDirectories();
+      const folders = new Set<string>();
 
-        for (const key of directories) {
-          if (key.endsWith("/")) continue; // skip folder "markers"
-          const [folder] = key.split("/");
-          if (folder) folders.add(folder);
-        }
+      for (const key of directories) {
+        if (key.endsWith("/")) continue; // skip folder markers
+        const [folder] = key.split("/");
+        if (folder) folders.add(folder);
+      }
 
-        setBankFilenames((prev) => ["recorded", ...Array.from(folders)]);
-        setAwsKeys(directories);
-      })
-      .catch((err) => {
-        console.error("Error listing bank directories:", err);
-      });
-  }, []);
-
-  useEffect(() => {
-    if (bankSelection !== "recorded") {
-      console.log("Spawning samples for bank:", bankSelection);
-      spawnSamples(bankSelection);
+      setBankFilenames([...folders]);
+      setAwsKeys(directories);
+    } catch (err) {
+      console.error("Error listing bank directories:", err);
     }
-  }, [bankSelection, spawnSamples, awsKeys]);
+  };
+
+  useEffect(() => {
+    fetchBankDirectories(); // fire it once on mount
+  }, []);
+
+  useEffect(() => {
+    console.log("Spawning samples for bank:", bankSelection);
+    spawnSamples(bankSelection);
+  }, [bankSelection, spawnSamples]);
 
   return (
     <div className="bank-tabs">
@@ -92,26 +92,22 @@ const BankSampleList: FC = () => {
           className={bankSelection === filename ? "tab selected" : "tab"}
           onClick={() => setBankSelection(filename)}
         >
-          {filename === "recorded"
-            ? "Recorded"
-            : banks.find((b) => b.filename === filename)?.name ?? filename}
+          {filename}
         </button>
       ))}
 
       <div className="button-container">
-        {bankSelection === "recorded" ? (
-          <BankRecordingList />
-        ) : (
-          bankSamples.map((bankSample, index) => (
-            <BankSample
-              key={index}
-              sample={bankSample}
-              onSampleSaved={() => {
-                console.log("Sample saved:", bankSample.id);
-              }}
-            />
-          ))
-        )}
+        {bankSamples.map((bankSample, index) => (
+          <BankSample
+            key={index}
+            sample={bankSample}
+            updateBankSamples={() => {
+              console.log("recordings saved, refreshing...");
+              fetchBankDirectories();
+            }}
+          />
+        ))}
+        <BankRecordingList fetchBankDirectories={fetchBankDirectories} />
       </div>
     </div>
   );

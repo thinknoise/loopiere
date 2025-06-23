@@ -66,7 +66,7 @@ export async function getSampleBuffer(
   const cacheKey =
     sample.type === "remote"
       ? sample.url
-      : sample.type === "local"
+      : sample.type === "local" || sample.type === "aws"
       ? sample.path
       : null;
 
@@ -75,10 +75,11 @@ export async function getSampleBuffer(
     return sample.buffer;
   }
 
+  console.log("Decoding sample", sample.type);
   const rawPath =
     sample.type === "remote"
       ? sample.url
-      : sample.type === "local"
+      : sample.type === "local" || sample.type === "aws"
       ? sample.path
       : null;
 

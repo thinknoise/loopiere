@@ -1,13 +1,11 @@
-export function resolveSamplePath(sampleString: string): string {
-  if (!sampleString) return "";
+const AWS_BASE_URL = "https://loopiere-recording.s3.amazonaws.com/banks";
 
-  const isBlobUrl = sampleString.startsWith("blob:");
-  const isHttpUrl = /^https?:\/\//.test(sampleString);
+export function resolveSamplePath(sampleKey: string): string {
+  if (!sampleKey) return "";
 
-  if (isBlobUrl || isHttpUrl) {
-    return sampleString; // leave full or blob URLs untouched
+  if (sampleKey.startsWith("blob:") || /^https?:\/\//.test(sampleKey)) {
+    return sampleKey;
   }
 
-  // assume relative path, normalize and prepend
-  return `/loopiere/samples/${sampleString.replace(/^\/+/, "")}`;
+  return `${AWS_BASE_URL}/${sampleKey.replace(/^\/+/, "")}`;
 }

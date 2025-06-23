@@ -1,6 +1,4 @@
 .bank-tabs {
-  padding-top: 40px;
-  height: 40px;
   width: 80%;
   margin: 0 auto;
   /* Auto left/right margins to center the container */
@@ -12,18 +10,22 @@
   color: #fff;
   background-color: #333;
   top: 0;
-  margin: 20px 10px 0px 10px;
-  padding: 0px 10px;
+  padding: 0px 15px;
+  margin: 5px 0px 0px 0px;
   line-height: 30px;
   border-radius: 8px 8px 0px 0px;
-  border: 4px;
+  border: solid 1px #333;
   border-bottom: 0px;
   vertical-align: bottom;
+  transition: all 0.3s ease;
 }
 
 .bank-tabs .tab.selected {
-  padding: 10px 10px;
-  margin: 10px 10px 0px 10px;
+  border: solid 1px #555;
+  border-bottom: none;
+  padding: 5px 15px;
+  margin: 0px;
+  transition: all 0.3s ease;
 }
 
 .record-btn-wrapper {
