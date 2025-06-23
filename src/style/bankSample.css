@@ -39,6 +39,15 @@
   transition: background-color 0.3s ease;
 }
 
+.sample-type {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 2px 5px;
+  font-size: small;
+  background-color: rgba(1, 88, 118, 0.5);
+}
+
 .remove-sample-btn {
   position: absolute;
   top: 0;
@@ -49,11 +58,11 @@
   /* Dark background for contrast */
   z-index: 13;
   cursor: pointer;
-
 }
 
 .remove-sample-btn.aws {
-  background-color: #ff0000;
+  background-color: #58618d;
+  opacity: 0.8;
 }
 
 .remove-sample-btn:after {

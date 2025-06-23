@@ -1,6 +1,6 @@
 // src/components/BankSampleList.tsx
 import React, { useEffect, useState, useCallback, FC } from "react";
-import type { AwsSampleType, BaseSample, LocalSample } from "../types/audio";
+import type { AwsSampleType, BaseSample } from "../types/audio";
 
 import { ListObjectsV2Command } from "@aws-sdk/client-s3";
 import { s3, BUCKET } from "../utils/awsConfig";
@@ -11,7 +11,6 @@ import BankSample from "./BankSample";
 import BankRecordingList from "./BankRecordingList";
 
 import "../style/bankTab.css";
-import { hydrateAwsSamplesFromS3 } from "../utils/awsHydration";
 
 const listBanksDirectories = async (): Promise<string[]> => {
   const command = new ListObjectsV2Command({
@@ -30,7 +29,7 @@ const listBanksDirectories = async (): Promise<string[]> => {
 
 const BankSampleList: FC = () => {
   const [bankSamples, setBankSamples] = useState<BaseSample[]>([]);
-  const [bankSelection, setBankSelection] = useState<string>("kit");
+  const [bankSelection, setBankSelection] = useState<string>("recorded");
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
 
@@ -40,7 +39,6 @@ const BankSampleList: FC = () => {
       const samples = awsKeys
         .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
         .map((key, idx): AwsSampleType => {
-          console.log("Spawning sample:", key);
           const filename = key.split("/").pop() ?? "Untitled";
           const title = filename.replace(/\.[^/.]+$/, "");
           const sample: BaseSample = {
@@ -59,30 +57,31 @@ const BankSampleList: FC = () => {
     [awsKeys]
   );
 
+  const fetchBankDirectories = async () => {
+    try {
+      const directories = await listBanksDirectories();
+      const folders = new Set<string>();
+
+      for (const key of directories) {
+        if (key.endsWith("/")) continue; // skip folder markers
+        const [folder] = key.split("/");
+        if (folder) folders.add(folder);
+      }
+
+      setBankFilenames([...folders]);
+      setAwsKeys(directories);
+    } catch (err) {
+      console.error("Error listing bank directories:", err);
+    }
+  };
+
   useEffect(() => {
-    listBanksDirectories()
-      .then((directories) => {
-        const folders = new Set<string>();
-
-        for (const key of directories) {
-          if (key.endsWith("/")) continue; // skip folder "markers"
-          const [folder] = key.split("/");
-          if (folder) folders.add(folder);
-        }
-
-        setBankFilenames((prev) => [...Array.from(folders)]);
-        setAwsKeys(directories);
-      })
-      .catch((err) => {
-        console.error("Error listing bank directories:", err);
-      });
+    fetchBankDirectories(); // fire it once on mount
   }, []);
 
   useEffect(() => {
-    if (bankSelection !== "recorded") {
-      console.log("Spawning samples for bank:", bankSelection);
-      spawnSamples(bankSelection);
-    }
+    console.log("Spawning samples for bank:", bankSelection);
+    spawnSamples(bankSelection);
   }, [bankSelection, spawnSamples]);
 
   return (
@@ -98,22 +97,17 @@ const BankSampleList: FC = () => {
       ))}
 
       <div className="button-container">
-        {bankSelection === "recorded" ? (
-          <BankRecordingList />
-        ) : (
-          bankSamples.map((bankSample, index) => (
-            <BankSample
-              key={index}
-              sample={bankSample}
-              updateBankSamples={() => {
-                console.log("recordings saved, refreshing...");
-                hydrateAwsSamplesFromS3().then((hydratedSamples) => {
-                  setBankSamples(hydratedSamples);
-                });
-              }}
-            />
-          ))
-        )}
+        {bankSamples.map((bankSample, index) => (
+          <BankSample
+            key={index}
+            sample={bankSample}
+            updateBankSamples={() => {
+              console.log("recordings saved, refreshing...");
+              fetchBankDirectories();
+            }}
+          />
+        ))}
+        <BankRecordingList fetchBankDirectories={fetchBankDirectories} />
       </div>
     </div>
   );
