@@ -1,13 +1,13 @@
 // src/components/BankRecorder.tsx
 
 import React, { useEffect, useState, useRef } from "react";
-import type { RecordingSample } from "../types/audio";
+import type { BaseSample, RecordingSample } from "../types/audio";
 import { useAudioContext } from "./AudioContextProvider";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
-import { BUCKET, REGION, s3 } from "../utils/awsConfig";
+import { BUCKET, s3 } from "../utils/awsConfig";
 import { useRecorder } from "../hooks/useRecorder";
 import { VUMeter } from "./BankRecording/BankRecordingVuMeter";
-import BankSample, { Sample } from "./BankSample";
+import BankSample from "./BankSample";
 import SaveSampleButton from "./BankRecording/BankRecordingSaveSampleButton";
 import SampleUploader from "./SampleUploader";
 import "../style/BankRecorder.css";
@@ -69,10 +69,10 @@ const BankRecorder: React.FC<BankRecorderProps> = ({
   }, [audioBuffer, getRecordedBlobURL]);
 
   async function saveSampleToS3AndRegistry(
-    sample: Sample,
+    sample: BaseSample,
     directory: string = "recorded"
   ): Promise<boolean> {
-    if (!sample.blob || !sample.filename) {
+    if (sample.type !== "recording" || !sample.blob || !sample.filename) {
       console.error("Invalid sample: missing blob or filename");
       return false;
     }

@@ -1,24 +1,15 @@
 // src/components/BankSample.tsx
 
 import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import type { BaseSample } from "../types/audio";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
 import CompactWaveform from "./CompactWaveform";
 import { useAudioContext } from "./AudioContextProvider";
 import { loadAudio } from "../utils/audioManager";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
-import { BUCKET, REGION, s3 } from "../utils/awsConfig";
+import { BUCKET, s3 } from "../utils/awsConfig";
 import "../style/bankSample.css";
-import type { BaseSample } from "../types/audio";
-
-export interface Sample {
-  id?: string | number;
-  filename: string;
-  path?: string | null;
-  buffer?: AudioBuffer | null;
-  [key: string]: any;
-}
 
 export interface BankSampleProps {
   sample: BaseSample;
@@ -90,7 +81,7 @@ const BankSample: FC<BankSampleProps> = ({
     );
   };
 
-  const onClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const onClickAudioClip = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // Prevent playback on parent button
 
     console.log("Sample clicked:", sample);
@@ -134,7 +125,7 @@ const BankSample: FC<BankSampleProps> = ({
       ref={btnRef}
       draggable
       onDragStart={onDragStart}
-      onClick={onClick}
+      onClick={onClickAudioClip}
       className={`bank-sample-btn ${btnClass}`}
       style={{
         left: offset != null ? `${offset}px` : undefined,
