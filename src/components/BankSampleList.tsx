@@ -8,7 +8,7 @@ import { s3, BUCKET } from "../utils/awsConfig";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
 
 import BankSample from "./BankSample";
-import BankRecordingList from "./BankRecordingList";
+import BankRecorder from "./BankRecorder";
 
 import "../style/bankTab.css";
 
@@ -35,7 +35,7 @@ const BankSampleList: FC = () => {
 
   const spawnSamples = useCallback(
     (folder: string) => {
-      console.log("Spawning samples for folder:", folder);
+      // console.log("Spawning samples for folder:", folder);
       const samples = awsKeys
         .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
         .map((key, idx): AwsSampleType => {
@@ -80,7 +80,7 @@ const BankSampleList: FC = () => {
   }, []);
 
   useEffect(() => {
-    console.log("Spawning samples for bank:", bankSelection);
+    // console.log("Spawning samples for bank:", bankSelection);
     spawnSamples(bankSelection);
   }, [bankSelection, spawnSamples]);
 
@@ -107,7 +107,7 @@ const BankSampleList: FC = () => {
             }}
           />
         ))}
-        <BankRecordingList fetchBankDirectories={fetchBankDirectories} />
+        <BankRecorder fetchBankDirectories={fetchBankDirectories} />
       </div>
     </div>
   );

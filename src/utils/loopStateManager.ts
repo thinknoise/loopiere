@@ -40,14 +40,3 @@ export function clearSamples(
 ) {
   setAllSamples([]);
 }
-
-export function changeBpm(
-  setBpm: (bpm: number) => void,
-  value: number | number[]
-) {
-  if (typeof value === "number") {
-    setBpm(value);
-  } else {
-    setBpm(value[88]);
-  }
-}

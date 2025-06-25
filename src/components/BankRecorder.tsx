@@ -1,20 +1,23 @@
-// src/components/BankRecordingList.tsx
+// src/components/BankRecorder.tsx
 
-import React, { useEffect, useState, FC, useRef } from "react";
-import type { RecordingSample, TrackSampleType } from "../types/audio";
-import { useRecorder } from "../hooks/useRecorder";
+import React, { useEffect, useState, useRef } from "react";
+import type { RecordingSample } from "../types/audio";
 import { useAudioContext } from "./AudioContextProvider";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { BUCKET, REGION, s3 } from "../utils/awsConfig";
+import { useRecorder } from "../hooks/useRecorder";
 import { VUMeter } from "./BankRecording/BankRecordingVuMeter";
-import BankSample from "./BankSample";
+import BankSample, { Sample } from "./BankSample";
+import SaveSampleButton from "./BankRecording/BankRecordingSaveSampleButton";
 import SampleUploader from "./SampleUploader";
-import "../style/bankRecordingList.css";
+import "../style/BankRecorder.css";
 import "../style/bankTab.css";
 
-interface BankRecordingListProps {
+interface BankRecorderProps {
   fetchBankDirectories: () => Promise<void>;
 }
 
-const BankRecordingList: React.FC<BankRecordingListProps> = ({
+const BankRecorder: React.FC<BankRecorderProps> = ({
   fetchBankDirectories,
 }) => {
   const [recordings, setRecordings] = useState<RecordingSample[]>([]);
@@ -42,7 +45,7 @@ const BankRecordingList: React.FC<BankRecordingListProps> = ({
       setRecordings((prevRecordings) => {
         const filename = `Recording${prevRecordings.length + 1}`;
         const date = new Date().toISOString().split("T")[0];
-        const newRecording: RecordingSample & TrackSampleType = {
+        const newRecording: RecordingSample = {
           id: Date.now(),
           type: "recording",
           blobUrl: url,
@@ -54,9 +57,6 @@ const BankRecordingList: React.FC<BankRecordingListProps> = ({
           trimEnd: audioBuffer.duration,
           buffer: audioBuffer,
           recordedAt: new Date(),
-          xPos: 0,
-          onTrack: false,
-          trackId: 0,
         };
 
         console.log("New recording created:", newRecording);
@@ -67,6 +67,35 @@ const BankRecordingList: React.FC<BankRecordingListProps> = ({
       });
     })();
   }, [audioBuffer, getRecordedBlobURL]);
+
+  async function saveSampleToS3AndRegistry(
+    sample: Sample,
+    directory: string = "recorded"
+  ): Promise<boolean> {
+    if (!sample.blob || !sample.filename) {
+      console.error("Invalid sample: missing blob or filename");
+      return false;
+    }
+
+    const key = `banks/${directory}/${Date.now()}-${sample.filename}.wav`;
+
+    try {
+      const buffer = await sample.blob.arrayBuffer();
+      const command = new PutObjectCommand({
+        Bucket: BUCKET,
+        Key: key,
+        Body: new Uint8Array(buffer),
+        ContentType: sample.blob.type,
+      });
+
+      await s3.send(command);
+      console.log("Sample uploaded to S3:", key);
+      return true;
+    } catch (err) {
+      console.error("Failed to upload and register sample:", err);
+      return false;
+    }
+  }
 
   return (
     <div className="recording-ui">
@@ -93,6 +122,38 @@ const BankRecordingList: React.FC<BankRecordingListProps> = ({
       </button>
       {/* let the vu meter always be there */}
       {<VUMeter inputLevel={inputLevel} />}
+
+      <div className="samples">
+        {recordings.map((recording) => (
+          <div className="recording-item" key={recording.id}>
+            <BankSample
+              key={recording.id}
+              btnClass="recording-sample-btn"
+              sample={recording}
+              onRemove={(id) => {
+                setRecordings((prev) => prev.filter((s) => s.id !== id));
+              }}
+            />
+            <SaveSampleButton
+              onSave={() =>
+                saveSampleToS3AndRegistry(recording).then((success) => {
+                  if (success) {
+                    console.log("Recording saved successfully");
+                    fetchBankDirectories();
+                    setRecordings((prev) =>
+                      prev.filter((s) => s.id !== recording.id)
+                    );
+                  } else {
+                    console.error("Failed to save recording");
+                  }
+                  return success;
+                })
+              }
+            />
+          </div>
+        ))}
+      </div>
+
       {(loadFileSelect && <SampleUploader />) || (
         <button
           className="load-file-btn"
@@ -101,28 +162,8 @@ const BankRecordingList: React.FC<BankRecordingListProps> = ({
           File
         </button>
       )}
-
-      <div className="samples">
-        {recordings.map((recording) => (
-          <div className="recording-item" key={recording.id}>
-            <BankSample
-              key={recording.id}
-              sample={recording}
-              onRemove={(id) => {
-                setRecordings((prev) => prev.filter((s) => s.id !== id));
-              }}
-              updateBankSamples={() => {
-                fetchBankDirectories();
-                setRecordings((prev) =>
-                  prev.filter((s) => s.id !== recording.id)
-                );
-              }}
-            />
-          </div>
-        ))}
-      </div>
     </div>
   );
 };
 
-export default BankRecordingList;
+export default BankRecorder;
