@@ -3,12 +3,14 @@
 import React, { FC, useEffect, useState, useRef, DragEvent } from "react";
 import type { BaseSample } from "../types/audio";
 import { DeleteObjectCommand } from "@aws-sdk/client-s3";
-import CompactWaveform from "./CompactWaveform";
+import { BUCKET, s3 } from "../utils/awsConfig";
 import { useAudioContext } from "./AudioContextProvider";
 import { loadAudio } from "../utils/audioManager";
 import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
-import { BUCKET, s3 } from "../utils/awsConfig";
+import { bpmToSecondsPerLoop } from "../utils/timingUtils";
+import { useLoopSettings } from "../context/LoopSettingsContext";
+import CompactWaveform from "./CompactWaveform";
 import "../style/bankSample.css";
 
 export interface BankSampleProps {
@@ -20,7 +22,6 @@ export interface BankSampleProps {
 }
 
 const TOTAL_TRACK_WIDTH = 916;
-const DEFAULT_WAVEFORM_WIDTH = 220;
 const WAVEFORM_HEIGHT = 53;
 
 const BankSample: FC<BankSampleProps> = ({
@@ -32,6 +33,7 @@ const BankSample: FC<BankSampleProps> = ({
 }) => {
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
+
   const btnRef = useRef<HTMLButtonElement>(null);
   const audioContext = useAudioContext();
 
@@ -60,17 +62,16 @@ const BankSample: FC<BankSampleProps> = ({
     };
   }, [sample]);
 
-  const PIXELS_PER_SECOND = 80; // or whatever looks right visually
+  const { bpm, beatsPerLoop } = useLoopSettings();
+  const secsPerMeasure = bpmToSecondsPerLoop(bpm, beatsPerLoop);
 
-  const waveformWidth = Math.max(
-    1,
-    Math.min(
-      TOTAL_TRACK_WIDTH,
-      offset != null
-        ? Math.floor(duration * PIXELS_PER_SECOND)
-        : DEFAULT_WAVEFORM_WIDTH
-    )
-  );
+  const trackWidth = window.innerWidth; // or whatever looks right visually
+
+  const rawWidth = duration
+    ? Math.floor((duration / secsPerMeasure) * trackWidth)
+    : 0;
+
+  const waveformWidth = Math.max(1, Math.min(rawWidth, TOTAL_TRACK_WIDTH));
 
   const onDragStart = (e: DragEvent<HTMLButtonElement>) => {
     const rect = btnRef.current!.getBoundingClientRect();
@@ -132,7 +133,13 @@ const BankSample: FC<BankSampleProps> = ({
         width: `${waveformWidth}px`,
       }}
     >
-      <span>{sample.filename.replace(/\.\w+$/, "")}</span>
+      <span>
+        {sample.filename
+          .split("/")
+          .pop()
+          ?.replace(/\.\w+$/, "")
+          .replace(/[-_]/g, " ")}
+      </span>
       <div className="sample-type">{btnClass}</div>
       {audioBuffer && (
         <CompactWaveform
