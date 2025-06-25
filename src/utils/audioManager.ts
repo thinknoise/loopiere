@@ -38,7 +38,7 @@ const bufferCache: Map<string, AudioBuffer> = new Map();
 
 /**
  * Decode & cache a sample’s AudioBuffer.
- * @param sample - must have at least `path` or `url`, or an existing `buffer`
+ * @param sample - must have `path`, or an existing `buffer`
  */
 export async function getSampleBuffer(
   sample: BaseSample
@@ -63,12 +63,7 @@ export async function getSampleBuffer(
     }
   }
 
-  const cacheKey =
-    sample.type === "remote"
-      ? sample.url
-      : sample.type === "local" || sample.type === "aws"
-      ? sample.path
-      : null;
+  const cacheKey = sample.type === "aws" ? sample.path : null;
 
   if (cacheKey && bufferCache.has(cacheKey)) {
     sample.buffer = bufferCache.get(cacheKey)!;
@@ -76,18 +71,10 @@ export async function getSampleBuffer(
   }
 
   console.log("Decoding sample", sample.type);
-  const rawPath =
-    sample.type === "remote"
-      ? sample.url
-      : sample.type === "local" || sample.type === "aws"
-      ? sample.path
-      : null;
+  const rawPath = sample.type === "aws" ? sample.path : null;
 
   if (!rawPath) {
-    console.error(
-      "❌ getSampleBuffer: sample missing both url and path",
-      sample
-    );
+    console.error("❌ getSampleBuffer: sample missing path", sample);
     return null;
   }
 

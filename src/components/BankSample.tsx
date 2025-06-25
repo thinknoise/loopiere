@@ -15,7 +15,6 @@ export interface Sample {
   id?: string | number;
   filename: string;
   path?: string | null;
-  url?: string | null;
   buffer?: AudioBuffer | null;
   [key: string]: any;
 }
@@ -50,9 +49,9 @@ const BankSample: FC<BankSampleProps> = ({
       if (sample.buffer) {
         setAudioBuffer(sample.buffer);
         setDuration(sample.buffer.duration);
-      } else if (sample.url || sample.path) {
+      } else if (sample.path) {
         try {
-          const src = resolveSamplePath(sample.url || sample.path || "");
+          const src = resolveSamplePath(sample.path);
           const buf = await loadAudio(src);
           if (!cancelled) {
             setAudioBuffer(buf);

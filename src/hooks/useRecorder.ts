@@ -9,7 +9,7 @@ export interface UseRecorderResult {
   audioBuffer: AudioBuffer | null;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
-  getRecordedBlobURL: () => Promise<{ blob: Blob; url: string } | null>;
+  getRecordedBlobURL: () => Promise<{ blob: Blob; blobUrl: string } | null>;
   inputLevel: number;
 }
 
@@ -67,7 +67,7 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
 
   const getRecordedBlobURL = useCallback(async (): Promise<{
     blob: Blob;
-    url: string;
+    blobUrl: string;
   } | null> => {
     if (!audioBuffer) return null;
 
@@ -83,9 +83,9 @@ export function useRecorder(audioContext: AudioContext): UseRecorderResult {
 
     const renderedBuffer = await offlineCtx.startRendering();
     const wavBlob = audioBufferToWavBlob(renderedBuffer);
-    const url = URL.createObjectURL(wavBlob);
-
-    return { blob: wavBlob, url };
+    const blobUrl = URL.createObjectURL(wavBlob);
+    console.log("Recorded blob URL:", blobUrl);
+    return { blob: wavBlob, blobUrl };
   }, [audioBuffer]);
 
   function audioBufferToWavBlob(buffer: AudioBuffer): Blob {

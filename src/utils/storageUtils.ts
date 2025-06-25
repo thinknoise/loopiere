@@ -1,7 +1,7 @@
 // src/utils/storageUtils.ts
 
-import { getSampleBuffer } from "./audioManager";
 import type { TrackSampleType } from "../types/audio";
+import { getSampleBuffer } from "./audioManager";
 
 /**
  * Strip out the live AudioBuffer before serializing,
@@ -50,14 +50,9 @@ export function saveAllSamplesToLocalStorage(
   const serializedSamples = allSamples
     .map<SerializedSample | null>((sample) => {
       const isStatic =
-        sample.type === "local" &&
-        (("path" in sample &&
-          typeof sample.path === "string" &&
-          !sample.path.startsWith("blob:")) ||
-          ("url" in sample &&
-            typeof sample.url === "string" &&
-            !sample.url.startsWith("blob:")));
-
+        "path" in sample &&
+        typeof sample.path === "string" &&
+        !sample.path.startsWith("blob:");
       if (isStatic) {
         // meta only
         const { buffer, ...rest } = sample;

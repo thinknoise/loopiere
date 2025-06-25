@@ -26,15 +26,6 @@ export type AwsSampleType = SampleCore & {
 };
 
 /**
- * A sample sourced from the local project files.
- * Example: "samples/kick.wav"
- */
-export type LocalSample = SampleCore & {
-  type: "local";
-  path: string;
-};
-
-/**
  * A sample recorded in-browser by the user.
  * Uses a blob URL for preview and stores the blob itself.
  */
@@ -49,22 +40,10 @@ export type RecordingSample = SampleCore & {
 };
 
 /**
- * A sample hosted remotely, such as from an S3 bucket.
- */
-export type RemoteSample = SampleCore & {
-  type: "remote";
-  url: string;
-};
-
-/**
  * Union of all sample source types.
  * Represents an audio source regardless of where it came from.
  */
-export type BaseSample =
-  | LocalSample
-  | RecordingSample
-  | RemoteSample
-  | AwsSampleType;
+export type BaseSample = RecordingSample | AwsSampleType;
 
 /**
  * A sample placed on a track at a specific time/location.

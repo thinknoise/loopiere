@@ -41,15 +41,15 @@ const BankRecorder: React.FC<BankRecorderProps> = ({
     (async () => {
       const result = await getRecordedBlobURL();
       if (!result) return;
-      const { blob, url } = result;
+      const { blob, blobUrl } = result;
       setRecordings((prevRecordings) => {
         const filename = `Recording${prevRecordings.length + 1}`;
         const date = new Date().toISOString().split("T")[0];
         const newRecording: RecordingSample = {
           id: Date.now(),
           type: "recording",
-          blobUrl: url,
-          blob: blob,
+          blobUrl,
+          blob,
           filename,
           title: `${filename} ${date}`,
           duration: audioBuffer.duration,
