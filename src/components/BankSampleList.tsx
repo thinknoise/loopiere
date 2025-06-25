@@ -8,7 +8,7 @@ import { s3, BUCKET } from "../utils/awsConfig";
 import { addSampleToRegistry } from "../utils/sampleRegistry";
 
 import BankSample from "./BankSample";
-import BankRecordingList from "./BankRecordingList";
+import BankRecorder from "./BankRecorder";
 
 import "../style/bankTab.css";
 
@@ -107,7 +107,7 @@ const BankSampleList: FC = () => {
             }}
           />
         ))}
-        <BankRecordingList fetchBankDirectories={fetchBankDirectories} />
+        <BankRecorder fetchBankDirectories={fetchBankDirectories} />
       </div>
     </div>
   );
