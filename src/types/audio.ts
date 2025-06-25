@@ -16,8 +16,12 @@ export interface SampleCore {
 }
 
 /**
- * A sample sourced from the local project files.
- * Example: "samples/kick.wav"
+ * A sample stored in AWS S3.
+ * Contains metadata about the S3 path and optional key.
+ * Used for samples uploaded to the cloud.
+ * The `path` is the S3 URL or relative path to the sample.
+ * The `s3Key` is the S3 object key if different from the path.
+ * This is used to reference samples stored in S3.
  */
 export type AwsSampleType = SampleCore & {
   type: "aws";
@@ -26,8 +30,13 @@ export type AwsSampleType = SampleCore & {
 };
 
 /**
- * A sample recorded in-browser by the user.
- * Uses a blob URL for preview and stores the blob itself.
+ * A recorded sample: full PCM dump.
+ * Contains metadata about the recording, including the blob URL.
+ * The `blob` is the raw audio data, and `blobUrl` is a URL to access it.
+ * The `recordedAt` field indicates when the recording was made.
+ * The `s3Key` and `s3Url` are optional fields for cloud storage.
+ * The `name` field is an optional human-readable name for the recording.
+ * This type is used for samples created through the recording feature.
  */
 export type RecordingSample = SampleCore & {
   type: "recording";
