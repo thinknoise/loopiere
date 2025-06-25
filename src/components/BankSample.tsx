@@ -10,6 +10,7 @@ import { resumeAudioContext } from "../utils/audioContextSetup";
 import { resolveSamplePath } from "../utils/resolveSamplePath";
 import { BUCKET, REGION, s3 } from "../utils/awsConfig";
 import "../style/bankSample.css";
+import type { BaseSample } from "../types/audio";
 
 export interface Sample {
   id?: string | number;
@@ -20,7 +21,7 @@ export interface Sample {
 }
 
 export interface BankSampleProps {
-  sample: Sample;
+  sample: BaseSample;
   offset?: number;
   btnClass?: string;
   onRemove?: (id: string | number) => void;
@@ -49,7 +50,7 @@ const BankSample: FC<BankSampleProps> = ({
       if (sample.buffer) {
         setAudioBuffer(sample.buffer);
         setDuration(sample.buffer.duration);
-      } else if (sample.path) {
+      } else if (sample.type === "aws" && sample.path) {
         try {
           const src = resolveSamplePath(sample.path);
           const buf = await loadAudio(src);

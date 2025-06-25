@@ -36,7 +36,7 @@ type SerializedSample = SerializedFileSample | SerializedPCMSample;
 
 /**
  * Serialize sample metadata (and recorded PCM) to localStorage.
- * For file-based samples (with path or url), only metadata is saved.
+ * For file-based samples (with path), only metadata is saved.
  * @param allSamples - array of TrackSample (may include recorded or file-based samples)
  * @param bpm - beats per minute to persist alongside samples
  * @param trackNumber

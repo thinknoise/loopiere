@@ -69,8 +69,6 @@ export async function getSampleBuffer(
     sample.buffer = bufferCache.get(cacheKey)!;
     return sample.buffer;
   }
-
-  console.log("Decoding sample", sample.type);
   const rawPath = sample.type === "aws" ? sample.path : null;
 
   if (!rawPath) {
