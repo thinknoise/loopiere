@@ -10,10 +10,13 @@ import {
   PiCloudSlashDuotone,
 } from "react-icons/pi";
 import { Box, IconButton, Slider } from "@mui/material";
+
+import type { TrackSampleType } from "@/types/audio";
+
 import { useLoopSettings } from "../context/LoopSettingsContext";
 import { useTrackAudioStateContext } from "../context/TrackAudioStateContext";
 
-import useAudioPlayback, { PlaybackSample } from "../hooks/useAudioPlayback";
+import useAudioPlayback from "../hooks/useAudioPlayback";
 import useTransport from "../hooks/useTransport";
 
 import { useTrackSampleStore } from "../stores/trackSampleStore";
@@ -38,8 +41,10 @@ const LoopControls: FC = memo(() => {
   const emptyTracks: boolean = allSamples.length === 0;
 
   const getPlacedSamples = useCallback(
-    (): PlaybackSample[] =>
-      allSamples.filter((s): s is PlaybackSample => typeof s.xPos === "number"),
+    (): TrackSampleType[] =>
+      allSamples.filter(
+        (sample): sample is TrackSampleType => typeof sample.xPos === "number"
+      ),
     [allSamples]
   );
 

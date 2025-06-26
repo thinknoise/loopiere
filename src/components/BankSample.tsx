@@ -56,11 +56,14 @@ const BankSample: FC<BankSampleProps> = ({
         }
       }
     }
+    console.log("Fetching sample buffer for:", sample, duration);
+    sample.trimEnd = duration; // need to be able to trim with interface
+    sample.trimStart = sample.trimStart ?? 0;
     fetchBuffer();
     return () => {
       cancelled = true;
     };
-  }, [sample]);
+  }, [duration, sample]);
 
   const { bpm, beatsPerLoop } = useLoopSettings();
   const secsPerMeasure = bpmToSecondsPerLoop(bpm, beatsPerLoop);
@@ -179,6 +182,9 @@ const BankSample: FC<BankSampleProps> = ({
           aria-label="Remove sample"
         />
       )}
+      <div className="sample-duration">
+        {audioBuffer ? audioBuffer.duration.toFixed(2) : "0.00"}s
+      </div>
     </button>
   );
 };

@@ -33,6 +33,28 @@ const BankSampleList: FC = () => {
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
 
+  const fetchBankDirectories = async () => {
+    try {
+      const directories = await listBanksDirectories();
+      const folders = new Set<string>();
+
+      for (const key of directories) {
+        if (key.endsWith("/")) continue; // skip folder markers
+        const [folder] = key.split("/");
+        if (folder) folders.add(folder);
+      }
+
+      setBankFilenames([...folders]);
+      setAwsKeys(directories);
+    } catch (err) {
+      console.error("Error listing bank directories:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBankDirectories(); // fire it once on mount
+  }, []);
+
   const spawnSamples = useCallback(
     (folder: string) => {
       // console.log("Spawning samples for folder:", folder);
@@ -56,28 +78,6 @@ const BankSampleList: FC = () => {
     },
     [awsKeys]
   );
-
-  const fetchBankDirectories = async () => {
-    try {
-      const directories = await listBanksDirectories();
-      const folders = new Set<string>();
-
-      for (const key of directories) {
-        if (key.endsWith("/")) continue; // skip folder markers
-        const [folder] = key.split("/");
-        if (folder) folders.add(folder);
-      }
-
-      setBankFilenames([...folders]);
-      setAwsKeys(directories);
-    } catch (err) {
-      console.error("Error listing bank directories:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchBankDirectories(); // fire it once on mount
-  }, []);
 
   useEffect(() => {
     // console.log("Spawning samples for bank:", bankSelection);

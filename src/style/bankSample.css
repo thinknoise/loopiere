@@ -129,3 +129,13 @@
 .error-message span {
   font-weight: bold;
 }
+
+
+.sample-duration {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 2px 5px;
+  font-size: x-small;
+  background-color: rgba(1, 88, 118, 0.5);
+}
