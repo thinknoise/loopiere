@@ -61,8 +61,12 @@ const BankSampleList: FC = () => {
       const samples = awsKeys
         .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
         .map((key, idx): AwsSampleType => {
-          const filename = key.split("/").pop() ?? "Untitled";
-          const title = filename.replace(/\.[^/.]+$/, "");
+          const title =
+            key
+              .split("/")
+              .pop()
+              ?.replace(/\.\w+$/, "")
+              .replace(/[-_]/g, " ") ?? "Untitled";
           const sample: BaseSample = {
             id: Date.now() + idx,
             filename: key,

@@ -34,7 +34,7 @@ const BankSample: FC<BankSampleProps> = ({
   const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
   const [duration, setDuration] = useState<number>(0);
 
-  const btnRef = useRef<HTMLButtonElement>(null);
+  const btnRef = useRef<HTMLDivElement>(null);
   const audioContext = useAudioContext();
 
   useEffect(() => {
@@ -76,7 +76,41 @@ const BankSample: FC<BankSampleProps> = ({
 
   const waveformWidth = Math.max(1, Math.min(rawWidth, TOTAL_TRACK_WIDTH));
 
-  const onDragStart = (e: DragEvent<HTMLButtonElement>) => {
+  const [durationOffsetX, setDurationOffsetX] = useState(0);
+  const [isDraggingDuration, setIsDraggingDuration] = useState(false);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingDuration || !btnRef.current) return;
+
+      const containerRect = btnRef.current.getBoundingClientRect();
+      const newX = e.clientX - containerRect.left;
+
+      // Clamp to bounds
+      const clampedX = Math.max(0, Math.min(containerRect.width, newX));
+      setDurationOffsetX(clampedX);
+    };
+
+    const handleMouseUp = () => {
+      if (isDraggingDuration) {
+        setIsDraggingDuration(false);
+      }
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingDuration]);
+
+  const onDragStart = (e: DragEvent<HTMLDivElement>) => {
+    if (isDraggingDuration) {
+      e.preventDefault();
+      return;
+    }
     const rect = btnRef.current!.getBoundingClientRect();
     const xDragOffset = e.clientX - rect.left;
     e.dataTransfer.setData(
@@ -84,6 +118,28 @@ const BankSample: FC<BankSampleProps> = ({
       JSON.stringify({ id: sample.id, xDragOffset })
     );
   };
+
+  function handleRemoveClick(
+    e: React.MouseEvent<HTMLSpanElement>,
+    sample: BaseSample,
+    onRemove?: (id: string | number) => void
+  ) {
+    e.stopPropagation();
+
+    if (sample.id === undefined) return;
+
+    if (sample.type === "aws" && sample.filename) {
+      console.log("Trying to delete sample:", sample);
+      deleteSampleFromS3AndRegistry(sample.filename).then((success) => {
+        if (success && onRemove) {
+          console.log("Sample deleted successfully:", sample.id);
+          onRemove(sample.id!);
+        }
+      });
+    } else if (onRemove) {
+      onRemove(sample.id!);
+    }
+  }
 
   const onClickAudioClip = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation(); // Prevent playback on parent button
@@ -125,67 +181,48 @@ const BankSample: FC<BankSampleProps> = ({
   }
 
   return (
-    <button
+    <div
       ref={btnRef}
       draggable
       onDragStart={onDragStart}
-      onClick={onClickAudioClip}
-      className={`bank-sample-btn ${btnClass}`}
+      className={`bank-sample-container ${btnClass}`} // keep same styling as before
       style={{
         left: offset != null ? `${offset}px` : undefined,
         width: `${waveformWidth}px`,
       }}
     >
-      <span>
-        {sample.filename
-          .split("/")
-          .pop()
-          ?.replace(/\.\w+$/, "")
-          .replace(/[-_]/g, " ")}
-      </span>
-      <div className="sample-type">{btnClass}</div>
-      {audioBuffer && (
-        <CompactWaveform
-          buffer={audioBuffer}
-          width={waveformWidth}
-          height={WAVEFORM_HEIGHT}
-        />
-      )}
-      {onRemove && (
-        <span
-          className="remove-sample-btn"
-          onClick={(e: React.MouseEvent<HTMLSpanElement>) => {
-            e.stopPropagation(); // Prevent playback on parent button
-            if (sample.id !== undefined) {
-              onRemove(sample.id);
-            }
-          }}
-          role="button"
-          aria-label="Remove sample"
-        />
-      )}
-      {sample.type === "aws" && (
-        <span
-          className="remove-sample-btn aws"
-          onClick={() => {
-            console.log("Trying to delete sample:", sample);
+      <button className="bank-sample-btn" onClick={onClickAudioClip}>
+        <div className="sample-type">{btnClass}</div>
+        {audioBuffer && (
+          <CompactWaveform
+            buffer={audioBuffer}
+            width={waveformWidth}
+            height={WAVEFORM_HEIGHT}
+          />
+        )}
+      </button>
+      <span
+        className={`remove-sample-btn ${sample.type}`}
+        onClick={(e) => handleRemoveClick(e, sample, onRemove)}
+        role="button"
+        aria-label="Remove sample"
+      />
 
-            if (sample.filename) {
-              deleteSampleFromS3AndRegistry(sample.filename).then((success) => {
-                if (success && onRemove && sample.id !== undefined) {
-                  onRemove(sample.id);
-                }
-              });
-            }
-          }}
-          role="button"
-          aria-label="Remove sample"
-        />
-      )}
-      <div className="sample-duration">
+      <span className="sample-title">{sample.title}</span>
+      <div
+        className="sample-duration"
+        draggable={false}
+        onMouseDown={(e) => {
+          e.stopPropagation();
+          setIsDraggingDuration(true);
+        }}
+        style={{
+          left: `${durationOffsetX}px`,
+        }}
+      >
         {audioBuffer ? audioBuffer.duration.toFixed(2) : "0.00"}s
       </div>
-    </button>
+    </div>
   );
 };
 

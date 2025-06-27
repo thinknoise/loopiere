@@ -3,14 +3,22 @@
   margin: 0px;
   background-color: #333;
   margin: auto;
-  padding: 0 0 30px 60px;
+  padding: 10px 0 30px 60px;
   min-height: 221px;
 }
 
-.bank-sample-btn {
+.bank-sample-container {
   position: relative;
-  padding: 0;
+  display: inline-block;
   margin: 15px 10px;
+
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.bank-sample-btn {
+  padding: 0;
   border-radius: 3px;
   background-color: rgba(83, 180, 253, 0.83);
   overflow: hidden;
@@ -53,8 +61,8 @@
   position: absolute;
   top: 0;
   left: 0;
-  width: 7px;
-  height: 11px;
+  width: 15px;
+  height: 15px;
   background-color: #333;
   /* Dark background for contrast */
   z-index: 13;
@@ -62,19 +70,19 @@
 }
 
 .remove-sample-btn.aws {
-  background-color: #58618d;
+  background-color: #840000;
   opacity: 0.8;
 }
 
 .remove-sample-btn:after {
   position: absolute;
   top: 0;
-  left: 4px;
+  left: 2px;
   /* Center the X */
   content: "\2716";
   /* Unicode for the "X" symbol */
   font-size: 12px;
-  color: #bbb;
+  color: #ffffff;
   text-align: center;
 }
 
@@ -95,7 +103,16 @@
 .recording-sample-btn:hover {
   background-color: rgba(184, 184, 184, 0.83);
   margin: 0;
+}
 
+.sample-title {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 2px 5px;
+  font-size: x-small;
+  background-color: rgba(1, 88, 118, 0.5);
+  color: white;
 }
 
 .save-upload-button {
@@ -133,9 +150,12 @@
 
 .sample-duration {
   position: absolute;
+  top: 0;
+  cursor: ew-resize;
   bottom: 0;
   right: 0;
   padding: 2px 5px;
+  color: #fff;
   font-size: x-small;
   background-color: rgba(1, 88, 118, 0.5);
 }
