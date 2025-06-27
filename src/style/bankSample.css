@@ -155,6 +155,8 @@
   bottom: 0;
   right: 0;
   padding: 2px 5px;
+  display: flex;
+  align-items: flex-end;
   color: #fff;
   font-size: x-small;
   background-color: rgba(1, 88, 118, 0.5);

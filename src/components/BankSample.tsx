@@ -85,9 +85,11 @@ const BankSample: FC<BankSampleProps> = ({
 
       const containerRect = btnRef.current.getBoundingClientRect();
       const newX = e.clientX - containerRect.left;
-
       // Clamp to bounds
       const clampedX = Math.max(0, Math.min(containerRect.width, newX));
+      const trimEndPercent = Math.abs(clampedX / containerRect.width - 1);
+      console.log("trimEndPercent:", trimEndPercent);
+      sample.trimEnd = duration * trimEndPercent;
       setDurationOffsetX(clampedX);
     };
 
