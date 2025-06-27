@@ -33,30 +33,6 @@ const BankSampleList: FC = () => {
   const [bankFilenames, setBankFilenames] = useState<string[]>([]);
   const [awsKeys, setAwsKeys] = useState<string[]>([]);
 
-  const spawnSamples = useCallback(
-    (folder: string) => {
-      // console.log("Spawning samples for folder:", folder);
-      const samples = awsKeys
-        .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
-        .map((key, idx): AwsSampleType => {
-          const filename = key.split("/").pop() ?? "Untitled";
-          const title = filename.replace(/\.[^/.]+$/, "");
-          const sample: BaseSample = {
-            id: Date.now() + idx,
-            filename: key,
-            title,
-            type: "aws", // was local, but now we are using AWS
-            path: key,
-          };
-          addSampleToRegistry(sample);
-          return sample;
-        });
-
-      setBankSamples(samples);
-    },
-    [awsKeys]
-  );
-
   const fetchBankDirectories = async () => {
     try {
       const directories = await listBanksDirectories();
@@ -78,6 +54,34 @@ const BankSampleList: FC = () => {
   useEffect(() => {
     fetchBankDirectories(); // fire it once on mount
   }, []);
+
+  const spawnSamples = useCallback(
+    (folder: string) => {
+      // console.log("Spawning samples for folder:", folder);
+      const samples = awsKeys
+        .filter((key) => key.startsWith(`${folder}/`) && key.endsWith(".wav"))
+        .map((key, idx): AwsSampleType => {
+          const title =
+            key
+              .split("/")
+              .pop()
+              ?.replace(/\.\w+$/, "")
+              .replace(/[-_]/g, " ") ?? "Untitled";
+          const sample: BaseSample = {
+            id: Date.now() + idx,
+            filename: key,
+            title,
+            type: "aws", // was local, but now we are using AWS
+            path: key,
+          };
+          addSampleToRegistry(sample);
+          return sample;
+        });
+
+      setBankSamples(samples);
+    },
+    [awsKeys]
+  );
 
   useEffect(() => {
     // console.log("Spawning samples for bank:", bankSelection);

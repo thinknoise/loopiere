@@ -10,11 +10,6 @@ import {
 import { useLoopSettings } from "../context/LoopSettingsContext";
 
 /**
- * Alias for playback sample — identical to TrackSample since xPos is core.
- */
-export type PlaybackSample = TrackSampleType;
-
-/**
  * Shapes the shared audio-node state for each track,
  * including volume, pan, filters.
  */
@@ -49,7 +44,7 @@ export interface TrackAudioStateParams {
  */
 export interface UseAudioPlaybackResult {
   playNow(
-    samples: PlaybackSample[],
+    samples: TrackSampleType[],
     bpm: number,
     trackAudioState: TrackAudioStateParams
   ): Promise<void>;
@@ -64,7 +59,7 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
   // ─── playNow: schedule n-Beats Per Loop ───────────────────────────
   const playNow = useCallback(
     async (
-      samples: PlaybackSample[],
+      samples: TrackSampleType[],
       bpm: number,
       trackAudioState: TrackAudioStateParams
     ) => {
@@ -144,7 +139,15 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
           lowpassNode.disconnect();
         } catch {}
 
+        // ─── per-sample gain for envelope ─────────────────
+        const sampleGainNode = audioContext.createGain();
+        sampleGainNode.gain.setValueAtTime(1, startTime); // full volume
+
+        // build node chain
         let currentNode: AudioNode = src;
+
+        currentNode.connect(sampleGainNode);
+        currentNode = sampleGainNode;
 
         currentNode.connect(gainNode);
         currentNode = gainNode;
@@ -165,9 +168,22 @@ export default function useAudioPlayback(): UseAudioPlaybackResult {
 
         currentNode.connect(audioContext.destination);
 
-        // schedule start/stop
-        src.start(startTime + offset);
-        src.stop(startTime + offset + loopLength);
+        const samplePlaylength =
+          sample.trimEnd || buffer?.duration || loopLength;
+        // schedule start/stop of each sample
+        const playStart = startTime + offset;
+        const playEnd = playStart + samplePlaylength;
+        const fadeTime = 0.01; // 10ms fade-out
+
+        // Ensure gainNode is set up before this
+        sampleGainNode.gain.setValueAtTime(
+          trackAudioState.gains?.[trackId] ?? 1,
+          playStart
+        );
+        sampleGainNode.gain.linearRampToValueAtTime(0, playEnd - fadeTime); // fade to 0 shortly before stop
+
+        src.start(playStart);
+        src.stop(playEnd);
 
         return src;
       });
